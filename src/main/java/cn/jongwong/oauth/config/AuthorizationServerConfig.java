@@ -1,5 +1,7 @@
-package cn.jonwong.auth;
+package cn.jongwong.oauth.config;
 
+
+import cn.jongwong.oauth.service.UserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +54,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .accessTokenValiditySeconds(7200)
                 .scopes("all")
                 .autoApprove(false)
-                .redirectUris("http://127.0.0.1:9091/app2/login");
+                .redirectUris("http://localhost:9091/app2/login");
     }
 
     @Override

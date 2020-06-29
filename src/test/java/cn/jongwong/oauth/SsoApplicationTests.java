@@ -1,4 +1,4 @@
-package cn.jonwong.auth;
+package cn.jongwong.oauth;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

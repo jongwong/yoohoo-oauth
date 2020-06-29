@@ -1,4 +1,4 @@
-package cn.jonwong.auth;
+package cn.jongwong.oauth.entity;
 
 import lombok.Getter;
 import lombok.Setter;

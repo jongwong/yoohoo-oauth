@@ -1,7 +1,8 @@
 /**
- * 
+ *
  */
 package cn.jongwong.oauth.validate.code;
+
 import cn.jongwong.oauth.properties.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,27 +20,22 @@ import javax.servlet.http.HttpServletResponse;
 @RestController
 public class ValidateCodeController {
 
-	@Autowired
-	private ValidateCodeProcessorHolder validateCodeProcessorHolder;
+    @Autowired
+    private ValidateCodeProcessorHolder validateCodeProcessorHolder;
 
-	/**
-	 * 创建验证码，根据验证码类型不同，调用不同的 {@link ValidateCodeProcessor}接口实现
-	 * 
-	 * @param request
-	 * @param response
-	 * @param type
-	 * @throws Exception
-	 */
-	@GetMapping(SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/{type}")
-	public void createCode(HttpServletRequest request, HttpServletResponse response, @PathVariable String type)
-			throws Exception {
-		validateCodeProcessorHolder.findValidateCodeProcessor(type).create(new ServletWebRequest(request, response));
-	}
-
-//	@GetMapping("/code/{type}")
-//	public void authrizeSms(HttpServletRequest request, HttpServletResponse response, @PathVariable String type)
-//			throws Exception {
-////		validateCodeProcessorHolder.findValidateCodeProcessor(type).create(new ServletWebRequest(request, response));
-//	}
+    /**
+     * 创建验证码，根据验证码类型不同，调用不同的 {@link ValidateCodeProcessor}接口实现
+     *
+     * @param request
+     * @param response
+     * @param type
+     * @throws Exception
+     */
+    @GetMapping(SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/{type}")
+    public void createCode(HttpServletRequest request, HttpServletResponse response, @PathVariable String type)
+            throws Exception {
+        validateCodeProcessorHolder.findValidateCodeProcessor(type).create(new ServletWebRequest(request, response));
+    }
+	
 
 }

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package cn.jongwong.oauth.validate.code;
 
@@ -19,22 +19,22 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class ValidateCodeBeanConfig {
-	
-	@Autowired
-	private SecurityProperties securityProperties;
-	
-	@Bean
-	@ConditionalOnMissingBean(name = "imageValidateCodeGenerator")
-	public ValidateCodeGenerator imageValidateCodeGenerator() {
-		ImageCodeGenerator codeGenerator = new ImageCodeGenerator();
-		codeGenerator.setSecurityProperties(securityProperties);
-		return codeGenerator;
-	}
-	
-	@Bean
-	@ConditionalOnMissingBean(SmsCodeSender.class)
-	public SmsCodeSender smsCodeSender() {
-		return new DefaultSmsCodeSender();
-	}
+
+    @Autowired
+    private SecurityProperties securityProperties;
+
+    @Bean
+    @ConditionalOnMissingBean(name = "imageValidateCodeGenerator")
+    public ValidateCodeGenerator imageValidateCodeGenerator() {
+        ImageCodeGenerator codeGenerator = new ImageCodeGenerator();
+        codeGenerator.setSecurityProperties(securityProperties);
+        return codeGenerator;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(SmsCodeSender.class)
+    public SmsCodeSender smsCodeSender() {
+        return new DefaultSmsCodeSender();
+    }
 
 }

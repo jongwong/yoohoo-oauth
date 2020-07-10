@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package cn.jongwong.oauth.validate.code.sms;
 
@@ -8,7 +8,7 @@ package cn.jongwong.oauth.validate.code.sms;
  *
  */
 public interface SmsCodeSender {
-	
-	void send(String mobile, String code);
+
+    void send(String mobile, String code);
 
 }

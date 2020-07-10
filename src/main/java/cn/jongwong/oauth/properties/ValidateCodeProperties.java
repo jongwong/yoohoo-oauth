@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package cn.jongwong.oauth.properties;
 
@@ -8,25 +8,25 @@ package cn.jongwong.oauth.properties;
  *
  */
 public class ValidateCodeProperties {
-	
-	private ImageCodeProperties image = new ImageCodeProperties();
-	
-	private SmsCodeProperties sms = new SmsCodeProperties();
 
-	public ImageCodeProperties getImage() {
-		return image; 
-	}
+    private ImageCodeProperties image = new ImageCodeProperties();
 
-	public void setImage(ImageCodeProperties image) {
-		this.image = image;
-	}
+    private SmsCodeProperties sms = new SmsCodeProperties();
 
-	public SmsCodeProperties getSms() {
-		return sms;
-	}
+    public ImageCodeProperties getImage() {
+        return image;
+    }
 
-	public void setSms(SmsCodeProperties sms) {
-		this.sms = sms;
-	}
-	
+    public void setImage(ImageCodeProperties image) {
+        this.image = image;
+    }
+
+    public SmsCodeProperties getSms() {
+        return sms;
+    }
+
+    public void setSms(SmsCodeProperties sms) {
+        this.sms = sms;
+    }
+
 }

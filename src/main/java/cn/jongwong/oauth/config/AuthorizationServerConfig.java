@@ -42,11 +42,11 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     private AuthenticationManager authenticationManager;
 
 
-
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private UserDetailService userDetailService;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -76,7 +76,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         clients.inMemory()
                 .withClient("app")
                 .secret(passwordEncoder.encode("app"))
-                .authorizedGrantTypes("custom","refresh_token", "authorization_code","password")
+                .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
                 .accessTokenValiditySeconds(3600)
                 .scopes("all")
                 .redirectUris("http://www.baidu.com");
@@ -106,6 +106,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         tokenGranters.add(new ResourceOwnerPasswordTokenGranter(authenticationManager, tokenServices,
                 clientDetails, requestFactory));
         tokenGranters.add(new CustomTokenGranter(authenticationManager, tokenServices,
+                clientDetails, requestFactory));
+        tokenGranters.add(new SmsTokenGranter(authenticationManager, tokenServices,
                 clientDetails, requestFactory));
         return new CompositeTokenGranter(tokenGranters);
     }

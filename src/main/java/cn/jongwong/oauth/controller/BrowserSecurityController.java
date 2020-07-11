@@ -1,15 +1,20 @@
 package cn.jongwong.oauth.controller;
 
+
+import cn.jongwong.oauth.entity.SmsRequestBody;
+import cn.jongwong.oauth.properties.SecurityConstants;
+import cn.jongwong.oauth.validate.code.ValidateCode;
+import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,4 +40,26 @@ public class BrowserSecurityController {
         }
         return "访问的资源需要身份认证！";
     }
+
+
+    @Autowired
+    private ValidateCodeProcessorHolder validateCodeProcessorHolder;
+
+
+    @GetMapping(SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/{type}")
+    public ValidateCode createCode(HttpServletRequest request, HttpServletResponse response, @PathVariable String type)
+            throws Exception {
+        ValidateCode xx = validateCodeProcessorHolder.findValidateCodeProcessor(type).create(new ServletWebRequest(request, response));
+        return xx;
+    }
+
+    @PostMapping("/code/test")
+    public String test(HttpServletRequest request, HttpServletResponse response, @RequestBody SmsRequestBody body) {
+        System.out.println(body);
+        validateCodeProcessorHolder.findValidateCodeProcessor("sms").validate(new ServletWebRequest(request, response));
+        return "5555";
+    }
+
+    ;
+
 }

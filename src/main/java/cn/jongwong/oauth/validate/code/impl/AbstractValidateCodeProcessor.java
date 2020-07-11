@@ -24,12 +24,13 @@ public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> impl
     private Map<String, ValidateCodeGenerator> validateCodeGenerators;
 
     @Override
-    public void create(ServletWebRequest request) throws Exception {
+    public ValidateCode create(ServletWebRequest request) throws Exception {
         C validateCode = generate(request);
         // TODO: 保存code
         save(request, validateCode);
         // TODO: 发送code
         send(request, validateCode);
+        return validateCode;
     }
 
     /**
@@ -59,15 +60,6 @@ public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> impl
         // TODO: 保存code
     }
 
-    /**
-     * 构建验证码放入session时的key
-     *
-     * @param request
-     * @return
-     */
-    private String getSessionKey(ServletWebRequest request) {
-        return SESSION_KEY_PREFIX + getValidateCodeType(request).toString().toUpperCase();
-    }
 
     /**
      * 发送校验码，由子类实现
@@ -84,18 +76,13 @@ public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> impl
      * @param request
      * @return
      */
-    private ValidateCodeType getValidateCodeType(ServletWebRequest request) {
+    protected ValidateCodeType getValidateCodeType(ServletWebRequest request) {
         String type = StringUtils.substringBefore(getClass().getSimpleName(), "CodeProcessor");
         return ValidateCodeType.valueOf(type.toUpperCase());
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public void validate(ServletWebRequest request) {
-
-        // TODO: 查找code
-        // TODO: 验证code
-        // TODO: 移除code
-    }
+    public abstract void validate(ServletWebRequest request);
 
 }
+

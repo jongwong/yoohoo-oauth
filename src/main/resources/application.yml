@@ -3,6 +3,18 @@ server:
 
 
 spring:
+  redis:
+    port: 6379
+    database: 0
+    host: 39.101.166.92
+    password: wwwwww
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 20
+        min-idle: 0
+    timeout: 10000
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/rbac?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
@@ -56,3 +68,7 @@ mybatis-plus:
   #实体扫描，多个package用逗号或者分号分隔
   typeAliasesPackage: cn.jongwong.oauth.entity
   type-enums-package: cn.jongwong.oauth.enums
+
+
+
+

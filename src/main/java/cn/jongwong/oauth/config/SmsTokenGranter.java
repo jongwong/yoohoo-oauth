@@ -1,6 +1,6 @@
 package cn.jongwong.oauth.config;
 
-import cn.jongwong.oauth.common.util.RedisUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,8 +15,6 @@ import java.util.Map;
 
 public class SmsTokenGranter extends AbstractTokenGranter {
 
-    @Autowired
-    private RedisUtil redisUtil;
 
     private static final String GRANT_TYPE = "authorization_sms";
     private final AuthenticationManager authenticationManager;
@@ -33,10 +31,6 @@ public class SmsTokenGranter extends AbstractTokenGranter {
     protected OAuth2Authentication getOAuth2Authentication(ClientDetails client, TokenRequest tokenRequest) {
         Map<String, String> parameters = tokenRequest.getRequestParameters();
 
-
-        String authorizationCode = (String) parameters.get("code");
-
-        Object test = redisUtil.get("test");
 
         String email = parameters.getOrDefault("username", "guest");
         // TODO: do something...

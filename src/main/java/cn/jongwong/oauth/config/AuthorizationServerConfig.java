@@ -41,11 +41,16 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private UserDetailService userDetailService;
+
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+
     @Autowired
-    private UserDetailService userDetailService;
+    RedisAuthorizationCodeServices redisAuthorizationCodeServices;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -88,6 +93,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authenticationManager(authenticationManager)
                 .tokenStore(jwtTokenStore())
                 .accessTokenConverter(jwtAccessTokenConverter())
+                .authorizationCodeServices(redisAuthorizationCodeServices)
                 .userDetailsService(userDetailService).tokenGranter(tokenGranter(endpoints));
     }
 

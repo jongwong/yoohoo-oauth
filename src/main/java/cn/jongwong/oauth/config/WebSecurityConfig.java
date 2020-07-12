@@ -31,7 +31,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl("/login") // 处理表单登录 URL
                 .and()
                 .authorizeRequests() // 授权配置
-                .antMatchers("/authentication/require", "/login.html", "/code/*").permitAll() // 登录跳转 URL 无需认证
+                .antMatchers("/authentication/require", "/login.html", "/code/*", "/authorize/sms").permitAll() // 登录跳转 URL 无需认证
                 .anyRequest()  // 所有请求
                 .authenticated() // 都需要认证
                 .and().csrf().disable();

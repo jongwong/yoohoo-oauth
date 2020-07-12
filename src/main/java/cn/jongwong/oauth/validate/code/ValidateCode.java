@@ -3,25 +3,38 @@
  */
 package cn.jongwong.oauth.validate.code;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 
 /**
  * @author zhailiang
  *
  */
-public class ValidateCode {
+public class ValidateCode implements Serializable {
 
+    private String id;
     private String code;
 
     private LocalDateTime expireTime;
 
+
+    public String getId() {
+        return this.id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
     public ValidateCode(String code, int expireIn) {
+        this.id = UUID.randomUUID().toString();
         this.code = code;
         this.expireTime = LocalDateTime.now().plusSeconds(expireIn);
     }
 
     public ValidateCode(String code, LocalDateTime expireTime) {
+        this.id = UUID.randomUUID().toString();
         this.code = code;
         this.expireTime = expireTime;
     }

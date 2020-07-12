@@ -1,22 +1,34 @@
-/**
- *
- */
+
 package cn.jongwong.oauth.validate.code.impl;
 
 
 import cn.jongwong.oauth.validate.code.*;
+import com.baomidou.mybatisplus.core.toolkit.Assert;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.oauth2.provider.token.store.redis.JdkSerializationStrategy;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> implements ValidateCodeProcessor {
 
 
+    protected String prefix = "validate_code:";
+
+    protected final RedisTemplate<String, Object> redisTemplate;
+
+    protected final JdkSerializationStrategy serializationStrategy = new JdkSerializationStrategy();
+
+    public AbstractValidateCodeProcessor(RedisTemplate redisTemplate) {
+        Assert.notNull(redisTemplate, "redis connection factory required");
+        this.redisTemplate = redisTemplate;
+    }
     /**
      * 收集系统中所有的 {@link ValidateCodeGenerator} 接口的实现。
      */
@@ -56,9 +68,7 @@ public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> impl
      * @param request
      * @param validateCode
      */
-    private void save(ServletWebRequest request, C validateCode) {
-        // TODO: 保存code
-    }
+    protected abstract void save(ServletWebRequest request, C validateCode) throws ServletRequestBindingException;
 
 
     /**
@@ -81,8 +91,13 @@ public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> impl
         return ValidateCodeType.valueOf(type.toUpperCase());
     }
 
+    protected ValidateCodeType getValidateCodeType() {
+        String type = StringUtils.substringBefore(getClass().getSimpleName(), "CodeProcessor");
+        return ValidateCodeType.valueOf(type.toUpperCase());
+    }
+
     @SuppressWarnings("unchecked")
-    public abstract void validate(ServletWebRequest request);
+    public abstract Boolean validate(Map<String, String> params);
 
 }
 

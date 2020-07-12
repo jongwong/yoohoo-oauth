@@ -20,4 +20,10 @@ public class User implements Serializable {
     private String username;
     @TableField(value = "avatar", exist = true)
     private String avatar;
+    @TableField(value = "expired")
+    private String expired;
+    @TableField(value = "locked")
+    private String locked;
+    @TableField(value = "enabled")
+    private String enabled;
 }

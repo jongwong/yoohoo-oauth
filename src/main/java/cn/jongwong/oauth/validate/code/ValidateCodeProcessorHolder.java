@@ -5,6 +5,7 @@ package cn.jongwong.oauth.validate.code;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
@@ -12,7 +13,7 @@ import java.util.Map;
  * @author zhailiang
  *
  */
-@Component
+@Service
 public class ValidateCodeProcessorHolder {
 
     @Autowired

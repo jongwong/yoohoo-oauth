@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-public class MyUser implements Serializable {
+public class CustomOauth2User implements Serializable {
     private static final long serialVersionUID = 3497935890426858541L;
 
     private String userName;

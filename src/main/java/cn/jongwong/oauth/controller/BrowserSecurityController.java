@@ -3,7 +3,9 @@ package cn.jongwong.oauth.controller;
 
 import cn.jongwong.oauth.entity.SmsRequestBody;
 import cn.jongwong.oauth.properties.SecurityConstants;
+import cn.jongwong.oauth.service.SmsService;
 import cn.jongwong.oauth.validate.code.ValidateCode;
+import cn.jongwong.oauth.validate.code.ValidateCodeProcessor;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,17 +48,21 @@ public class BrowserSecurityController {
     private ValidateCodeProcessorHolder validateCodeProcessorHolder;
 
 
-    @GetMapping(SecurityConstants.DEFAULT_VALIDATE_CODE_URL_PREFIX + "/{type}")
-    public ValidateCode createCode(HttpServletRequest request, HttpServletResponse response, @PathVariable String type)
+    @Autowired
+    private SmsService smsService;
+
+    @GetMapping("/code/sms")
+    public ValidateCode createCode(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
-        ValidateCode xx = validateCodeProcessorHolder.findValidateCodeProcessor(type).create(new ServletWebRequest(request, response));
-        return xx;
+        ServletWebRequest servletWebRequest = new ServletWebRequest(request, response);
+        ValidateCode code = smsService.sendMessage(servletWebRequest);
+        return code;
     }
 
     @PostMapping("/code/test")
     public String test(HttpServletRequest request, HttpServletResponse response, @RequestBody SmsRequestBody body) {
         System.out.println(body);
-        validateCodeProcessorHolder.findValidateCodeProcessor("sms").validate(new ServletWebRequest(request, response));
+        ValidateCodeProcessor validateCodeProcessor = validateCodeProcessorHolder.findValidateCodeProcessor("sms");
         return "5555";
     }
 

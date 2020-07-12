@@ -2,6 +2,8 @@ package cn.jongwong.oauth.config;
 
 
 import cn.jongwong.oauth.service.UserDetailService;
+import cn.jongwong.oauth.service.UserService;
+import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,6 +53,12 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Autowired
     RedisAuthorizationCodeServices redisAuthorizationCodeServices;
+
+    @Autowired
+    private ValidateCodeProcessorHolder validateCodeProcessorHolder;
+
+    @Autowired
+    private UserService userService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -114,7 +122,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         tokenGranters.add(new CustomTokenGranter(authenticationManager, tokenServices,
                 clientDetails, requestFactory));
         tokenGranters.add(new SmsTokenGranter(authenticationManager, tokenServices,
-                clientDetails, requestFactory));
+                clientDetails, requestFactory, validateCodeProcessorHolder, userService));
         return new CompositeTokenGranter(tokenGranters);
     }
 

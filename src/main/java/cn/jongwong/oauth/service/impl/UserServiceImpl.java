@@ -20,4 +20,10 @@ public class UserServiceImpl implements UserService {
         List<User> userList = userMapper.selectList(null);
         return userList;
     }
+
+    @Override
+    public User getUserByPhoneNumber(String phone) {
+        User user = userMapper.getUserByPhoneNumber(phone);
+        return user;
+    }
 }

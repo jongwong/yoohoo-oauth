@@ -5,6 +5,8 @@ package cn.jongwong.oauth.validate.code;
 
 import org.springframework.web.context.request.ServletWebRequest;
 
+import java.util.Map;
+
 /**
  * 校验码处理器，封装不同校验码的处理逻辑
  *
@@ -32,6 +34,6 @@ public interface ValidateCodeProcessor {
      * @param servletWebRequest
      * @throws Exception
      */
-    void validate(ServletWebRequest servletWebRequest);
+    Boolean validate(Map<String, String> params);
 
 }

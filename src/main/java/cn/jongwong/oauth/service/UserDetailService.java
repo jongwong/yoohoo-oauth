@@ -1,7 +1,7 @@
 package cn.jongwong.oauth.service;
 
 
-import cn.jongwong.oauth.entity.MyUser;
+import cn.jongwong.oauth.entity.CustomOauth2User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.AuthorityUtils;
 
@@ -21,7 +21,7 @@ public class UserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        MyUser user = new MyUser();
+        CustomOauth2User user = new CustomOauth2User();
         user.setUserName(username);
         user.setPassword(this.passwordEncoder.encode("123456"));
 

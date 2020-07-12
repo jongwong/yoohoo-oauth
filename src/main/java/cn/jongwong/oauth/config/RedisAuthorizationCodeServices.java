@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class RedisAuthorizationCodeServices extends RandomValueAuthorizationCodeServices {
-    private String prefix = "rms:authorization_code:";
+    private String prefix = "authorization:authorization_code:";
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -31,7 +31,7 @@ public class RedisAuthorizationCodeServices extends RandomValueAuthorizationCode
     @Override
     protected void store(String code, OAuth2Authentication authentication) {
         String key = prefix + code;
-        redisTemplate.opsForValue().set(key, serializationStrategy.serialize(authentication));
+        redisTemplate.opsForValue().set(key, serializationStrategy.serialize(authentication), 2, TimeUnit.MINUTES);
     }
 
     @Override

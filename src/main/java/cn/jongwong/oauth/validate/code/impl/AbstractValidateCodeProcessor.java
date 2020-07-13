@@ -21,7 +21,7 @@ public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> impl
 
     protected String prefix = "validate_code:";
 
-    protected final RedisTemplate<String, Object> redisTemplate;
+    RedisTemplate<String, Object> redisTemplate;
 
     protected final JdkSerializationStrategy serializationStrategy = new JdkSerializationStrategy();
 

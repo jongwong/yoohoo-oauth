@@ -21,10 +21,12 @@ import java.util.concurrent.TimeUnit;
  */
 @Component("imageValidateCodeProcessor")
 public class ImageCodeProcessor extends AbstractValidateCodeProcessor<ImageCode> {
-
+    RedisTemplate<String, Object> redisTemplate;
     public ImageCodeProcessor(RedisTemplate redisTemplate) {
         super(redisTemplate);
+        this.redisTemplate = redisTemplate;
     }
+
 
     @Override
     protected void save(ServletWebRequest request, ImageCode validateCode) {

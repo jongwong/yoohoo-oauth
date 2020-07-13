@@ -32,8 +32,11 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
     @Autowired
     private SmsCodeSender smsCodeSender;
 
+    private RedisTemplate<String, Object> redisTemplate;
+
     public SmsCodeProcessor(RedisTemplate redisTemplate) {
         super(redisTemplate);
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -41,8 +44,8 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
         String type = getValidateCodeType(request).toString().toLowerCase();
         String mobile = ServletRequestUtils.getStringParameter(request.getRequest(),
                 "mobile");
-        String key = "123456";
-        redisTemplate.opsForValue().set(key, serializationStrategy.serialize(validateCode), 5, TimeUnit.MINUTES);
+        String key = prefix + type + ":" + mobile;
+        redisTemplate.opsForValue().set(key, validateCode, 5, TimeUnit.MINUTES);
     }
 
     @Override
@@ -78,7 +81,7 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
 
         code = parameters.getOrDefault("code", "");
 
-        String key = "123456";
+        String key = prefix + type + ":" + mobile;
 
 
         if (StringUtils.isBlank(code)) {
@@ -92,8 +95,7 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
 
 
             ValidateCode validateCode =
-                    serializationStrategy.deserialize(
-                            (byte[]) redisTemplate.opsForValue().get(key), ValidateCode.class);
+                    (ValidateCode) redisTemplate.opsForValue().get(key);
 
 
             if (validateCode.isExpried()) {

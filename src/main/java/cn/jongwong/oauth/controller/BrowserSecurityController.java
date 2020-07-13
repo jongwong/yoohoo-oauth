@@ -2,8 +2,10 @@ package cn.jongwong.oauth.controller;
 
 
 import cn.jongwong.oauth.entity.SmsRequestBody;
+import cn.jongwong.oauth.entity.User;
 import cn.jongwong.oauth.properties.SecurityConstants;
 import cn.jongwong.oauth.service.SmsService;
+import cn.jongwong.oauth.service.UserService;
 import cn.jongwong.oauth.validate.code.ValidateCode;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessor;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
@@ -28,6 +30,8 @@ public class BrowserSecurityController {
 
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
+    @Autowired
+    private UserService userService;
     @GetMapping("/authentication/require")
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public String requireAuthentication(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -66,6 +70,10 @@ public class BrowserSecurityController {
         return "5555";
     }
 
-    ;
+    @GetMapping("/code/test1")
+    public User test1(HttpServletRequest request, HttpServletResponse response, @RequestBody SmsRequestBody body) {
+        User user = userService.getUserByPhoneNumber("18060601823");
+        return user;
+    }
 
 }

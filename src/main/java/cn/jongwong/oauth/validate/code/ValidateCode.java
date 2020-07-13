@@ -13,7 +13,7 @@ import java.util.UUID;
  *
  */
 public class ValidateCode implements Serializable {
-
+    private static final long serialVersionUID = -339516038496531943L;
     private String id;
     private String code;
 

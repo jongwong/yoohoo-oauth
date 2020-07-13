@@ -59,7 +59,7 @@ public class SmsTokenGranter extends AbstractTokenGranter {
         if (valid) {
             User user = userService.getUserByPhoneNumber(mobile);
             OAuth2Request oAuth2Request = tokenRequest.createOAuth2Request(client);
-            Authentication authentication = new UsernamePasswordAuthenticationToken(mobile, null, Collections.singletonList(new SimpleGrantedAuthority("USER")));
+            Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), null, Collections.singletonList(new SimpleGrantedAuthority("USER")));
             return new OAuth2Authentication(oAuth2Request, authentication);
         } else {
             throw new AuthenticationServiceException("user not found");

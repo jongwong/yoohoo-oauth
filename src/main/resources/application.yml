@@ -67,7 +67,7 @@ mybatis-plus:
   mapper-locations: classpath:/cn/jonwong/oauth/mapper/*Mapper.xml
   #实体扫描，多个package用逗号或者分号分隔
   typeAliasesPackage: cn.jongwong.oauth.entity
-  type-enums-package: cn.jongwong.oauth.enums
+#  type-enums-package: cn.jongwong.oauth.enums
 
 
 

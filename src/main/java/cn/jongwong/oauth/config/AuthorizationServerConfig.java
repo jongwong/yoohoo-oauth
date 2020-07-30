@@ -1,15 +1,27 @@
 package cn.jongwong.oauth.config;
 
 
+import cn.jongwong.oauth.oidc.MyOIDCAccessTokenConverter;
+import cn.jongwong.oauth.oidc.MyOIDCJwtAccessTokenConverter;
+import cn.jongwong.oauth.oidc.MyOIDCUserAuthenticationConverter;
 import cn.jongwong.oauth.service.UserDetailService;
 import cn.jongwong.oauth.service.UserService;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
+import org.jose4j.jwk.JsonWebKeySet;
+import org.jose4j.jwk.PublicJsonWebKey;
+import org.jose4j.jwk.RsaJsonWebKey;
+import org.jose4j.keys.RsaKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.BeanIds;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -33,12 +45,22 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import static cn.jongwong.oauth.oidc.Constants.KEYSTORE_NAME;
+
+
+import static cn.jongwong.oauth.oidc.Constants.USE_SIG;
+import static cn.jongwong.oauth.oidc.Constants.OIDC_ALG;
+import static cn.jongwong.oauth.oidc.Constants.DEFAULT_KEY_ID;
 
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -56,6 +78,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Autowired
     private ValidateCodeProcessorHolder validateCodeProcessorHolder;
+
 
     @Autowired
     private UserService userService;
@@ -80,7 +103,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) {
-        security.tokenKeyAccess("isAuthenticated()"); // 获取密钥需要身份认证
+        security.tokenKeyAccess("isAuthenticated()").checkTokenAccess("permitAll()"); // 获取密钥需要身份认证
     }
 
 
@@ -92,15 +115,23 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
                 .accessTokenValiditySeconds(3600)
                 .scopes("all")
-                .redirectUris("http://www.baidu.com");
+                .redirectUris("http://www.baidu.com")
+                .and()
+                .withClient("app0001112223332")
+                .secret(passwordEncoder.encode("app0001112223332"))
+                .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
+                .accessTokenValiditySeconds(3600)
+                .scopes("openid")
+                .redirectUris("http://localhost:8087/authorization_callback");
     }
 
     @Override
-    public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        endpoints.accessTokenConverter(accessTokenConverter());
         endpoints
                 .authenticationManager(authenticationManager)
                 .tokenStore(jwtTokenStore())
-                .accessTokenConverter(jwtAccessTokenConverter())
+//                .accessTokenConverter(jwtAccessTokenConverter())
                 .authorizationCodeServices(redisAuthorizationCodeServices)
                 .userDetailsService(userDetailService).tokenGranter(tokenGranter(endpoints));
     }
@@ -126,4 +157,52 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         return new CompositeTokenGranter(tokenGranters);
     }
 
+
+    //======================================================================================
+    @Bean
+    public JsonWebKeySet jsonWebKeySet() throws Exception {
+        //加载 keystore配置文件
+        //加载 keystore配置文件
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(KEYSTORE_NAME)) {
+            String keyJson = CharStreams.toString(new InputStreamReader(is, Charsets.UTF_8));
+            return new JsonWebKeySet(keyJson);
+        }
+    }
+
+
+    /**
+     * JwtAccessTokenConverter config
+     *
+     * @return JwtAccessTokenConverter
+     * @throws Exception e
+     * @since 1.1.0
+     */
+    @Bean
+    public JwtAccessTokenConverter accessTokenConverter() throws Exception {
+        PublicJsonWebKey publicJsonWebKey = publicJsonWebKey();
+        MyOIDCJwtAccessTokenConverter accessTokenConverter = new MyOIDCJwtAccessTokenConverter(publicJsonWebKey);
+//            System.out.println("Key:\n" + accessTokenConverter.getKey());
+
+        MyOIDCAccessTokenConverter tokenConverter = new MyOIDCAccessTokenConverter();
+        MyOIDCUserAuthenticationConverter userTokenConverter = new MyOIDCUserAuthenticationConverter();
+        userTokenConverter.setUserDetailsService(this.userDetailService);
+        tokenConverter.setUserTokenConverter(userTokenConverter);
+        accessTokenConverter.setAccessTokenConverter(tokenConverter);
+
+        return accessTokenConverter;
+    }
+
+
+    /**
+     * Only  use one key
+     *
+     * @return RsaJsonWebKey
+     * @throws Exception e
+     * @since 1.1.0
+     */
+    @Bean
+    public RsaJsonWebKey publicJsonWebKey() throws Exception {
+        JsonWebKeySet jsonWebKeySet = jsonWebKeySet();
+        return (RsaJsonWebKey) jsonWebKeySet.findJsonWebKey(DEFAULT_KEY_ID, RsaKeyUtil.RSA, USE_SIG, OIDC_ALG);
+    }
 }

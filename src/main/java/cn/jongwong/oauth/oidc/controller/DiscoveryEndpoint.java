@@ -2,8 +2,13 @@ package cn.jongwong.oauth.oidc.controller;
 
 
 import cn.jongwong.oauth.oidc.util.OIDCUtils;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.JsonWebKeySet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.WebUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,6 +59,14 @@ public class DiscoveryEndpoint {
         model.put("subject_types_supported", Arrays.asList("public"));
         model.put("claims_supported", Arrays.asList("sub", "aud", "scope", "iss", "exp", "iat", "client_id", "authorities", "user_name"));
         return model;
+    }
+
+    @Autowired
+    private JsonWebKeySet jsonWebKeySet;
+
+    @GetMapping(value = "/public/jwks", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String jwks() throws Exception {
+        return jsonWebKeySet.toJson(JsonWebKey.OutputControlLevel.PUBLIC_ONLY);
     }
 
 

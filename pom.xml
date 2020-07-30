@@ -101,6 +101,13 @@
             <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
+
+        <!--google-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
         <!--jose4j-->
         <dependency>
             <groupId>org.bitbucket.b_c</groupId>
@@ -116,8 +123,8 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
             <optional>true</optional>
+            <scope>true</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -13,7 +13,7 @@ public interface Constants {
     /**
      * Fixed  keyId
      */
-    String DEFAULT_KEY_ID = "myoidc-keyid";
+    String DEFAULT_KEY_ID = "oidc-keyid";
 
     /**
      * 长度 至少 1024, 建议 2048

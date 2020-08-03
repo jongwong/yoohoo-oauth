@@ -19,6 +19,10 @@ public class UserDetailService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    public String getId() {
+        return "";
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         CustomOauth2User user = new CustomOauth2User();

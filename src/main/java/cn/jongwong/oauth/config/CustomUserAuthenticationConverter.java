@@ -1,6 +1,6 @@
-package cn.jongwong.oauth.oidc;
+package cn.jongwong.oauth.config;
 
-
+import cn.jongwong.oauth.service.UserDetailService;
 import org.jose4j.jwt.ReservedClaimNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,12 +11,10 @@ import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticat
 import java.util.HashMap;
 import java.util.Map;
 
+public class CustomUserAuthenticationConverter extends DefaultUserAuthenticationConverter {
 
-public class MyOIDCUserAuthenticationConverter extends DefaultUserAuthenticationConverter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MyOIDCUserAuthenticationConverter.class);
-
-    public MyOIDCUserAuthenticationConverter() {
+    public CustomUserAuthenticationConverter() {
     }
 
     @Override
@@ -30,13 +28,8 @@ public class MyOIDCUserAuthenticationConverter extends DefaultUserAuthentication
         myOIDCMap.put(ReservedClaimNames.ISSUER, "http://localhost:8080");
         myOIDCMap.put(ReservedClaimNames.ISSUED_AT, System.currentTimeMillis() / 1000);
 
-        Object details = authentication.getDetails();
-        if (details instanceof UserDetails) {
-            //改过
-            myOIDCMap.put(ReservedClaimNames.SUBJECT, ((UserDetails) details).getUsername());
-        } else {
-            myOIDCMap.put(ReservedClaimNames.SUBJECT, myOIDCMap.get(USERNAME));
-        }
+        Object username = authentication.getName();
+        myOIDCMap.put(ReservedClaimNames.SUBJECT, username);
         return myOIDCMap;
     }
 }

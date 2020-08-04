@@ -68,7 +68,7 @@ public class JwtTokenConfig {
         KeyPair keyPair = new KeyPair(publicJsonWebKey.getPublicKey(), privateKey);
         converter.setKeyPair(keyPair);
 
-        DefaultAccessTokenConverter tokenConverter = new DefaultAccessTokenConverter();
+        CustomAccessTokenConverter tokenConverter = new CustomAccessTokenConverter();
 
         CustomUserAuthenticationConverter userTokenConverter = new CustomUserAuthenticationConverter();
         userTokenConverter.setUserDetailsService(this.userDetailsService);

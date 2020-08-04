@@ -30,6 +30,8 @@ public class CustomUserAuthenticationConverter extends DefaultUserAuthentication
 
         Object username = authentication.getName();
         myOIDCMap.put(ReservedClaimNames.SUBJECT, username);
+
+
         return myOIDCMap;
     }
 }

@@ -36,7 +36,6 @@ import org.springframework.security.oauth2.common.util.JsonParserFactory;
 
 public class CustomJwtAccessTokenConverter extends JwtAccessTokenConverter {
     private AccessTokenConverter tokenConverter = new DefaultAccessTokenConverter();
-    private final CustomJwtHeaderConverter jwtHeaderConverter = new CustomJwtHeaderConverter();
 
 
     private final JsonParser jsonParser = JsonParserFactory.create();

@@ -118,7 +118,14 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
                 .accessTokenValiditySeconds(3600)
                 .scopes("openid")
-                .redirectUris("http://localhost:8087/authorization_callback");
+                .redirectUris("http://localhost:8087/authorization_callback")
+                .and()
+                .withClient("app0001112220003")
+                .secret(passwordEncoder.encode("app0001112220003"))
+                .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
+                .accessTokenValiditySeconds(3600)
+                .scopes("openid")
+                .redirectUris("http://localhost:3000/callback");
     }
 
     @Override
@@ -148,7 +155,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         OAuth2RequestFactory requestFactory = endpoints.getOAuth2RequestFactory();
         List<TokenGranter> tokenGranters = new ArrayList<TokenGranter>();
 
-        tokenGranters.add(new AuthorizationCodeTokenGranter(tokenServices, authorizationCodeServices,
+        tokenGranters.add(new CustomAuthorizationCodeTokenGranter(tokenServices, authorizationCodeServices,
                 clientDetails, requestFactory));
         tokenGranters.add(new RefreshTokenGranter(tokenServices, clientDetails, requestFactory));
         tokenGranters.add(new ImplicitTokenGranter(tokenServices, clientDetails, requestFactory));

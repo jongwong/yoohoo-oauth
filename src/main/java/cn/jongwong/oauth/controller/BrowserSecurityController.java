@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwk.HttpsJwks;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
+import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
@@ -37,6 +38,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -121,6 +125,47 @@ public class BrowserSecurityController {
         } catch (InvalidJwtException e) {
             return ImmutableMap.of("error", "verify_failed", "error_details", e.getErrorDetails());
         }
+    }
+
+
+    private static final String SCOPE_READ = "read";
+    private static final String SCOPE_WRITE = "write";
+    private static final String SCOPE_OPENID = "openid";
+
+    /**
+     * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
+     *
+     * @return view
+     * @throws Exception Exception
+     */
+    @GetMapping("/.well-known/openid-configuration")
+    public Map<String, Object> configuration() throws Exception {
+
+
+        Map<String, Object> model = new HashMap<>();
+        String host = "http://localhost:8080";
+        model.put("issuer", host);
+
+        model.put("authorization_endpoint", host + "/oauth/authorize");
+        model.put("token_endpoint", host + "/oauth/token");
+        model.put("userinfo_endpoint", host + "/api/userinfo");
+
+        model.put("jwks_uri", host + "/public/jwks");
+        model.put("registration_endpoint", host + "/public/registration");
+
+        model.put("scopes_supported", Arrays.asList(SCOPE_OPENID, SCOPE_READ, SCOPE_WRITE));
+
+
+        model.put("grant_types_supported", Arrays.asList("password", "authorization_code", "implicit", "refresh_token", "client_credentials"));
+        model.put("response_types_supported", Arrays.asList("token", "code", "id_token"));
+
+        String OIDC_ALG = AlgorithmIdentifiers.RSA_USING_SHA256;
+        //ALG:
+        model.put("id_token_signing_alg_values_supported", Collections.singletonList(OIDC_ALG));
+        // "pairwise",
+        model.put("subject_types_supported", Arrays.asList("public"));
+        model.put("claims_supported", Arrays.asList("sub", "aud", "scope", "iss", "exp", "iat", "client_id", "authorities", "user_name"));
+        return model;
     }
 
 }

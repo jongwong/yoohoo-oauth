@@ -3,7 +3,6 @@ package cn.jongwong.oauth.controller;
 
 import cn.jongwong.oauth.entity.SmsRequestBody;
 import cn.jongwong.oauth.entity.User;
-import cn.jongwong.oauth.properties.GobleProperties;
 import cn.jongwong.oauth.properties.SecurityConstants;
 import cn.jongwong.oauth.service.SmsService;
 import cn.jongwong.oauth.service.UserService;
@@ -139,17 +138,12 @@ public class BrowserSecurityController {
      * @return view
      * @throws Exception Exception
      */
-
-    @Autowired
-    GobleProperties properties;
-
     @GetMapping("/.well-known/openid-configuration")
     public Map<String, Object> configuration() throws Exception {
 
-        String host = properties.getDomain();
 
         Map<String, Object> model = new HashMap<>();
-
+        String host = "http://localhost:8080";
         model.put("issuer", host);
 
         model.put("authorization_endpoint", host + "/oauth/authorize");

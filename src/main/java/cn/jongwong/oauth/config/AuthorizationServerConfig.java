@@ -224,10 +224,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @EnableResourceServer
     protected static class DefaultResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
-//        @Override
-//        public void configure(ResourceServerSecurityConfigurer resources) {
-//            resources.resourceId("myoidc-resource").stateless(false);
-//        }
+        @Override
+        public void configure(ResourceServerSecurityConfigurer resources) {
+            resources.resourceId("myoidc-resource").stateless(false);
+        }
 
         @Override
         public void configure(HttpSecurity http) throws Exception {

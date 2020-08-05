@@ -70,8 +70,6 @@ mybatis-plus:
 #  type-enums-package: cn.jongwong.oauth.enums
 
 
-yoohoo:
-  oauth:
-    domain: http://localhost:8080
+
 
 

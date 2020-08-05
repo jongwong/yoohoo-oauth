@@ -45,12 +45,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/public/*",
                         "/verify").permitAll() // 登录跳转 URL 无需认证
                 .anyRequest()  // 所有请求
-                .authenticated()
+                .authenticated() // 都需要认证
                 .and()
-                .cors()// 都需要认证
+                .cors()
                 .and().csrf().disable();
     }
-
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -60,14 +59,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-//    @Bean
-//    public WebMvcConfigurer corsConfigurer()
-//    {
-//        return new WebMvcConfigurerAdapter() {
-//            @Override
-//            public void addCorsMappings(CorsRegistry registry) {
-//                registry.addMapping("/**");
-//            }
-//        };
-//    }
 }

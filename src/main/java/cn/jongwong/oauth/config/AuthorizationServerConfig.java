@@ -125,7 +125,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
                 .accessTokenValiditySeconds(3600)
                 .scopes("openid")
-                .redirectUris("http://localhost:3000/callback");
+                .redirectUris("http://localhost:4200/callback");
     }
 
     @Override
@@ -224,10 +224,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @EnableResourceServer
     protected static class DefaultResourceServerConfiguration extends ResourceServerConfigurerAdapter {
 
-        @Override
-        public void configure(ResourceServerSecurityConfigurer resources) {
-            resources.resourceId("myoidc-resource").stateless(false);
-        }
+//        @Override
+//        public void configure(ResourceServerSecurityConfigurer resources) {
+//            resources.resourceId("myoidc-resource").stateless(false);
+//        }
 
         @Override
         public void configure(HttpSecurity http) throws Exception {

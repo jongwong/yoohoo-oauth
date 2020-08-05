@@ -3,6 +3,10 @@ server:
 
 
 spring:
+  thymeleaf:
+    prefix: classpath:/views/
+    suffix: .html
+    cache: false
   redis:
     port: 6379
     database: 0

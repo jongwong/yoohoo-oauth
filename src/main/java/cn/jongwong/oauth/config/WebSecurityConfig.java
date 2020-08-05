@@ -1,5 +1,6 @@
 package cn.jongwong.oauth.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,8 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -50,13 +53,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors()
                 .and().csrf().disable();
     }
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+//    @Bean
+//    CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(Collections.singletonList(CorsConfiguration.ALL));
+//        configuration.setAllowedMethods(Collections.singletonList(CorsConfiguration.ALL));
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
+
+//    @Bean
+//    public FilterRegistrationBean<CorsFilter> corsFilter() {
+//        FilterRegistrationBean<CorsFilter> registrationBean = new FilterRegistrationBean<CorsFilter>();
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(Arrays.asList("*"));
+//        configuration.setAllowedMethods(Arrays.asList("GET, POST, OPTIONS, PUT, PATCH, DELETE".split("\\s*,\\s*")));
+//        configuration.setAllowedHeaders(Arrays.asList("Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With, Language, Authorization, Accept".split("\\s*,\\s*")));
+//        /**
+//         * 是否允许认证信息
+//         */
+//        configuration.setAllowCredentials(true);
+//        configuration.setMaxAge(3600L);
+//        source.registerCorsConfiguration("/**", configuration);
+//        CorsFilter corsFilter = new CorsFilter(source);
+//        registrationBean.setFilter(corsFilter);
+//        registrationBean.setName("CorsFilter");
+//        registrationBean.setOrder(Integer.MAX_VALUE - 1);
+//        registrationBean.addUrlPatterns("/*");
+//        return registrationBean;
+//    }
 }

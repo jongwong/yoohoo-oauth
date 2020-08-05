@@ -130,6 +130,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        endpoints.pathMapping("/oauth/confirm_access", "/custom/confirm_access");
         endpoints
                 .authenticationManager(authenticationManager)
                 .tokenStore(tokenStore)
@@ -245,4 +246,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         }
 
     }
+
+
 }

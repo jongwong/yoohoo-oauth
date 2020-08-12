@@ -26,8 +26,8 @@ public class DefaultSmsCodeSender implements SmsCodeSender {
     public Boolean send(String mobile, String code) {
         System.out.println("向手机" + mobile + "发送短信验证码" + code);
 
-        TxSms txSms = new TxSms(secretService);
-        SendSmsResponse sendSmsResponse = txSms.sendCode(mobile, code, "2");
+//        TxSms txSms = new TxSms(secretService);
+//        SendSmsResponse sendSmsResponse = txSms.sendCode(mobile, code, "2");
         return null;
 
     }

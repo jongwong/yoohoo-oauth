@@ -37,12 +37,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.formLogin() // 表单登录
                 // http.httpBasic() // HTTP Basic
                 .loginPage("/authentication/require") // 登录跳转 URL
-                .loginProcessingUrl("/login") // 处理表单登录 URL
+                .loginProcessingUrl("/authentication/form") // 处理表单登录 URL
                 .and()
                 .authorizeRequests() // 授权配置
-                .antMatchers("/authentication/require",
+                .antMatchers("/authentication/require", "/authentication/form",
                         "/login.html",
-                        "/img/*", "/css/*", "/js/*", "/code/*",
+                        "/img/*", "/css/*", "/js/*", "/code/sms",
                         "/authorize/sms",
                         "/.well-known/openid-configuration",
                         "/public/*",

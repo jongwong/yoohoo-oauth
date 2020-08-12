@@ -82,6 +82,14 @@ public class BrowserSecurityController {
         return code;
     }
 
+    @GetMapping("/sms/login")
+    public String login(HttpServletRequest request, HttpServletResponse response)
+            throws Exception {
+//        ServletWebRequest servletWebRequest = new ServletWebRequest(request, response);
+//        ValidateCode code = smsService.sendMessage(servletWebRequest);
+        return "true";
+    }
+
     @PostMapping("/code/test")
     public String test(HttpServletRequest request, HttpServletResponse response, @RequestBody SmsRequestBody body) {
         System.out.println(body);

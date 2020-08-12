@@ -12,6 +12,7 @@ import cn.jongwong.oauth.validate.code.ValidateCodeType;
 import cn.jongwong.oauth.validate.code.impl.AbstractValidateCodeProcessor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
@@ -32,11 +33,12 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
     @Autowired
     private SmsCodeSender smsCodeSender;
 
+    @Qualifier("RedisTemplateJson")
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     public SmsCodeProcessor(RedisTemplate redisTemplate) {
         super(redisTemplate);
-        this.redisTemplate = redisTemplate;
     }
 
     @Override

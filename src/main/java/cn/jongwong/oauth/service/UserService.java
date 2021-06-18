@@ -11,4 +11,8 @@ public interface UserService {
 
 
     User getUserByPhoneNumber(String phoneNumber);
+
+    User getUserById(String userId);
+
+    User getUserByIdentifier(String identifier);
 }

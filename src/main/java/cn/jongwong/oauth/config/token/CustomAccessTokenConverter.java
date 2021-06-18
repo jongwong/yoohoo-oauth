@@ -1,4 +1,4 @@
-package cn.jongwong.oauth.config;
+package cn.jongwong.oauth.config.token;
 
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;

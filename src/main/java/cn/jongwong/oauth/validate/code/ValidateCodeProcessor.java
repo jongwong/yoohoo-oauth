@@ -10,8 +10,7 @@ import java.util.Map;
 /**
  * 校验码处理器，封装不同校验码的处理逻辑
  *
- * @author zhailiang
- *
+ * @author jongwong
  */
 public interface ValidateCodeProcessor {
 

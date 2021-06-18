@@ -3,7 +3,7 @@ package cn.jongwong.oauth.common;
 public class ResponseResult<T> {
 
     private int code;
-    private String msg;
+    private String message;
     private T data;// 数据
 
     public int getCode() {
@@ -14,13 +14,6 @@ public class ResponseResult<T> {
         this.code = code;
     }
 
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
 
     public T getData() {
         return data;
@@ -30,4 +23,11 @@ public class ResponseResult<T> {
         this.data = data;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

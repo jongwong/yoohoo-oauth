@@ -1,6 +1,3 @@
-/**
- *
- */
 package cn.jongwong.oauth.validate.code.sms;
 
 
@@ -8,18 +5,16 @@ import cn.jongwong.oauth.common.exception.CustomException;
 import cn.jongwong.oauth.properties.SecurityConstants;
 import cn.jongwong.oauth.validate.code.ValidateCode;
 import cn.jongwong.oauth.validate.code.ValidateCodeException;
-import cn.jongwong.oauth.validate.code.ValidateCodeType;
 import cn.jongwong.oauth.validate.code.impl.AbstractValidateCodeProcessor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.context.request.ServletWebRequest;
 
+import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -33,13 +28,9 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
     @Autowired
     private SmsCodeSender smsCodeSender;
 
-    @Qualifier("RedisTemplateJson")
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private RedisTemplate<String, ValidateCode> redisTemplate;
 
-    public SmsCodeProcessor(RedisTemplate redisTemplate) {
-        super(redisTemplate);
-    }
 
     @Override
     protected void save(ServletWebRequest request, ValidateCode validateCode) throws ServletRequestBindingException {
@@ -47,6 +38,7 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
         String mobile = ServletRequestUtils.getStringParameter(request.getRequest(),
                 "mobile");
         String key = prefix + type + ":" + mobile;
+
         redisTemplate.opsForValue().set(key, validateCode, 5, TimeUnit.MINUTES);
     }
 
@@ -66,6 +58,18 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
         if (StringUtils.isBlank(mobile)) {
             throw new CustomException("手机号不能为空");
         }
+
+        String type = getValidateCodeType(request).toString().toLowerCase();
+        String key = prefix + type + ":" + mobile;
+        try {
+            ValidateCode oldCode =
+                    redisTemplate.opsForValue().get(key);
+            if (oldCode != null) {
+                throw new CustomException("验证码已发送，请不要重复发送");
+            }
+        } catch (Exception e) {
+
+        }
         smsCodeSender.send(mobile, validateCode.getCode());
     }
 
@@ -75,10 +79,8 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
         String type = getValidateCodeType().toString().toLowerCase();
 
 
-
         String code;
         String mobile;
-        String id;
         mobile = parameters.getOrDefault("mobile", "");
 
         code = parameters.getOrDefault("code", "");
@@ -95,11 +97,8 @@ public class SmsCodeProcessor extends AbstractValidateCodeProcessor<ValidateCode
         }
         try {
 
-
             ValidateCode validateCode =
-                    (ValidateCode) redisTemplate.opsForValue().get(key);
-
-
+                    redisTemplate.opsForValue().get(key);
             if (validateCode.isExpried()) {
                 throw new ValidateCodeException("验证码已过期");
             }

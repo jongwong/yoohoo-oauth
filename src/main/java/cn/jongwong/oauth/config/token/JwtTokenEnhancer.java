@@ -1,4 +1,4 @@
-package cn.jongwong.oauth.config;
+package cn.jongwong.oauth.config.token;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwt.ReservedClaimNames;
@@ -27,7 +27,9 @@ public class JwtTokenEnhancer implements TokenEnhancer {
         if (!StringUtils.equals(nonce, "")) {
             info.put("nonce", nonce);
         }
-
+//        ArrayList<String> scopesSupported = new ArrayList<String>();
+//        scopesSupported.add("openid");
+//        info.put("scopes_supported", scopesSupported);
         //设置附加信息
         ((DefaultOAuth2AccessToken) oAuth2AccessToken).setAdditionalInformation(info);
         return oAuth2AccessToken;

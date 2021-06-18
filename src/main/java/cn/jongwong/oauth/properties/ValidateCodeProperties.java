@@ -4,8 +4,7 @@
 package cn.jongwong.oauth.properties;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 public class ValidateCodeProperties {
 

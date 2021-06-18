@@ -4,8 +4,7 @@
 package cn.jongwong.oauth.validate.code.sms;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 public interface SmsCodeSender {
 

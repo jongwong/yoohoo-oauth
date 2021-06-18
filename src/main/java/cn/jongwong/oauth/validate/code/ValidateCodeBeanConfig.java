@@ -14,8 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 @Configuration
 public class ValidateCodeBeanConfig {

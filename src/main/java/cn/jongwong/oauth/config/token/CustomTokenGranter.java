@@ -1,4 +1,4 @@
-package cn.jongwong.oauth.config;
+package cn.jongwong.oauth.config.token;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;

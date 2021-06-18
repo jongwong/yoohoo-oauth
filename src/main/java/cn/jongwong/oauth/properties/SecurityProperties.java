@@ -1,14 +1,12 @@
-
 package cn.jongwong.oauth.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 
-@ConfigurationProperties(prefix = "jongwong.security")
 @Component
+@ConfigurationProperties(prefix = "security.config")
 public class SecurityProperties {
-
 
     private ValidateCodeProperties code = new ValidateCodeProperties();
 

@@ -1,4 +1,4 @@
-package cn.jongwong.oauth.config;
+package cn.jongwong.oauth.config.sms;
 
 
 import cn.jongwong.oauth.entity.User;
@@ -6,7 +6,6 @@ import cn.jongwong.oauth.service.UserService;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessor;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
 import cn.jongwong.oauth.validate.code.ValidateCodeType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,9 +14,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.provider.*;
 import org.springframework.security.oauth2.provider.token.AbstractTokenGranter;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.ServletWebRequest;
 
 import java.util.Collections;
 import java.util.Map;
@@ -51,7 +47,6 @@ public class SmsTokenGranter extends AbstractTokenGranter {
 
 
         String mobile = parameters.getOrDefault("mobile", "");
-        String code = parameters.getOrDefault("code", "");
         ValidateCodeProcessor validateCodeProcessor = validateCodeProcessorHolder.findValidateCodeProcessor(ValidateCodeType.SMS);
 
         Boolean valid = validateCodeProcessor.validate(parameters);

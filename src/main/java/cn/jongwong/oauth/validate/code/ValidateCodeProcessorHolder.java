@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 @Service
 public class ValidateCodeProcessorHolder {

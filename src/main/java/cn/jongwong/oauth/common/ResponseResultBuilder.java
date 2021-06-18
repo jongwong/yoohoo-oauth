@@ -6,7 +6,7 @@ public class ResponseResultBuilder {
     public static <T> ResponseResult<T> success(ResultCode code) {
         ResponseResult<T> result = new ResponseResult<T>();
         result.setCode(code.getCode());
-        result.setMsg(code.getMsg());
+        result.setMessage(code.getMsg());
         return result;
     }
 
@@ -14,7 +14,7 @@ public class ResponseResultBuilder {
     public static <T> ResponseResult<T> success(T t, ResultCode code) {
         ResponseResult<T> result = new ResponseResult<T>();
         result.setCode(code.getCode());
-        result.setMsg(code.getMsg());
+        result.setMessage(code.getMsg());
         result.setData(t);
         return result;
     }
@@ -23,7 +23,7 @@ public class ResponseResultBuilder {
     public static <T> ResponseResult<T> faile(ResultCode code) {
         ResponseResult<T> result = new ResponseResult<T>();
         result.setCode(code.getCode());
-        result.setMsg(code.getMsg());
+        result.setMessage(code.getMsg());
         return result;
     }
 

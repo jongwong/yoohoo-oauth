@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.provider.code.RandomValueAuthorizatio
 import org.springframework.security.oauth2.provider.token.store.redis.JdkSerializationStrategy;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -19,13 +20,13 @@ import java.util.concurrent.TimeUnit;
 public class RedisAuthorizationCodeServices extends RandomValueAuthorizationCodeServices {
     private String prefix = "authorization:authorization_code:";
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     private final JdkSerializationStrategy serializationStrategy = new JdkSerializationStrategy();
 
-    public RedisAuthorizationCodeServices(RedisTemplate redisTemplate) {
-        Assert.notNull(redisTemplate, "redis connection factory required");
-        this.redisTemplate = redisTemplate;
+    public RedisAuthorizationCodeServices() {
+
     }
 
     @Override

@@ -4,5 +4,6 @@
       "name": "spring.driver-class-name",
       "type": "java.lang.String",
       "description": "Description for spring.driver-class-name."
-  }
-] }
+    }
+  ]
+}

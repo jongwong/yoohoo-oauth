@@ -6,8 +6,7 @@ package cn.jongwong.oauth.validate.code;
 import org.springframework.web.context.request.ServletWebRequest;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 public interface ValidateCodeGenerator {
 

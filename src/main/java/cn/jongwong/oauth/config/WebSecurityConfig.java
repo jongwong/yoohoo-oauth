@@ -1,25 +1,36 @@
 package cn.jongwong.oauth.config;
 
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
+
+import cn.jongwong.oauth.config.sms.SmsAuthenticationConfig;
+import cn.jongwong.oauth.config.sms.SmsCodeAuthenticationFilter;
+import cn.jongwong.oauth.handler.MyAuthenticationFailureHandler;
+import cn.jongwong.oauth.handler.MyAuthenticationSucessHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-
-import java.util.Arrays;
-import java.util.Collections;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+
+    @Autowired
+    private MyAuthenticationSucessHandler myAuthenticationSucessHandler;
+    @Autowired
+    private MyAuthenticationFailureHandler myAuthenticationFailureHandler;
+
+
+    @Autowired
+    private SmsCodeAuthenticationFilter smsCodeAuthenticationFilter;
+
+    @Autowired
+    private SmsAuthenticationConfig smsAuthenticationConfig;
 
     @Override
     @Bean
@@ -27,21 +38,29 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
+
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeRequests()
-//                .anyRequest().authenticated().and()
-//                .httpBasic().and()	//httpBasic认证
-//                .csrf().disable();
-        http.formLogin() // 表单登录
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .addFilterBefore(smsCodeAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin() // 表单登录
                 // http.httpBasic() // HTTP Basic
                 .loginPage("/authentication/require") // 登录跳转 URL
                 .loginProcessingUrl("/authentication/form") // 处理表单登录 URL
+                .successHandler(myAuthenticationSucessHandler)
+                .failureHandler(myAuthenticationFailureHandler)
+                .and()
+                .logout()
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .deleteCookies("JSESSIONID")
+                .invalidateHttpSession(true)
                 .and()
                 .authorizeRequests() // 授权配置
-                .antMatchers("/authentication/require", "/authentication/form",
+                .antMatchers(
+                        "/",
+                        "/authentication/require", "/authentication/form", "/authentication/mobile",
                         "/login.html",
+                        "/logout",
                         "/img/*", "/css/*", "/js/*", "/code/sms",
                         "/authorize/sms",
                         "/.well-known/openid-configuration",
@@ -51,37 +70,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated() // 都需要认证
                 .and()
                 .cors()
-                .and().csrf().disable();
-    }
-//    @Bean
-//    CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(Collections.singletonList(CorsConfiguration.ALL));
-//        configuration.setAllowedMethods(Collections.singletonList(CorsConfiguration.ALL));
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
+                .and().csrf().disable()
+                .apply(smsAuthenticationConfig);
 
-//    @Bean
-//    public FilterRegistrationBean<CorsFilter> corsFilter() {
-//        FilterRegistrationBean<CorsFilter> registrationBean = new FilterRegistrationBean<CorsFilter>();
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(Arrays.asList("*"));
-//        configuration.setAllowedMethods(Arrays.asList("GET, POST, OPTIONS, PUT, PATCH, DELETE".split("\\s*,\\s*")));
-//        configuration.setAllowedHeaders(Arrays.asList("Origin, No-Cache, X-Requested-With, If-Modified-Since, Pragma, Last-Modified, Cache-Control, Expires, Content-Type, X-E4M-With, Language, Authorization, Accept".split("\\s*,\\s*")));
-//        /**
-//         * 是否允许认证信息
-//         */
-//        configuration.setAllowCredentials(true);
-//        configuration.setMaxAge(3600L);
-//        source.registerCorsConfiguration("/**", configuration);
-//        CorsFilter corsFilter = new CorsFilter(source);
-//        registrationBean.setFilter(corsFilter);
-//        registrationBean.setName("CorsFilter");
-//        registrationBean.setOrder(Integer.MAX_VALUE - 1);
-//        registrationBean.addUrlPatterns("/*");
-//        return registrationBean;
-//    }
+
+    }
 }

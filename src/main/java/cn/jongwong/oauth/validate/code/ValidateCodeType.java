@@ -7,8 +7,7 @@ package cn.jongwong.oauth.validate.code;
 import cn.jongwong.oauth.properties.SecurityConstants;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 public enum ValidateCodeType {
 

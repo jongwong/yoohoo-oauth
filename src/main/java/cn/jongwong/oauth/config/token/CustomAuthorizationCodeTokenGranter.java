@@ -1,4 +1,4 @@
-package cn.jongwong.oauth.config;
+package cn.jongwong.oauth.config.token;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;

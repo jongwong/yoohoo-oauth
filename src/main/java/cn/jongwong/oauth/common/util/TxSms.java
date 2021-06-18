@@ -10,22 +10,20 @@ import com.tencentcloudapi.common.profile.HttpProfile;
 import com.tencentcloudapi.sms.v20190711.SmsClient;
 import com.tencentcloudapi.sms.v20190711.models.SendSmsRequest;
 import com.tencentcloudapi.sms.v20190711.models.SendSmsResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import javax.annotation.Resource;
 
 
+@Component
 public class TxSms {
 
+    @Resource
     private SecretService secretService;
 
-    public TxSms(SecretService secretService) {
-        this.secretService = secretService;
-    }
 
     public SendSmsResponse sendCode(String mobile, String code, String minute) {
 
         try {
-            System.out.println("========================");
             Secret secret = secretService.getSecretById(1);
 
             System.out.println(secret);

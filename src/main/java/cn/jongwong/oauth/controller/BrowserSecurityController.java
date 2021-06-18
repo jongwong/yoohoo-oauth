@@ -1,14 +1,17 @@
 package cn.jongwong.oauth.controller;
 
 
+import cn.jongwong.oauth.common.ResponseResult;
+import cn.jongwong.oauth.common.ResponseResultBuilder;
+import cn.jongwong.oauth.common.ResultCode;
 import cn.jongwong.oauth.entity.SmsRequestBody;
 import cn.jongwong.oauth.entity.User;
-import cn.jongwong.oauth.properties.SecurityConstants;
 import cn.jongwong.oauth.service.SmsService;
 import cn.jongwong.oauth.service.UserService;
 import cn.jongwong.oauth.validate.code.ValidateCode;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessor;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
+import cn.jongwong.oauth.validate.code.WithoutCodeValidateCode;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwk.HttpsJwks;
@@ -22,6 +25,7 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.resolvers.HttpsJwksVerificationKeyResolver;
 import org.jose4j.keys.resolvers.VerificationKeyResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.DefaultRedirectStrategy;
@@ -29,12 +33,15 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.security.PublicKey;
@@ -51,18 +58,20 @@ public class BrowserSecurityController {
 
     @Autowired
     private UserService userService;
+
     @GetMapping("/authentication/require")
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public String requireAuthentication(HttpServletRequest request, HttpServletResponse response) throws IOException {
         SavedRequest savedRequest = requestCache.getRequest(request, response);
-        if (savedRequest != null) {
-            String targetUrl = savedRequest.getRedirectUrl();
- /*           if (StringUtils.endsWithIgnoreCase(targetUrl, ".html") || StringUtils.contains(targetUrl, "/login")) {
-                redirectStrategy.sendRedirect(request, response, "/login.html");
-            }*/
-            redirectStrategy.sendRedirect(request, response, "/login.html");
-
-        }
+        redirectStrategy.sendRedirect(request, response, "/login.html");
+//        if (savedRequest != null) {
+//            String targetUrl = savedRequest.getRedirectUrl();
+//            if (StringUtils.endsWithIgnoreCase(targetUrl, ".html") || StringUtils.contains(targetUrl, "/login")) {
+//                redirectStrategy.sendRedirect(request, response, "/login.html");
+//            }
+//            return "访问的资源需要身份认证！";
+//
+//        }
         return "访问的资源需要身份认证！";
     }
 
@@ -75,41 +84,24 @@ public class BrowserSecurityController {
     private SmsService smsService;
 
     @GetMapping("/code/sms")
-    public ValidateCode createCode(HttpServletRequest request, HttpServletResponse response)
+    public ResponseResult<WithoutCodeValidateCode> createCode(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         ServletWebRequest servletWebRequest = new ServletWebRequest(request, response);
         ValidateCode code = smsService.sendMessage(servletWebRequest);
-        return code;
+        WithoutCodeValidateCode withoutCodeValidateCode = new WithoutCodeValidateCode(code);
+        return ResponseResultBuilder.success(withoutCodeValidateCode, ResultCode.SUCCESS);
     }
 
-    @GetMapping("/sms/login")
-    public String login(HttpServletRequest request, HttpServletResponse response)
-            throws Exception {
-//        ServletWebRequest servletWebRequest = new ServletWebRequest(request, response);
-//        ValidateCode code = smsService.sendMessage(servletWebRequest);
-        return "true";
+    @GetMapping("/login/success")
+    public String loginSuccess() {
+        return "登录成功";
     }
-
-    @PostMapping("/code/test")
-    public String test(HttpServletRequest request, HttpServletResponse response, @RequestBody SmsRequestBody body) {
-        System.out.println(body);
-        ValidateCodeProcessor validateCodeProcessor = validateCodeProcessorHolder.findValidateCodeProcessor("sms");
-        return "5555";
-    }
-
-    @GetMapping("/code/test1")
-    public User test1(HttpServletRequest request, HttpServletResponse response, @RequestBody SmsRequestBody body) {
-        User user = userService.getUserByPhoneNumber("18060601823");
-        return user;
-    }
-
 
     @Autowired
     private JsonWebKeySet jsonWebKeySet;
 
     @GetMapping(value = "/public/jwks", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public String jwks() throws Exception {
-
         return jsonWebKeySet.toJson(JsonWebKey.OutputControlLevel.PUBLIC_ONLY);
     }
 
@@ -140,6 +132,10 @@ public class BrowserSecurityController {
     private static final String SCOPE_WRITE = "write";
     private static final String SCOPE_OPENID = "openid";
 
+
+    @Value("${openid-server.config.issuer}")
+    private String issuer;
+
     /**
      * https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
      *
@@ -151,7 +147,7 @@ public class BrowserSecurityController {
 
 
         Map<String, Object> model = new HashMap<>();
-        String host = "http://localhost:8080";
+        String host = issuer;
         model.put("issuer", host);
 
         model.put("authorization_endpoint", host + "/oauth/authorize");
@@ -175,5 +171,13 @@ public class BrowserSecurityController {
         model.put("claims_supported", Arrays.asList("sub", "aud", "scope", "iss", "exp", "iat", "client_id", "authorities", "user_name"));
         return model;
     }
+
+
+    // 引导 注册
+    @GetMapping("registration")
+    public String preRegistration(Model model) {
+        return "registration_pre";
+    }
+
 
 }

@@ -4,8 +4,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -18,12 +16,24 @@ public class User implements Serializable {
     private String id;
     @TableField(value = "username", exist = true)
     private String username;
+    @TableField(value = "password")
+    private String password;
+
+    @TableField(value = "mobile_phone")
+    private String mobilePhone;
+
+    @TableField(value = "e_mail")
+    private String eMail;
+
     @TableField(value = "avatar", exist = true)
     private String avatar;
-    @TableField(value = "expired")
+
+
     private String expired;
-    @TableField(value = "locked")
+
+
     private String locked;
-    @TableField(value = "enabled")
+
+
     private String enabled;
 }

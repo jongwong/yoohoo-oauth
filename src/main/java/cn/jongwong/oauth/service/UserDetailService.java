@@ -19,17 +19,21 @@ public class UserDetailService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    UserService userService;
+
     public String getId() {
         return "";
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+        cn.jongwong.oauth.entity.User findUser = userService.getUserByIdentifier(userId);
         CustomOauth2User user = new CustomOauth2User();
-        user.setUserName(username);
-        user.setPassword(this.passwordEncoder.encode("123456"));
+        user.setUserName(findUser.getId());
+        user.setPassword(findUser.getPassword());
 
-        return new User(username, user.getPassword(), user.isEnabled(),
+        return new User(findUser.getId(), user.getPassword(), user.isEnabled(),
                 user.isAccountNonExpired(), user.isCredentialsNonExpired(),
                 user.isAccountNonLocked(), AuthorityUtils.commaSeparatedStringToAuthorityList("admin"));
     }

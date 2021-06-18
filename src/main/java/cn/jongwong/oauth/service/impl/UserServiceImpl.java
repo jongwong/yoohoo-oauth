@@ -3,6 +3,7 @@ package cn.jongwong.oauth.service.impl;
 import cn.jongwong.oauth.entity.User;
 import cn.jongwong.oauth.mapper.UserMapper;
 import cn.jongwong.oauth.service.UserService;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +24,19 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public User getUserByPhoneNumber(String phone) {
-        User user = userMapper.getUserByPhoneNumber(phone);
-        return user;
+    public User getUserByPhoneNumber(String mobilePhone) {
+        return new LambdaQueryChainWrapper<User>(this.userMapper).eq(User::getMobilePhone, mobilePhone).one();
     }
+
+    @Override
+    public User getUserById(String id) {
+        return this.userMapper.selectById(id);
+    }
+
+    @Override
+    public User getUserByIdentifier(String identifier) {
+        return this.userMapper.getUserByIdentifier(identifier);
+    }
+
+
 }

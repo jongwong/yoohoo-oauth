@@ -11,14 +11,13 @@ import java.time.LocalDateTime;
 
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 public class ImageCode extends ValidateCode {
 
     private BufferedImage image;
 
-    public ImageCode(BufferedImage image, String code, int expireIn) {
+    public ImageCode(BufferedImage image, String code, long expireIn) {
         super(code, expireIn);
         this.image = image;
     }

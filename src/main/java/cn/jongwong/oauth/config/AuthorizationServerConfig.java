@@ -1,25 +1,21 @@
 package cn.jongwong.oauth.config;
 
 
-
+import cn.jongwong.oauth.config.sms.SmsTokenGranter;
+import cn.jongwong.oauth.config.token.CustomAuthorizationCodeTokenGranter;
+import cn.jongwong.oauth.config.token.CustomJwtAccessTokenConverter;
+import cn.jongwong.oauth.config.token.CustomTokenGranter;
+import cn.jongwong.oauth.config.token.JwtTokenConfig;
 import cn.jongwong.oauth.service.UserDetailService;
 import cn.jongwong.oauth.service.UserService;
 import cn.jongwong.oauth.validate.code.ValidateCodeProcessorHolder;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.CharStreams;
-import org.jose4j.jwk.JsonWebKeySet;
-import org.jose4j.jwk.PublicJsonWebKey;
-import org.jose4j.jwk.RsaJsonWebKey;
-import org.jose4j.keys.RsaKeyUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,19 +34,14 @@ import org.springframework.security.oauth2.provider.OAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.TokenGranter;
 import org.springframework.security.oauth2.provider.client.ClientCredentialsTokenGranter;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
-import org.springframework.security.oauth2.provider.code.AuthorizationCodeTokenGranter;
 import org.springframework.security.oauth2.provider.implicit.ImplicitTokenGranter;
 import org.springframework.security.oauth2.provider.password.ResourceOwnerPasswordTokenGranter;
 import org.springframework.security.oauth2.provider.refresh.RefreshTokenGranter;
 import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
 
 
 @Configuration
@@ -68,7 +59,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
     @Autowired
     RedisAuthorizationCodeServices redisAuthorizationCodeServices;
 
@@ -82,6 +72,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Autowired
     private JwtAccessTokenConverter jwtAccessTokenConverter;
+
+
     @Autowired
     private TokenEnhancer jwtTokenEnhancer;
 
@@ -99,7 +91,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) {
-        security.tokenKeyAccess("isAuthenticated()").checkTokenAccess("permitAll()"); // 获取密钥需要身份认证
+        security.tokenKeyAccess("permitAll()").checkTokenAccess("permitAll"); // 获取密钥需要身份认证
     }
 
 
@@ -118,15 +110,20 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
                 .accessTokenValiditySeconds(3600)
                 .scopes("openid")
-                .redirectUris("http://localhost:8087/authorization_callback")
+                .redirectUris("http://127.0.0.1:8081/login/oauth2/code/yoohoo")
                 .and()
                 .withClient("app0001112220003")
                 .secret(passwordEncoder.encode("app0001112220003"))
                 .authorizedGrantTypes("custom", "authorization_sms", "refresh_token", "authorization_code", "password")
                 .accessTokenValiditySeconds(3600)
-                .scopes("openid")
+                .resourceIds("myoidc-resource")
+                .scopes("openid", "read")
                 .redirectUris("http://localhost:4200/callback");
     }
+
+    @Autowired
+    private JwtTokenConfig jwtTokenConfig;
+
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
@@ -134,19 +131,18 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         endpoints
                 .authenticationManager(authenticationManager)
                 .tokenStore(tokenStore)
-//                .accessTokenConverter(jwtAccessTokenConverter())
                 .authorizationCodeServices(redisAuthorizationCodeServices)
                 .userDetailsService(userDetailService).tokenGranter(tokenGranter(endpoints));
         TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
         List<TokenEnhancer> enhancerList = new ArrayList<>();
         enhancerList.add(jwtTokenEnhancer);
-        enhancerList.add(jwtAccessTokenConverter);
+        enhancerList.add(jwtTokenConfig.jwtAccessTokenConverter());
         enhancerChain.setTokenEnhancers(enhancerList);
 
 
         endpoints
                 .tokenEnhancer(enhancerChain)
-                .accessTokenConverter(jwtAccessTokenConverter);
+                .accessTokenConverter(jwtTokenConfig.jwtAccessTokenConverter());
     }
 
     private TokenGranter tokenGranter(AuthorizationServerEndpointsConfigurer endpoints) {
@@ -170,54 +166,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         return new CompositeTokenGranter(tokenGranters);
     }
 
-
-    //======================================================================================
-//    @Bean
-//    public JsonWebKeySet jsonWebKeySet() throws Exception {
-//        //加载 keystore配置文件
-//        //加载 keystore配置文件
-//        try (InputStream is = getClass().getClassLoader().getResourceAsStream(KEYSTORE_NAME)) {
-//            String keyJson = CharStreams.toString(new InputStreamReader(is, Charsets.UTF_8));
-//            return new JsonWebKeySet(keyJson);
-//        }
-//    }
-//
-//
-//    /**
-//     * JwtAccessTokenConverter config
-//     *
-//     * @return JwtAccessTokenConverter
-//     * @throws Exception e
-//     * @since 1.1.0
-//     */
-//    @Bean
-//    public JwtAccessTokenConverter accessTokenConverter() throws Exception {
-//        PublicJsonWebKey publicJsonWebKey = publicJsonWebKey();
-//        MyOIDCJwtAccessTokenConverter accessTokenConverter = new MyOIDCJwtAccessTokenConverter(publicJsonWebKey);
-////            System.out.println("Key:\n" + accessTokenConverter.getKey());
-//
-//        MyOIDCAccessTokenConverter tokenConverter = new MyOIDCAccessTokenConverter();
-//        MyOIDCUserAuthenticationConverter userTokenConverter = new MyOIDCUserAuthenticationConverter();
-//        userTokenConverter.setUserDetailsService(this.userDetailService);
-//        tokenConverter.setUserTokenConverter(userTokenConverter);
-//        accessTokenConverter.setAccessTokenConverter(tokenConverter);
-//
-//        return accessTokenConverter;
-//    }
-//
-//
-//    /**
-//     * Only  use one key
-//     *
-//     * @return RsaJsonWebKey
-//     * @throws Exception e
-//     * @since 1.1.0
-//     */
-//    @Bean
-//    public RsaJsonWebKey publicJsonWebKey() throws Exception {
-//        JsonWebKeySet jsonWebKeySet = jsonWebKeySet();
-//        return (RsaJsonWebKey) jsonWebKeySet.findJsonWebKey(DEFAULT_KEY_ID, RsaKeyUtil.RSA, USE_SIG, OIDC_ALG);
-//    }
     /**
      * 只要认证后能访问 资源 权限配置
      */
@@ -233,8 +181,6 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         @Override
         public void configure(HttpSecurity http) throws Exception {
             http
-                    // Since we want the protected resources to be accessible in the UI as well we need
-                    // session creation to be allowed (it's disabled by default in 2.0.6)
                     .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                     .and()
                     .requestMatchers().antMatchers("/api/**")

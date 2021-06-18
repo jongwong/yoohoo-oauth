@@ -4,13 +4,12 @@
 package cn.jongwong.oauth.properties;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 public class SmsCodeProperties {
 
     private int length = 6;
-    private int expireIn = 60;
+    private long expireIn = 120L;
 
     private String url;
 
@@ -22,7 +21,7 @@ public class SmsCodeProperties {
         this.length = lenght;
     }
 
-    public int getExpireIn() {
+    public long getExpireIn() {
         return expireIn;
     }
 

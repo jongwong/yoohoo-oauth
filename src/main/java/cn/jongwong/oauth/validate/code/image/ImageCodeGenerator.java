@@ -16,8 +16,7 @@ import java.awt.image.BufferedImage;
 import java.util.Random;
 
 /**
- * @author zhailiang
- *
+ * @author jongwong
  */
 public class ImageCodeGenerator implements ValidateCodeGenerator {
 

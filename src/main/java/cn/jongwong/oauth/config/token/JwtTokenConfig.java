@@ -1,4 +1,4 @@
-package cn.jongwong.oauth.config;
+package cn.jongwong.oauth.config.token;
 
 import cn.jongwong.oauth.service.UserDetailService;
 import com.google.common.base.Charsets;
@@ -11,13 +11,10 @@ import org.jose4j.keys.RsaKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
-import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,7 +44,7 @@ public class JwtTokenConfig {
     @Bean
     public RsaJsonWebKey publicJsonWebKey() throws Exception {
         JsonWebKeySet jsonWebKeySet = jsonWebKeySet();
-        String DEFAULT_KEY_ID = "myoidc-keyid";
+        String DEFAULT_KEY_ID = "yoohoo-key-id";
         String USE_SIG = "sig";
         String OIDC_ALG = AlgorithmIdentifiers.RSA_USING_SHA256;
         return (RsaJsonWebKey) jsonWebKeySet.findJsonWebKey(DEFAULT_KEY_ID, RsaKeyUtil.RSA, USE_SIG, OIDC_ALG);
@@ -63,6 +60,8 @@ public class JwtTokenConfig {
 
 
         CustomJwtAccessTokenConverter converter = new CustomJwtAccessTokenConverter();
+
+
         PublicJsonWebKey publicJsonWebKey = publicJsonWebKey();
         PrivateKey privateKey = publicJsonWebKey.getPrivateKey();
         KeyPair keyPair = new KeyPair(publicJsonWebKey.getPublicKey(), privateKey);

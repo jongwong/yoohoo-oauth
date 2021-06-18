@@ -1,8 +1,13 @@
 server:
+  address: 0.0.0.0
   port: 8080
 
 
+
+
 spring:
+  jackson:
+    time-zone: GMT+8
   thymeleaf:
     prefix: classpath:/views/
     suffix: .html
@@ -10,7 +15,7 @@ spring:
   redis:
     port: 6379
     database: 0
-    host: 39.101.166.92
+    host: 81.69.11.212
     password: wwwwww
     lettuce:
       pool:
@@ -21,7 +26,7 @@ spring:
     timeout: 30000
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/rbac?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://81.69.11.212:3306/rbac?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: wwwwww
     druid:
@@ -73,7 +78,6 @@ mybatis-plus:
   typeAliasesPackage: cn.jongwong.oauth.entity
 #  type-enums-package: cn.jongwong.oauth.enums
 
-
-
-
-
+openid-server:
+  config:
+    issuer: http://localhost:8080

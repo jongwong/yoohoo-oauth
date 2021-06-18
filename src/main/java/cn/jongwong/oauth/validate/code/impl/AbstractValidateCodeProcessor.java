@@ -1,4 +1,3 @@
-
 package cn.jongwong.oauth.validate.code.impl;
 
 
@@ -21,14 +20,12 @@ public abstract class AbstractValidateCodeProcessor<C extends ValidateCode> impl
 
     protected String prefix = "validate_code:";
 
-    private RedisTemplate redisTemplate;
-
     protected final JdkSerializationStrategy serializationStrategy = new JdkSerializationStrategy();
 
-    public AbstractValidateCodeProcessor(RedisTemplate redisTemplate) {
-        Assert.notNull(redisTemplate, "redis connection factory required");
-        this.redisTemplate = redisTemplate;
+    public AbstractValidateCodeProcessor() {
+
     }
+
     /**
      * 收集系统中所有的 {@link ValidateCodeGenerator} 接口的实现。
      */

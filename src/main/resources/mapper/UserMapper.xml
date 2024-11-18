@@ -1,0 +1,7 @@
+<mapper namespace="cn.jongwong.oauth.mapper.UserMapper">
+
+    <select id="selectById" resultType="cn.jongwong.oauth.entity.User">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+
+</mapper>

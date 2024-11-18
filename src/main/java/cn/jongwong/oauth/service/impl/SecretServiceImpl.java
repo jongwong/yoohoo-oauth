@@ -26,12 +26,14 @@ public class SecretServiceImpl implements SecretService {
         return secretMapper.selectById(id);
     }
 
-
     @Override
-    public void AddSecretByName(String secretId, String secretKey, String name) {
+    public void addSecretByName(String secretId, String secretKey, String name) {
         Secret secret = new Secret();
         secret.setSecretId(secretId);
         secret.setSecretKey(secretKey);
         secretMapper.insert(secret);
     }
+
+
+
 }

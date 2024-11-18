@@ -2,10 +2,17 @@ package cn.jongwong.oauth.validate.code.sms;
 
 
 import cn.jongwong.oauth.common.util.TxSms;
+import cn.jongwong.oauth.service.SecretService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+@Component
 public class DefaultSmsCodeSender implements SmsCodeSender {
 
+    @Autowired
+    private SecretService secretService;
 
     @Autowired
     private TxSms txSms;

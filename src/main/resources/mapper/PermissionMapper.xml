@@ -1,0 +1,7 @@
+<mapper namespace="cn.jongwong.oauth.mapper.PermissionMapper">
+
+    <select id="selectById" resultType="cn.jongwong.oauth.entity.Permission">
+        SELECT * FROM permission WHERE id = #{id}
+    </select>
+
+</mapper>

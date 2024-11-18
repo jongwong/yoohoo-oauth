@@ -22,7 +22,7 @@ public class UserController {
     @GetMapping("/users")
     public ResponseResult<List<User>> getUsers() {
         try {
-            List<User> list = userService.selectList();
+            List<User> list = userService.list();
             return ResponseResultBuilder.success(list, ResultCode.SUCCESS);
         } catch (ApiException e) {
             e.printStackTrace();

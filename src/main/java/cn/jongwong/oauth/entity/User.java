@@ -7,15 +7,17 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-
 @Data
-@TableName(value = "user")
+@TableName("tb_user") // 表名为 user
 public class User implements Serializable {
     private static final long serialVersionUID = -339516038496531943L;
+
     @TableId(value = "id")
     private String id;
-    @TableField(value = "username", exist = true)
+
+    @TableField(value = "username")
     private String username;
+
     @TableField(value = "password")
     private String password;
 
@@ -25,15 +27,12 @@ public class User implements Serializable {
     @TableField(value = "e_mail")
     private String eMail;
 
-    @TableField(value = "avatar", exist = true)
+    @TableField(value = "avatar")
     private String avatar;
-
 
     private String expired;
 
-
     private String locked;
-
 
     private String enabled;
 }

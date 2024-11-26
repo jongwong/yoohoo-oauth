@@ -1,6 +1,4 @@
-/**
- *
- */
+
 package cn.jongwong.oauth.validate.code;
 
 

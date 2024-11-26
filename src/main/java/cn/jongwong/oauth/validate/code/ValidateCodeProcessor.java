@@ -1,6 +1,3 @@
-/**
- *
- */
 package cn.jongwong.oauth.validate.code;
 
 import org.springframework.web.context.request.ServletWebRequest;
@@ -30,7 +27,6 @@ public interface ValidateCodeProcessor {
     /**
      * 校验验证码
      *
-     * @param servletWebRequest
      * @throws Exception
      */
     Boolean validate(Map<String, String> params);

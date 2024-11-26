@@ -1,6 +1,3 @@
-/**
- *
- */
 package cn.jongwong.oauth.validate.code;
 
 import org.springframework.web.context.request.ServletWebRequest;

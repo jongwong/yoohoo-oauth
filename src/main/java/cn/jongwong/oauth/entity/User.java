@@ -30,9 +30,9 @@ public class User implements Serializable {
     @TableField(value = "avatar")
     private String avatar;
 
-    private String expired;
+    private int expired;
 
-    private String locked;
+    private int locked;
 
-    private String enabled;
+    private int enabled;
 }

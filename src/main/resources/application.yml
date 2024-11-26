@@ -6,33 +6,35 @@ server:
 
 
 spring:
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
   flyway:
     enabled: false
-    locations: classpath:db/migration
+    locations:
+      - classpath:db/migration
     clean-on-validation-error: true
+    cleanDisabled: false
+    url: jdbc:mysql://43.133.90.130:3305/yoohoo-auth?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    password: wwwwww
+    user: root
+    baseline-on-migrate: true
+
   jackson:
     time-zone: GMT+8
   thymeleaf:
     prefix: classpath:/views/
     suffix: .html
     cache: false
-  redis:
-    port: 6378
-    database: 0
-    host: 43.133.90.130
-#    password: Wz--960522
-    lettuce:
-      pool:
-        max-active: 8
-        max-wait: -1
-        max-idle: 20
-        min-idle: 0
-    timeout: 30000
+    mode: HTML
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://43.133.90.130:3305/yoohoo-auth?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
-    password: Wz--960522
+    password: wwwwww
     druid:
       # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       initialSize: 1
@@ -72,6 +74,12 @@ spring:
       # 日志用的filter:log4j
       # 防御sql注入的filter:wall
       filters: stat
+  data:
+    redis:
+      port: 6378
+      database: 0
+      host: 43.133.90.130
+      password: 123456
 
 # ====================MybatisPlus====================
 mybatis-plus:
@@ -81,6 +89,7 @@ mybatis-plus:
   #实体扫描，多个package用逗号或者分号分隔
   typeAliasesPackage: cn.jongwong.oauth.entity
 #  type-enums-package: cn.jongwong.oauth.enums
+
 
 openid-server:
   config:

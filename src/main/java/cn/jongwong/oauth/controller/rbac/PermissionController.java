@@ -43,8 +43,8 @@ public class PermissionController {
     }
 
     // 获取单个权限
-    @GetMapping("/{id}")
-    public Permission getPermissionById(@PathVariable String id) {
-        return permissionService.getById(id);
-    }
+//    @GetMapping("/{id}")
+//    public Permission getPermissionById(@PathVariable String id) {
+//        return permissionService.getById(id);
+//    }
 }

@@ -1,4 +1,4 @@
-package cn.jongwong.oauth.controller;
+package cn.jongwong.oauth.controller.rbac;
 
 import cn.jongwong.oauth.service.PermissionGroupPermissionService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -6,8 +6,8 @@ import cn.jongwong.oauth.service.SecretService;
 import cn.jongwong.oauth.service.UserService;
 import cn.jongwong.oauth.validate.code.ValidateCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @WebAppConfiguration
 public class OauthServerApplicationTest {

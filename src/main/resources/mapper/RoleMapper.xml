@@ -1,7 +1,0 @@
-<mapper namespace="cn.jongwong.oauth.mapper.RoleMapper">
-
-    <select id="selectById" resultType="cn.jongwong.oauth.entity.Role">
-        SELECT * FROM role WHERE id = #{id}
-    </select>
-
-</mapper>

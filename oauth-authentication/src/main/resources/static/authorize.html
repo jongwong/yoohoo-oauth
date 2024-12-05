@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth2 Authorization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .hidden-inputs {
+            display: none;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .approve-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .approve-btn:hover {
+            background-color: #45a049;
+        }
+
+        .deny-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .deny-btn:hover {
+            background-color: #e53935;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Authorize Application</h1>
+    <p><strong>Client ID:</strong> <span id="client-id">Loading...</span></p>
+    <p><strong>Requested Scope:</strong> <span id="scope">Loading...</span></p>
+
+    <!-- 用户授权表单 -->
+    <form action="/oauth2/authorize" method="post" id="authorize-form">
+        <div class="hidden-inputs">
+            <input type="hidden" name="client_id" id="client-id-input">
+            <input type="hidden" name="redirect_uri" id="redirect-uri-input">
+            <input type="hidden" name="response_type" id="response-type-input">
+            <input type="hidden" name="scope" id="scope-input">
+            <input type="hidden" name="state" id="state-input">
+        </div>
+
+        <p>Do you authorize this application to access your data?</p>
+
+        <div class="button-container">
+            <button type="submit" name="approve" value="true" class="approve-btn">Yes</button>
+            <button type="submit" name="approve" value="false" class="deny-btn">No</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 获取 URL 参数并填充表单
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    window.onload = function () {
+        // 从 URL 获取参数
+        const clientId = getQueryParam('client_id');
+        const redirectUri = getQueryParam('redirect_uri');
+        const responseType = getQueryParam('response_type');
+        const scope = getQueryParam('scope');
+        const state = getQueryParam('state');
+
+        // 填充表单字段
+        if (clientId) {
+            document.getElementById('client-id').textContent = clientId;
+            document.getElementById('client-id-input').value = clientId;
+        }
+        if (redirectUri) {
+            document.getElementById('redirect-uri-input').value = redirectUri;
+        }
+        if (responseType) {
+            document.getElementById('response-type-input').value = responseType;
+        }
+        if (scope) {
+            document.getElementById('scope').textContent = scope;
+            document.getElementById('scope-input').value = scope;
+        }
+        if (state) {
+            document.getElementById('state-input').value = state;
+        }
+    };
+</script>
+
+</body>
+</html>

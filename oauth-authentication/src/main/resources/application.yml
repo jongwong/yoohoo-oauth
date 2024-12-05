@@ -1,0 +1,61 @@
+server:
+  address: 0.0.0.0
+  port: 8080
+
+
+
+
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+  flyway:
+    enabled: false
+    locations:
+      - classpath:db/migration
+    clean-on-validation-error: true
+    cleanDisabled: false
+    url: jdbc:mysql://101.34.152.79:3305/yoohoo-auth?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    password: wwwwww
+    user: root
+    baseline-on-migrate: true
+
+  jackson:
+    time-zone: GMT+8
+  thymeleaf:
+    prefix: classpath:/static/
+    suffix: .html
+    cache: false
+    mode: HTML
+
+  r2dbc:
+    url: r2dbc:mysql://101.34.152.79:3305/yoohoo-auth
+    username: root
+    password: wwwwww
+    pool:
+      initial-size: 5
+      max-size: 20
+  data:
+    redis:
+      port: 6378
+      database: 0
+      host: 101.34.152.79
+      password: 123456
+
+
+
+
+openid-server:
+  config:
+    issuer: http://localhost:8080
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

@@ -1,0 +1,53 @@
+package cn.jongwong.server.service;
+
+
+import cn.jongwong.server.dto.CustomOauth2User;
+import cn.jongwong.server.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
+@Service
+public class UserDetailsService implements ReactiveUserDetailsService {
+
+    private final PasswordEncoder passwordEncoder;
+
+
+    @Autowired
+    UserService userService;
+
+
+    @Autowired
+    public UserDetailsService(@Lazy PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public Mono<UserDetails> findByUsername(String username) {
+        return userService.getUserByIdentifier(username)
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("User not found with username: " + username)))
+                .flatMap(user -> {
+                    System.out.printf("-------user-------%s%n", user);
+                    return Mono.just(createCustomOauth2User(user));
+                });
+    }
+
+    private CustomOauth2User createCustomOauth2User(User findUser) {
+        // 将数据库中的用户数据转换为自定义的 CustomOauth2User
+        CustomOauth2User user = new CustomOauth2User();
+        user.setUserName(findUser.getUsername());
+        user.setPassword(findUser.getPassword());
+        user.setEnabled(1 == findUser.getEnabled());
+        user.setAccountNonExpired(true);
+        user.setCredentialsNonExpired(true);
+        user.setAccountNonLocked(true);
+
+
+        return user;
+    }
+}

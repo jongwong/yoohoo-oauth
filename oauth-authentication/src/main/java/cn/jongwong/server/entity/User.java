@@ -4,30 +4,33 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.jdbc.core.RowMapper;
 
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 @Data
-@Table("tb_user") // 表名为 user
-public class User implements Serializable {
+@Table("tb_user") // 表名为 tb_user
+public class User implements RowMapper<User>, Serializable {
     private static final long serialVersionUID = -339516038496531943L;
 
     @Id
     private String id;
 
-    @Column(value = "username")
+    @Column("username") // 映射数据库字段 'username'
     private String username;
 
-    @Column(value = "password")
+    @Column("password") // 映射数据库字段 'password'
     private String password;
 
-    @Column(value = "mobile_phone")
-    private String mobilePhone;
+    @Column("mobile") // 映射数据库字段 'mobile'
+    private String mobile;
 
-    @Column(value = "e_mail")
-    private String eMail;
+    @Column("email") // 映射数据库字段 'email'
+    private String email;
 
-    @Column(value = "avatar")
     private String avatar;
 
     private int expired;
@@ -35,4 +38,21 @@ public class User implements Serializable {
     private int locked;
 
     private int enabled;
+
+    private String name;
+
+    private String nickname;
+
+    private String[] authorities; // e.g., "ROLE_USER,ROLE_ADMIN"
+
+    private LocalDateTime lastLoginAt;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    @Override
+    public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return null;
+    }
 }

@@ -39,9 +39,9 @@ public class OauthServerApplicationTest {
 
 
     @Test
-    public void getUserByPhoneNumber() {
-        String phone = "18060601823";
-        User user = userService.getUserByPhoneNumber(phone).block();
+    public void getUserByMobileNumber() {
+        String mobile = "18060601823";
+        User user = userService.getUserByMobileNumber(mobile).block();
     }
 
     @Test

@@ -27,8 +27,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> getUserByPhoneNumber(String mobile) {
+    public Mono<User> getUserByMobileNumber(String mobile) {
         // 调用repository层的方法根据手机号查询用户
-        return userRepository.findByMobilePhone(mobile);
+        return userRepository.findByMobile(mobile);
     }
 }

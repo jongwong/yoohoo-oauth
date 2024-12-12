@@ -1,7 +1,0 @@
-<mapper namespace="cn.jongwong.server.repository.UserMapper">
-
-    <select id="selectById" resultType="cn.jongwong.server.entity.User">
-        SELECT * FROM user WHERE id = #{id}
-    </select>
-
-</mapper>

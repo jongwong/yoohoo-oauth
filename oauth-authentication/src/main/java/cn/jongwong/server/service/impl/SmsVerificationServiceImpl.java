@@ -18,11 +18,11 @@ public class SmsVerificationServiceImpl implements SmsVerificationService {
 
     // 模拟发送验证码
     @Override
-    public Mono<AuthenticationSmsSendResponse> sendVerificationCode(String phoneNumber) {
+    public Mono<AuthenticationSmsSendResponse> sendVerificationCode(String mobileNumber) {
         // 使用Mono.defer确保逻辑在订阅时执行
         return Mono.defer(() -> {
-            if (phoneNumber == null || phoneNumber.isEmpty()) {
-                return Mono.error(new IllegalArgumentException("Phone number cannot be null or empty"));
+            if (mobileNumber == null || mobileNumber.isEmpty()) {
+                return Mono.error(new IllegalArgumentException("Mobile number cannot be null or empty"));
             }
             try {
                 int minutes = 2;
@@ -32,7 +32,7 @@ public class SmsVerificationServiceImpl implements SmsVerificationService {
                 authenticationSmsSendResponse.setExpireIn(expiryTimeInSeconds);
                 // 调用外部服务并直接返回结果作为 Mono
                 return smsCodeService
-                        .sendCode(phoneNumber, SmsCodeTypeEnum.OAUTH_AUTHENTICATION, expiryTimeInSeconds)
+                        .sendCode(mobileNumber, SmsCodeTypeEnum.OAUTH_AUTHENTICATION, expiryTimeInSeconds)
                         .flatMap(success -> {
 
                             if (Boolean.TRUE.equals(success)) {
@@ -53,16 +53,16 @@ public class SmsVerificationServiceImpl implements SmsVerificationService {
 
     // 模拟验证验证码
     @Override
-    public Mono<Boolean> verifyCode(String phoneNumber, String code) {
+    public Mono<Boolean> verifyCode(String mobileNumber, String code) {
         // 使用Mono.defer确保逻辑在订阅时执行
         return Mono.defer(() -> {
-            if (phoneNumber == null || phoneNumber.isEmpty()) {
-                return Mono.error(new IllegalArgumentException("Phone number cannot be null or empty"));
+            if (mobileNumber == null || mobileNumber.isEmpty()) {
+                return Mono.error(new IllegalArgumentException("Mobile number cannot be null or empty"));
             }
 //            try {
 //                // 调用外部服务并直接返回结果作为 Mono
 //                return smsCodeService
-//                        .verifyCode(phoneNumber, code, SmsCodeTypeEnum.OAUTH_AUTHENTICATION)
+//                        .verifyCode(mobileNumber, code, SmsCodeTypeEnum.OAUTH_AUTHENTICATION)
 //                        .flatMap(success -> {
 //                            if (Boolean.TRUE.equals(success)) {
 //                                return Mono.just(true); // 成功发送

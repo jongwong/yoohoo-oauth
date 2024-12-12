@@ -5,12 +5,17 @@ import cn.jongwong.server.dto.CustomOauth2User;
 import cn.jongwong.server.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 @Service
 public class UserDetailsService implements ReactiveUserDetailsService {
@@ -32,7 +37,19 @@ public class UserDetailsService implements ReactiveUserDetailsService {
         return userService.getUserByIdentifier(username)
                 .switchIfEmpty(Mono.error(new UsernameNotFoundException("User not found with username: " + username)))
                 .flatMap(user -> {
-                    System.out.printf("-------user-------%s%n", user);
+                    return Mono.just(createCustomOauth2User(user));
+                });
+    }
+
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER,ROLE_ADMIN");
+    }
+
+    public Mono<UserDetails> findByMobile(String mobile) {
+        return userService.getUserByMobileNumber(mobile)
+                .switchIfEmpty(Mono.error(new UsernameNotFoundException("User not found with mobile: " + mobile)))
+                .flatMap(user -> {
                     return Mono.just(createCustomOauth2User(user));
                 });
     }
@@ -42,6 +59,7 @@ public class UserDetailsService implements ReactiveUserDetailsService {
         CustomOauth2User user = new CustomOauth2User();
         user.setUserName(findUser.getUsername());
         user.setPassword(findUser.getPassword());
+        user.setRoles(Arrays.asList(findUser.getAuthorities()));
         user.setEnabled(1 == findUser.getEnabled());
         user.setAccountNonExpired(true);
         user.setCredentialsNonExpired(true);

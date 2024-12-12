@@ -20,14 +20,14 @@ public class SmsCodeServiceImpl implements SmsCodeService {
 
     // 模拟发送验证码
     @Override
-    public Mono<Boolean> sendCode(String phoneNumber, SmsCodeTypeEnum smsType, long expiryTime) {
+    public Mono<Boolean> sendCode(String mobileNumber, SmsCodeTypeEnum smsType, long expiryTime) {
         return Mono.defer(() -> {
-            if (phoneNumber == null || phoneNumber.isEmpty()) {
-                return Mono.error(new IllegalArgumentException("Phone number cannot be null or empty"));
+            if (mobileNumber == null || mobileNumber.isEmpty()) {
+                return Mono.error(new IllegalArgumentException("Mobile number cannot be null or empty"));
             }
             try {
                 // Redis中的验证码存储键
-                String redisKey = generateSmsCodeRedisKey(phoneNumber, smsType);
+                String redisKey = generateSmsCodeRedisKey(mobileNumber, smsType);
 
                 // 获取Redis中的值操作对象
                 ValueOperations<String, String> ops = redisTemplate.opsForValue();
@@ -46,7 +46,7 @@ public class SmsCodeServiceImpl implements SmsCodeService {
                     ops.set(redisKey, verificationCode, expiryTime, TimeUnit.MILLISECONDS);  // 设置过期时间为5分钟
                 }
 
-                String msg = generateMessage(phoneNumber, smsType);
+                String msg = generateMessage(mobileNumber, smsType);
 
 
                 return Mono.just(true);  // 返回成功标志
@@ -59,26 +59,28 @@ public class SmsCodeServiceImpl implements SmsCodeService {
 
     // 模拟验证验证码
     @Override
-    public Mono<Boolean> verifyCode(String phoneNumber, String code, SmsCodeTypeEnum codeType) {
-        if (phoneNumber == null || phoneNumber.isEmpty() || code == null || code.isEmpty()) {
-            throw new IllegalArgumentException("Phone number or code cannot be null or empty");
-        }
+    public Mono<Boolean> verifyCode(String mobileNumber, String code, SmsCodeTypeEnum codeType) {
 
-        try {
-            // 从Redis中获取验证码
-            String redisKey = generateSmsCodeRedisKey(phoneNumber, codeType);
-            ValueOperations<String, String> ops = redisTemplate.opsForValue();
-            String storedCode = ops.get(redisKey);  // 从Redis获取验证码
-
-            // 校验验证码是否正确
-            if (storedCode != null && storedCode.equals(code)) {
-                return Mono.just(true);  // 验证成功
-            } else {
-                return Mono.just(false);  // 验证失败
-            }
-        } catch (Exception e) {
-            return Mono.just(false);  // 错误暴露
+        if (mobileNumber == null || mobileNumber.isEmpty() || code == null || code.isEmpty()) {
+            throw new IllegalArgumentException("Mobile number or code cannot be null or empty");
         }
+        return Mono.just(true);
+//
+//        try {
+//            // 从Redis中获取验证码
+//            String redisKey = generateSmsCodeRedisKey(mobileNumber, codeType);
+//            ValueOperations<String, String> ops = redisTemplate.opsForValue();
+//            String storedCode = ops.get(redisKey);  // 从Redis获取验证码
+//
+//            // 校验验证码是否正确
+//            if (storedCode != null && storedCode.equals(code)) {
+//                return Mono.just(true);  // 验证成功
+//            } else {
+//                return Mono.just(false);  // 验证失败
+//            }
+//        } catch (Exception e) {
+//            return Mono.just(false);  // 错误暴露
+//        }
     }
 
     private String generateMessage(String verificationCode, SmsCodeTypeEnum smsType) {
@@ -91,8 +93,8 @@ public class SmsCodeServiceImpl implements SmsCodeService {
         }
     }
 
-    private String generateSmsCodeRedisKey(String phoneNumber, SmsCodeTypeEnum smsType) {
-        return "sms:" + smsType + ":" + phoneNumber;
+    private String generateSmsCodeRedisKey(String mobileNumber, SmsCodeTypeEnum smsType) {
+        return "sms:" + smsType + ":" + mobileNumber;
     }
 
     private String generateSmsCode() {

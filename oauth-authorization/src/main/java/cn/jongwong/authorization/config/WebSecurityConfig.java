@@ -14,12 +14,10 @@ public class WebSecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         // 配置认证规则
 
-        http.csrf(s -> s.disable())
+        http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(authorize -> authorize.pathMatchers("/login**", "/error").permitAll()
                         .anyExchange().authenticated()
                 )
-                .oauth2Login(oAuth2LoginSpec -> oAuth2LoginSpec.clientRegistrationRepository(clientRegistrationRepository)).logout(logout -> logout.logoutUrl("/logout"))
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
 
         ;

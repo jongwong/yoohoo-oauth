@@ -5,5 +5,5 @@ import lombok.Data;
 
 @Data
 public class AuthenticationSmsSendRequest {
-    private String phone;
+    private String mobile;
 }

@@ -1,10 +1,12 @@
 package cn.jongwong.server.dto;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CustomOauth2User implements UserDetails {
 
@@ -15,11 +17,25 @@ public class CustomOauth2User implements UserDetails {
     private boolean credentialsNonExpired = true;
     private boolean accountNonLocked = true;
 
-    // getters and setters for the fields
+    // List of roles/authorities dynamically set based on user
+    private List<String> roles;
+
+    public CustomOauth2User() {
+
+    }
+
+    public CustomOauth2User(String userName, String password, List<String> roles) {
+        this.userName = userName;
+        this.password = password;
+        this.roles = roles;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_USER,ROLE_ADMIN");
+        // Convert the list of roles to authorities
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -52,6 +68,7 @@ public class CustomOauth2User implements UserDetails {
         return this.enabled;
     }
 
+    // Getter and Setter methods
     public void setUserName(String userName) {
         this.userName = userName;
     }
@@ -74,5 +91,9 @@ public class CustomOauth2User implements UserDetails {
 
     public void setAccountNonLocked(boolean accountNonLocked) {
         this.accountNonLocked = accountNonLocked;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 }

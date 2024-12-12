@@ -9,5 +9,5 @@ public interface UserService {
     Mono<User> getUserByIdentifier(String identifier);
 
     // 根据手机号查询用户
-    Mono<User> getUserByPhoneNumber(String mobile);
+    Mono<User> getUserByMobileNumber(String mobile);
 }

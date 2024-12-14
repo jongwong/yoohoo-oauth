@@ -17,11 +17,11 @@ public enum ResponseErrorCodeEnum {
         this.message = message;
     }
 
-    String getMessage() {
+    public String getMessage() {
         return this.message;
     }
 
-    int getCode() {
+    public int getCode() {
         return this.code;
     }
 

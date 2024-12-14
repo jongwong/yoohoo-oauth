@@ -45,7 +45,7 @@
                 <artifactId>spring-session-data-redis</artifactId>
                 <version>${spring.security.version}</version>
             </dependency>
-
+   
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-webflux</artifactId>

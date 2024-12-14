@@ -1,0 +1,48 @@
+package cn.jongwong.server.config.security.handle;
+
+import cn.jongwong.server.util.response.ResponseResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebExceptionHandler;
+import reactor.core.publisher.Mono;
+
+import java.nio.charset.StandardCharsets;
+
+@Component
+@Order(-2) // 确保优先级高于默认的 ExceptionHandlingWebHandler
+public class CustomGlobalExceptionHandler implements WebExceptionHandler {
+
+    @Override
+    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+        // 构建自定义响应
+        ServerHttpResponse response = exchange.getResponse();
+        response.getHeaders().add("Content-Type", "application/json");
+        ex.printStackTrace();
+        ResponseResult<Void> result;
+        if (ex instanceof IllegalArgumentException) {
+            response.setStatusCode(HttpStatus.BAD_REQUEST);
+            result = new ResponseResult<>(HttpStatus.BAD_REQUEST.value(), "Invalid request: " + ex.getMessage());
+        } else if (ex instanceof AuthenticationException) {
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            result = new ResponseResult<>(HttpStatus.UNAUTHORIZED.value(), "Authentication failed: " + ex.getMessage());
+        } else {
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            result = new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonResponse;
+        try {
+            jsonResponse = objectMapper.writeValueAsString(result);
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting result to JSON", e);
+        }
+        // 将 JSON 字符串写入响应体
+        byte[] responseBody = jsonResponse.getBytes(StandardCharsets.UTF_8);
+        return response.writeWith(Mono.just(response.bufferFactory().wrap(responseBody)));
+    }
+}

@@ -6,18 +6,13 @@ server:
 
 
 spring:
+  profiles:
+    active: local
   session:
     store-type: redis      # 使用 Redis 存储 Session
     redis:
       flush-mode: immediate  # 每次请求都立即刷新 Session
       namespace: webflux-session  # Redis 会话命名空间
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: http://0.0.0.0:8080/.well-known/jwks.json
-          public-key-location: classpath:public-key.pem
-
   autoconfigure:
     exclude:
   devtools:
@@ -60,9 +55,9 @@ spring:
 
 
 
-openid-server:
-  config:
-    issuer: http://localhost:8080
+
+
+
 
 logging:
   level:

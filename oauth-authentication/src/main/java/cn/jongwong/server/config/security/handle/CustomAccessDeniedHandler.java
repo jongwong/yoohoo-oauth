@@ -1,4 +1,4 @@
-package cn.jongwong.server.config.security;
+package cn.jongwong.server.config.security.handle;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;

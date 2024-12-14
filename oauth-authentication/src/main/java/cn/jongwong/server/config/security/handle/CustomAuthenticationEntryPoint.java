@@ -1,4 +1,4 @@
-package cn.jongwong.server.config.security;
+package cn.jongwong.server.config.security.handle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +20,8 @@ public class CustomAuthenticationEntryPoint implements ServerAuthenticationEntry
     @Override
     public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException e) {
         ServerHttpResponse response = exchange.getResponse();
+
+        e.printStackTrace();
         // 401 未授权
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");

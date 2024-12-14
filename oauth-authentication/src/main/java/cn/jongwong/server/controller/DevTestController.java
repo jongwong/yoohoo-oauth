@@ -1,6 +1,7 @@
 package cn.jongwong.server.controller;
 
 
+import cn.jongwong.server.util.response.ResponseResult;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,20 +10,20 @@ import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
 
 @RestController
-@Profile({"dev", "test"})
+@Profile({"local"})
 public class DevTestController {
 
 
-    @GetMapping("/hello")
-    public Mono<String> login() {
+    @GetMapping("/admin/hello")
+    public Mono<ResponseResult<String>> login() {
         // Return the name of the Thymeleaf template
-        return Mono.just("hello");  // It will look for 'src/main/resources/templates/login.html'
+        return Mono.just(ResponseResult.success("hello"));  // It will look for 'src/main/resources/templates/login.html'
     }
 
-    @GetMapping("/test")
-    public Mono<String> test() {
+    @GetMapping("/admin/test")
+    public Mono<ResponseResult<String>> test() {
         // Return the name of the Thymeleaf template
-        return Mono.just("test");  // It will look for 'src/main/resources/templates/login.html'
+        return Mono.just(ResponseResult.success("test"));   // It will look for 'src/main/resources/templates/login.html'
     }
 
 

@@ -1,4 +1,4 @@
-package cn.jongwong.server.config.security;
+package cn.jongwong.server.config.security.handle;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -27,6 +27,7 @@ public class CustomAuthenticationSuccessHandler implements ServerAuthenticationS
         SecurityContextImpl securityContext = new SecurityContextImpl();
         securityContext.setAuthentication(authentication);
 
+
         // 获取会话并保存认证信息到 WebSession
         return exchange.getSession()
                 .doOnNext(session -> System.out.println("Session initialized: " + session)) // 确保会话已初始化
@@ -49,6 +50,7 @@ public class CustomAuthenticationSuccessHandler implements ServerAuthenticationS
                 .doOnNext(savedRequestUrl -> {
                     // 设置 HTTP 302 状态码并进行重定向
                     System.out.println("Redirecting to: " + savedRequestUrl);
+
                     exchange.getResponse().setStatusCode(HttpStatus.FOUND);
                     exchange.getResponse().getHeaders().setLocation(URI.create(savedRequestUrl));
 

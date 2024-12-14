@@ -1,5 +1,6 @@
 package cn.jongwong.server.config.security.sms;
 
+import cn.jongwong.server.config.security.handle.CustomAuthenticationFailureHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -15,10 +16,11 @@ public class SmsAuthenticationWebFilter extends AuthenticationWebFilter {
     private static final String SMS_AUTH_URL = "/authentication/form/sms"; // 需要拦截的URL
 
     public SmsAuthenticationWebFilter(@Qualifier("customAuthenticationManager") ReactiveAuthenticationManager authenticationManager,
-                                      ServerAuthenticationSuccessHandler authenticationSuccessHandler) {
+                                      ServerAuthenticationSuccessHandler authenticationSuccessHandler, CustomAuthenticationFailureHandler customAuthenticationFailureHandler) {
         super(authenticationManager);
         setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers(SMS_AUTH_URL));
         setServerAuthenticationConverter(new SmsCodeAuthenticationConverter());
+        setAuthenticationFailureHandler(customAuthenticationFailureHandler);
         setAuthenticationSuccessHandler(authenticationSuccessHandler); // 确保执行成功处理器
     }
 

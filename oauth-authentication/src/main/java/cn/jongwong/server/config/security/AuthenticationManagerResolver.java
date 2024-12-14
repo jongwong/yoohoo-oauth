@@ -1,5 +1,7 @@
 package cn.jongwong.server.config.security;
 
+import cn.jongwong.server.config.security.jwt.JwtCodeAuthenticationProvider;
+import cn.jongwong.server.config.security.jwt.JwtCodeAuthenticationToken;
 import cn.jongwong.server.config.security.sms.SmsCodeAuthenticationProvider;
 import cn.jongwong.server.config.security.sms.SmsCodeAuthenticationToken;
 import cn.jongwong.server.service.UserDetailsService;
@@ -11,7 +13,6 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -27,11 +28,22 @@ public class AuthenticationManagerResolver {
     private SmsCodeAuthenticationProvider smsCodeAuthenticationProvider;
 
 
+    @Autowired
+    private JwtCodeAuthenticationProvider jwtCodeAuthenticationProvider;
+
+
     @Bean("customAuthenticationManager")
     @Primary
-    public ReactiveAuthenticationManager customAuthenticationManager(ReactiveUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    public ReactiveAuthenticationManager customAuthenticationManager(ReactiveUserDetailsService userDetailsService) {
 
         return authentication -> {
+
+            System.out.printf("-------2222-------%s%n", 2222);
+            if (authentication instanceof JwtCodeAuthenticationToken) {
+
+                System.out.printf("-------JwtCodeAuthenticationToken-------%s%n", 22);
+                return jwtCodeAuthenticationProvider.authenticate(authentication);
+            }
 
             if (authentication instanceof SmsCodeAuthenticationToken) {
 

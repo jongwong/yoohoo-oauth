@@ -1,7 +1,7 @@
 package cn.jongwong.server.config;
 
 import cn.jongwong.server.OauthAuthenticationApplication;
-import cn.jongwong.server.util.response.ResponseResult;
+import cn.jongwong.server.util.response.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class ObjectMapperTest {
     @Test
     public void testObjectMapperSerialization() throws Exception {
         // 创建一个 ResponseResult 对象
-        ResponseResult result = new ResponseResult(200, "OK", "Some data");
+        Response result = new Response(200, "OK", "Some data");
 
         // 将对象转换为 JSON 字符串
         String jsonResponse = objectMapper.writeValueAsString(result);

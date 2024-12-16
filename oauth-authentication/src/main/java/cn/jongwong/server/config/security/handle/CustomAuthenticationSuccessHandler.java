@@ -18,7 +18,6 @@ public class CustomAuthenticationSuccessHandler implements ServerAuthenticationS
 
     @Override
     public Mono<Void> onAuthenticationSuccess(WebFilterExchange webFilterExchange, Authentication authentication) {
-        System.out.println("-------WebFilterExchange-------");
 
         // 获取 ServerWebExchange 实例
         ServerWebExchange exchange = webFilterExchange.getExchange();

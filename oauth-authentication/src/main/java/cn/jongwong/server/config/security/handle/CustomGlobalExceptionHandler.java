@@ -1,6 +1,6 @@
 package cn.jongwong.server.config.security.handle;
 
-import cn.jongwong.server.util.response.ResponseResult;
+import cn.jongwong.server.util.response.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -23,16 +23,16 @@ public class CustomGlobalExceptionHandler implements WebExceptionHandler {
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().add("Content-Type", "application/json");
         ex.printStackTrace();
-        ResponseResult<Void> result;
+        Response<Void> result;
         if (ex instanceof IllegalArgumentException) {
             response.setStatusCode(HttpStatus.BAD_REQUEST);
-            result = new ResponseResult<>(HttpStatus.BAD_REQUEST.value(), "Invalid request: " + ex.getMessage());
+            result = new Response<>(HttpStatus.BAD_REQUEST.value(), "Invalid request: " + ex.getMessage());
         } else if (ex instanceof AuthenticationException) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            result = new ResponseResult<>(HttpStatus.UNAUTHORIZED.value(), "Authentication failed: " + ex.getMessage());
+            result = new Response<>(HttpStatus.UNAUTHORIZED.value(), "Authentication failed: " + ex.getMessage());
         } else {
             response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            result = new ResponseResult<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+            result = new Response<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
         }
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse;

@@ -38,10 +38,8 @@ public class AuthenticationManagerResolver {
 
         return authentication -> {
 
-            System.out.printf("-------2222-------%s%n", 2222);
             if (authentication instanceof JwtCodeAuthenticationToken) {
 
-                System.out.printf("-------JwtCodeAuthenticationToken-------%s%n", 22);
                 return jwtCodeAuthenticationProvider.authenticate(authentication);
             }
 

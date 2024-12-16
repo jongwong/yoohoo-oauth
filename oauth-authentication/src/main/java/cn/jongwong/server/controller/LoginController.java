@@ -2,7 +2,7 @@ package cn.jongwong.server.controller;
 
 import cn.jongwong.server.config.security.jwt.JwtUtil;
 import cn.jongwong.server.service.UserService;
-import cn.jongwong.server.util.response.ResponseResult;
+import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,11 +25,10 @@ public class LoginController {
 
 
     @PostMapping("/token")
-    public Mono<ResponseResult<String>> login(ServerWebExchange exchange) {
+    public Mono<Response<String>> login(ServerWebExchange exchange) {
         // 从请求中解析表单数据
         return exchange.getFormData()
                 .flatMap(formData -> {
-                    System.out.printf("-------formData-------%s%n", formData);
                     String grantType = formData.getFirst("grant_type");
                     String username = formData.getFirst("username");
                     String password = formData.getFirst("password");
@@ -50,7 +49,6 @@ public class LoginController {
 
                                     // 生成 JWT token
                                     String jwtToken = jwtUtil.generateToken(user);
-                                    System.out.printf("-------jwtToken-------%s%n", jwtToken);
 
                                     // 将 JWT 存储到 session
                                     return exchange.getSession()
@@ -63,12 +61,12 @@ public class LoginController {
                                                         .path("/")       // 设置路径为根，保证在所有路径下都能访问
                                                         .maxAge(Duration.ofHours(1)) // 设置过期时间
                                                         .build());
-                                                return Mono.just(ResponseResult.success(jwtToken));
+                                                return Mono.just(Response.success(jwtToken));
                                             }));
                                 });
                     }
 
-                    return Mono.just(ResponseResult.error("Unsupported grant type"));
+                    return Mono.just(Response.error("Unsupported grant type"));
                 });
     }
 

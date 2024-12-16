@@ -6,8 +6,10 @@ server:
 
 
 spring:
-  profiles:
-    active: local
+  webflux:
+    static-path-pattern: /static/**
+  #  profiles:
+  #    active: dev
   session:
     store-type: redis      # 使用 Redis 存储 Session
     redis:
@@ -37,7 +39,6 @@ spring:
     suffix: .html
     cache: false
     mode: HTML
-
   r2dbc:
     url: r2dbc:mysql://101.34.152.79:3305/yoohoo-oauth
     username: root
@@ -53,7 +54,11 @@ spring:
       password: 123456
 
 
-
+springdoc:
+  swagger-ui:
+    default-model-expand-depth: 3
+  api-docs:
+    path: /api-docs
 
 
 
@@ -64,6 +69,7 @@ logging:
     org:
       springframework:
         security: DEBUG
+        r2dbc: DEBUG
         web:
           server:
             reactive: DEBUG

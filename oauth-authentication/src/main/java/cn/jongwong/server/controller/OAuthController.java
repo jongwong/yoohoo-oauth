@@ -55,7 +55,6 @@ public class OAuthController {
         String state = form.getState();
 
         // 打印参数信息（可选）
-        System.out.printf("=========approve=======%b%n", approve);
         System.out.printf("client_id=%s, redirect_uri=%s, response_type=%s, scope=%s, state=%s%n",
                 client_id, redirect_uri, response_type, scope, state);
 

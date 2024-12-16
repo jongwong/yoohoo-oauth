@@ -35,7 +35,19 @@ import static org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder.w
 @EnableWebFluxSecurity
 public class WebFluxSecurityConfig {
 
-
+    public static final String[] WHITELIST_URLS = {
+            "/login",
+            "/authentication/form/sms/send",
+            "/oauth2/token",
+            "/auth/token",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/api-docs",
+            "/api-docs/*",
+            "/v3/api-docs/**",
+            "/v3/api-docs.yaml"
+    };
     @Autowired
     private CustomAuthenticationSuccessHandler authenticationSuccessHandler;
 
@@ -68,9 +80,8 @@ public class WebFluxSecurityConfig {
         http.csrf(t -> t.disable());
         // 1. 首先放行 /login
         http.authorizeExchange(t -> t
-                .pathMatchers("/login", "authentication/form/sms/send", "/oauth2/token", "/auth/token").permitAll()
-                .pathMatchers("/test").hasAuthority("ROLE_ADMIN")
-                .pathMatchers("/hello").authenticated()
+                .pathMatchers(WHITELIST_URLS).permitAll()
+                .pathMatchers("/admin/*").hasAuthority("ROLE_ADMIN")
                 .anyExchange().authenticated());   // 其他路径需要认证
         // @formatter:off
         http.httpBasic(ServerHttpSecurity.HttpBasicSpec::disable);

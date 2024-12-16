@@ -395,14 +395,12 @@
                 }
             },
             getSmsCode() {  // 校验手机号是否填写且格式正确
-                console.log("=====this.smsModel=====", this.smsModel)
 
                 if (!this.smsModel.mobile) {
 
 
                     alert('请输入手机号')
                 }
-                console.log("=====this.smsModel=====", this.smsModel)
 
                 axios
                     .post("/authentication/form/sms/send", {

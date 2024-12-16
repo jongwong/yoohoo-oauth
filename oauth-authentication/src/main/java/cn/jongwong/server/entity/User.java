@@ -4,16 +4,13 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.jdbc.core.RowMapper;
 
 import java.io.Serializable;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 @Data
 @Table("tb_user") // 表名为 tb_user
-public class User implements RowMapper<User>, Serializable {
+public class User implements Serializable {
     private static final long serialVersionUID = -339516038496531943L;
 
     @Id
@@ -51,8 +48,4 @@ public class User implements RowMapper<User>, Serializable {
 
     private LocalDateTime updatedAt;
 
-    @Override
-    public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return null;
-    }
 }

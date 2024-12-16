@@ -1,6 +1,6 @@
 package cn.jongwong.server.config.security.handle;
 
-import cn.jongwong.server.util.response.ResponseResult;
+import cn.jongwong.server.util.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,7 +19,6 @@ public class CustomAuthenticationFailureHandler implements ServerAuthenticationF
     @Override
     public Mono<Void> onAuthenticationFailure(WebFilterExchange webFilterExchange, AuthenticationException exception) {
 
-        System.out.printf("-------1342423432-------%s%n", 1342423432);
         // 获取响应对象
         ServerHttpResponse response = webFilterExchange.getExchange().getResponse();
 
@@ -27,15 +26,15 @@ public class CustomAuthenticationFailureHandler implements ServerAuthenticationF
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
 
         // 创建自定义的错误响应
-        ResponseResult<Void> result;
+        Response<Void> result;
 
         // 根据不同的异常类型，返回不同的错误消息
         if (exception instanceof BadCredentialsException) {
-            result = ResponseResult.error("Invalid credentials");
+            result = Response.error("Invalid credentials");
         } else if (exception instanceof InternalAuthenticationServiceException) {
-            result = ResponseResult.error("Authentication service error");
+            result = Response.error("Authentication service error");
         } else {
-            result = ResponseResult.error("Authentication failed");
+            result = Response.error("Authentication failed");
         }
 
         // 将响应转换为 JSON 格式，并写入响应体

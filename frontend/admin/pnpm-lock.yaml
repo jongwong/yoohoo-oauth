@@ -43,6 +43,7 @@ specifiers:
   cross-env: ^7.0.3
   css-loader: ^6.8.1
   cssnano: ^5.0.6
+  dayjs: ^1.11.13
   eslint: ^8.22.0
   eslint-config-airbnb: ^19.0.4
   eslint-config-airbnb-typescript: ^17.0.0
@@ -110,6 +111,7 @@ dependencies:
   antd: 5.22.4_nnrd3gsncyragczmpvfhocinkq
   axios: 1.7.9
   classnames: 2.5.1
+  dayjs: 1.11.13
   jotai: 2.10.3_etakp3t3jkcarp55ny7sncr7iy
   lodash: 4.17.21
   react: 18.3.1

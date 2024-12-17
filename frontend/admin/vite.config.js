@@ -1,62 +1,39 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 // 可选：自定义 Babel 插件
-import Buffer from 'buffer';
-import * as fs from 'fs';
-import svgo from 'svgo';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import svgr from 'vite-plugin-svgr';
-
-function rawTxtPlugin() {
-	return {
-		name: 'vite-plugin-raw-txt',
-		transform(src, id) {
-			if (!id.endsWith('.txt')) {
-				return null;
-			}
-			const filePath = path.resolve(id);
-			const content = fs.readFileSync(filePath, 'utf-8');
-			return {
-				code: `export default ${JSON.stringify(content)}`,
-				map: null, // 如果需要源映射，可以生成源映射
-			};
-		},
-	};
-}
 
 export default defineConfig({
 	mode: 'development',
 	server: {
 		port: 3000,
 		host: '0.0.0.0',
-		proxy: {
-			// Proxy all requests starting with `/api` to `http://localhost:5000`
-			'/preview': {
-				target: 'http://localhost:3001',
-				changeOrigin: true, // Change the origin to match the target server
-				rewrite: path => path,
-			},
-			'/api': {
-				target: 'http://localhost:3001',
-				changeOrigin: true, // Change the origin to match the target server
-				rewrite: path => path.replace(/^\/api/, ''),
-			},
-		},
 	},
-	assetsExclude: ['**/*.svg'],
 	plugins: [
+		svgr({
+			// svgr options: https://react-svgr.com/docs/options/
+			svgrOptions: {
+				plugins: ['@svgr/plugin-svgo', '@svgr/plugin-jsx'],
+				svgoConfig: {
+					floatPrecision: 2,
+				},
+			},
+
+			// esbuild options, to transform jsx to js
+			esbuildOptions: {
+				// ...
+			},
+
+			// A minimatch pattern, or array of patterns, which specifies the files in the build the plugin should include.
+			include: '**/*.svg',
+
+			//  A minimatch pattern, or array of patterns, which specifies the files in the build the plugin should ignore. By default no files are ignored.
+			exclude: '',
+		}),
 		react(), // 代替 ReactRefreshWebpackPlugin
 
-		monacoEditorPlugin({
-			// 代替 MonacoWebpackPlugin
-			languageWorkers: ['editorWorkerService', 'typescript'],
-		}),
-		svgr({
-			exportAsDefault: true,
-		}),
-		rawTxtPlugin(),
 		createHtmlPlugin({
 			minify: true,
 			entry: '/src/index.tsx',
@@ -65,7 +42,7 @@ export default defineConfig({
 		}),
 	],
 	resolve: {
-		extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.svg'],
+		extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
 		alias: {
 			'@': path.resolve(__dirname, './src'),
 			'@containers': path.resolve(__dirname, './src/containers'),
@@ -87,19 +64,10 @@ export default defineConfig({
 		minify: false,
 	},
 	optimizeDeps: {
-		include: [
-			'react',
-			'react-dom',
-			'react-router-dom',
-			'react-dnd',
-			'react-dnd-html5-backend',
-			'react-arborist',
-		],
+		include: ['react', 'react-dom', 'react-router-dom', 'react-dnd', 'react-dnd-html5-backend'],
 	},
 	define: {
 		// 如果需要使用 process.env 变量，可以在这里添加
 		'process.env': JSON.stringify(process.env),
-		global: {},
-		Buffer: Buffer, // 提供 Buffer
 	},
 });

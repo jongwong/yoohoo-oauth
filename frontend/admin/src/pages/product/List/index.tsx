@@ -1,10 +1,10 @@
 import React from 'react';
 import http from '@/utils/http';
-import ProTable, { ProTableColumnType } from '@/component/pro-component/ProTable';
-import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
-import { Card, Tag } from 'antd';
+import ProTable, {ProTableColumnType} from '@/component/pro-component/ProTable';
+import {QueryFormFieldType} from '@/component/pro-component/ProQueryForm';
+import {Card, Tag} from 'antd';
 import ContentLayout from '@/component/ContentLayout';
-import { ProductArchivedStatusMap, ProductListedStatusMap } from '@/constant/product';
+import {ProductArchivedStatusMap, ProductListedStatusMap} from '@/constant/product';
 import dayjs from 'dayjs';
 
 const UserList: React.FC = props => {

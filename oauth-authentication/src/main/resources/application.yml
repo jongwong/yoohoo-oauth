@@ -60,6 +60,11 @@ springdoc:
   api-docs:
     path: /api-docs
 
+aliyun:
+  oss:
+    accessKeyId: ${OSS_ACCESS_KEY_ID:default_access_key_id}
+    accessKeySecret: ${OSS_ACCESS_KEY_SECRET:default_access_key_secret}
+
 
 
 

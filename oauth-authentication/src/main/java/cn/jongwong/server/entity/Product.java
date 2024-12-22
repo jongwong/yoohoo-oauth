@@ -6,9 +6,10 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
-@Table(name = "tb_products")
+@Table(name = "tb_product")
 public class Product {
 
     @Id
@@ -51,5 +52,18 @@ public class Product {
     private String updatedBy; // 更新人ID（用户的UUID）
 
     private String updatedByName; // 更新人名称
+
+
+    // 主图
+    private List<ProductImage> mainImage;
+
+    // 缩略图
+    private List<ProductImage> thumbnailImage;
+
+    // 轮播图
+    private List<ProductImage> carouselImages;
+
+    // 其他图片
+    private List<ProductImage> otherImages;
 
 }

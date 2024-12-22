@@ -1,9 +1,10 @@
 import React from 'react';
-import { Breadcrumb, Layout } from 'antd';
+import {Breadcrumb, Layout} from 'antd';
 import './index.less';
 // @ts-ignore
-import { matchPath, useLocation } from 'react-router';
+import {matchPath} from 'react-router';
 import routes from '@/routes';
+import {useLocation} from "react-router-dom";
 
 const { Header, Content, Footer } = Layout;
 

@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import {Button, Form, Input, message} from "antd";
 import {LockOutlined, UserOutlined} from "@ant-design/icons";
-// @ts-ignore
 import {useHistory} from "react-router";
 import {setCookie} from "@/utils/cookie";
 import http from "@/utils/http";

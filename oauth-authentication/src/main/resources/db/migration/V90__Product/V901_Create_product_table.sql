@@ -1,4 +1,4 @@
-CREATE TABLE `tb_products` (
+CREATE TABLE `tb_product` (
                             `id` CHAR(36) PRIMARY KEY,                        -- 商品ID，使用UUID
                             `name` VARCHAR(255) NOT NULL,                     -- 商品名称
                             `description` TEXT,                              -- 商品描述

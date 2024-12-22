@@ -30,7 +30,6 @@ public class OssController {
     @GetMapping("/token")
     public Mono<Map<String, String>> getTemporaryCredentials() {
         Map<String, String> data = ossService.getTemporaryCredentials();
-        System.out.printf("-------data-------%s%n", data);
         return Mono.just(data);
     }
 

@@ -1,0 +1,1 @@
+export const PAGES_PRODUCT_URL = "/product"

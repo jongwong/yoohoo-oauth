@@ -2,12 +2,12 @@
 import React from 'react';
 import { Menu } from 'antd';
 import { RouteConfig } from 'react-router-config';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const MenuComponent: React.FC<{
 	routes: RouteConfig;
 }> = ({ routes }) => {
-	const h = useHistory();
+	const navigate = useNavigate();
 	const items = (routes || [])
 		.filter((route: any) => !route.hidden) // 过滤掉隐藏的路由
 		.map((route: any) => ({
@@ -16,7 +16,7 @@ const MenuComponent: React.FC<{
 			label: route.title, // 菜单项的文字
 			onClick: () => {
 				if (!route?.routes?.lenght) {
-					h.push(route.path);
+					navigate(route.path);
 				}
 			},
 			children: route?.routes?.lenght
@@ -25,7 +25,7 @@ const MenuComponent: React.FC<{
 						label: childRoute.title,
 						icon: childRoute.icon,
 						onClick: () => {
-							h.push(childRoute.path);
+							navigate(childRoute.path);
 						},
 						// 递归处理子路由
 				  }))

@@ -1,4 +1,9 @@
 /* 一般初始化 */
+:root {
+	--link-color: #1890ff; /* 定义链接的默认颜色 */
+	--link-hover-color: #40a9ff; /* 定义链接悬停时的颜色 */
+}
+
 
 *,
 *::before,
@@ -37,7 +42,11 @@ video {
 /* 文字选择、超链接、表单元素 */
 a {
 	text-decoration: none;
-	color: inherit;
+	color: var(--link-color);
+}
+
+a:hover {
+	color: var(--link-hover-color); /* 使用悬停时的变量 */
 }
 
 button,

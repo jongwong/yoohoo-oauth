@@ -1,13 +1,15 @@
 import React from 'react';
 import http from '@/utils/http';
-import ProTable, {ProTableColumnType} from '@/component/pro-component/ProTable';
-import {QueryFormFieldType} from '@/component/pro-component/ProQueryForm';
-import {Card, Tag} from 'antd';
+import ProTable, { ProTableColumnType } from '@/component/pro-component/ProTable';
+import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
+import { Card, Space, Tag } from 'antd';
 import ContentLayout from '@/component/ContentLayout';
-import {ProductArchivedStatusMap, ProductListedStatusMap} from '@/constant/product';
+import { ProductArchivedStatusMap, ProductListedStatusMap } from '@/constant/product';
 import dayjs from 'dayjs';
+import { PAGES_PRODUCT_URL } from '@/pages/product/pages';
+import { Link } from 'react-router-dom';
 
-const UserList: React.FC = props => {
+const UserList: React.FC = () => {
 	const fetchUserList = async (params: any) => {
 		const response = await http.get('/admin/product', {
 			params: params,
@@ -76,6 +78,13 @@ const UserList: React.FC = props => {
 			dataIndex: '_action',
 			width: 120,
 			fixed: 'right',
+			render: (_t, r) => {
+				return (
+					<Space>
+						<Link to={PAGES_PRODUCT_URL + '/' + r.id}>详情</Link>
+					</Space>
+				);
+			},
 		},
 	];
 	return (

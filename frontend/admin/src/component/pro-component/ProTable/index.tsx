@@ -2,9 +2,9 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import ProQueryForm, { ProQueryFormProps } from '@/component/pro-component/ProQueryForm';
 import { Form, Table, TableProps } from 'antd';
 import { BaseProFieldType } from '@/component/pro-component/types';
-import { formatProField } from '@/component/pro-component/utils/render';
 import { ColumnType } from 'antd/es/table/interface';
 import { isBoolean, isNil } from 'lodash';
+import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
 
 export type ProTableColumnType<T = any> = Omit<
 	BaseProFieldType<T>,
@@ -25,7 +25,13 @@ export type ProTableProps<T = any, P = any> = {
 const ProTable: React.FC<ProTableProps> = props => {
 	const { fields, pagination, request, columns, ...rest } = props;
 	const [form] = Form.useForm();
-	const formatColumns = (columns || []).map(it => formatProField(it, true));
+	const formatColumns = (columns || []).map(
+		it =>
+			({
+				...it,
+				...formatRenderFun(it),
+			} as ProTableColumnType)
+	);
 
 	const [dataSource, setDataSource] = useState([]);
 	const [total, setTotal] = useState(0);

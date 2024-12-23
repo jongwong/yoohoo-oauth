@@ -31,10 +31,9 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
-    "@ant-design/pro-field": "^2.17.2",
     "ahooks": "^3.7.7",
     "ali-oss": "^6.22.0",
-    "antd": "^5.8.5",
+    "antd": "^5.22.5",
     "axios": "^1.4.0",
     "classnames": "^2.3.2",
     "crypto-js": "^4.2.0",

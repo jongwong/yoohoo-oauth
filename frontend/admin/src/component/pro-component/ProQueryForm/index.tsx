@@ -1,8 +1,9 @@
-import React, { Key, ReactNode } from 'react';
+import React, { Key, ReactNode, useMemo } from 'react';
 import { Button, Col, Form, FormInstance, Row } from 'antd';
-import ProField from '@ant-design/pro-field';
 import { BaseProFieldType } from '@/component/pro-component/types';
-import { formatProField } from '@/component/pro-component/utils/render';
+import ProField from '@/component/pro-component/ProField';
+import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
+import { omit } from 'lodash';
 
 export type QueryFormFieldType<T = any> = Omit<
 	BaseProFieldType<T>,
@@ -42,14 +43,21 @@ const ProQueryForm: React.FC<ProQueryFormProps> = ({
 		onReset?.();
 	};
 
+	const formatProField: any = useMemo(() => {
+		return fields?.map(it => ({
+			...omit(it, ['title', 'dataIndex']),
+			...formatRenderFun(it, {}),
+		}));
+	}, []);
+
+	console.log('=====formatProField=====', formatProField);
+
 	const renderContent = () => {
 		return (
 			<Row gutter={[16, 16]} style={{ width: '100%' }}>
-				{fields.map(field => (
+				{formatProField.map((field: any) => (
 					<Col key={field.name as string} xs={24} sm={12} md={8} lg={6}>
-						<Form.Item name={field.name as string} label={field.label} noStyle>
-							<ProField mode={'edit'} plain {...(formatProField(field as any) as any)} />
-						</Form.Item>
+						<ProField plain {...field} mode={'edit'} />
 					</Col>
 				))}
 				<Col style={{ textAlign: 'right', flex: 'auto' }}>

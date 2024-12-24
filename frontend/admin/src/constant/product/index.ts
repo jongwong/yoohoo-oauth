@@ -1,4 +1,4 @@
-import {toValEnumMap} from "@/utils/enum";
+import { toValEnumMap } from '@/utils/enum';
 
 /** 商品建档状态枚举 */
 export enum EProductArchivedStatus {
@@ -47,5 +47,26 @@ export const ProductListedStatusMap = toValEnumMap<EProductListedStatus>([
 		value: EProductListedStatus.Listed,
 		text: '已上架',
 		status: 'success',
+	},
+]);
+
+export enum EProductStatus {
+	Available = 1, // 可用
+	Disable = 2, // 不可用
+	Discontinued = 3, // 已下架
+}
+
+export const ProductStatusMap = toValEnumMap<EProductStatus>([
+	{
+		value: EProductStatus.Available,
+		text: '可用',
+	},
+	{
+		value: EProductStatus.Disable,
+		text: '不可用',
+	},
+	{
+		value: EProductStatus.Discontinued,
+		text: '已下架',
 	},
 ]);

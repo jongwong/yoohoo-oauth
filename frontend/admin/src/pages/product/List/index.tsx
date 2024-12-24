@@ -11,10 +11,9 @@ import { Link } from 'react-router-dom';
 
 const UserList: React.FC = () => {
 	const fetchUserList = async (params: any) => {
-		const response = await http.get('/admin/product', {
+		return await http.get('/admin/product', {
 			params: params,
-		});
-		return response.data; // 假设返回值中包含 token
+		}); // 假设返回值中包含 token
 	};
 
 	const fields: QueryFormFieldType[] = [

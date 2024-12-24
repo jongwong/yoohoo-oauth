@@ -1,9 +1,23 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 // 可选：自定义 Babel 插件
 import { createHtmlPlugin } from 'vite-plugin-html';
 import svgr from 'vite-plugin-svgr';
+import { readFileSync } from 'node:fs';
+import path from 'path';
+
+// 解析 tsconfig.json 中的 paths
+function resolveTsconfigPaths() {
+	const tsconfig = JSON.parse(readFileSync('./tsconfig.json', 'utf8'));
+	const paths = tsconfig.compilerOptions.paths || {};
+	const aliases = {};
+	for (const [key, value] of Object.entries(paths)) {
+		const alias = key.replace('/*', '');
+		const resolvedPath = path.resolve(__dirname, value[0].replace('/*', ''));
+		aliases[alias] = resolvedPath;
+	}
+	return aliases;
+}
 
 export default defineConfig({
 	mode: 'development',
@@ -20,7 +34,6 @@ export default defineConfig({
 					floatPrecision: 2,
 				},
 			},
-
 			// esbuild options, to transform jsx to js
 			esbuildOptions: {
 				// ...
@@ -43,11 +56,7 @@ export default defineConfig({
 	],
 	resolve: {
 		extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-		alias: {
-			'@': path.resolve(__dirname, './src'),
-			'@containers': path.resolve(__dirname, './src/containers'),
-			'@public': path.resolve(__dirname, './public'),
-		},
+		alias: resolveTsconfigPaths(),
 	},
 	css: {
 		preprocessorOptions: {

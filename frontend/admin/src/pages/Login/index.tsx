@@ -15,7 +15,6 @@ const Login: React.FC = () => {
 		// 模拟登录请求
 		try {
 			const response = await loginRequest(values);
-			console.log('=====response=====', response);
 			// 设置名为 "JWT" 的 Cookie，1 小时过期，HTTPS 下发送，SameSite 为 Strict
 			setCookie('access_token', response.data, {
 				maxAge: 3600,
@@ -35,12 +34,11 @@ const Login: React.FC = () => {
 		formData.append('username', data.username);
 		formData.append('password', data.password);
 
-		const response = await http.post('/auth/token', formData, {
+		return await http.post('/auth/token', formData, {
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},
-		});
-		return response.data; // 假设返回值中包含 token
+		}); // 假设返回值中包含 token
 	};
 
 	return (

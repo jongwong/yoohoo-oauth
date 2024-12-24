@@ -6,6 +6,9 @@
 		"lib": ["es6", "dom"],
 		"paths": {
 			"@/*": ["./src/*"],
+			"@yoohoo/pro-component": [
+				"./src/component/pro-component/index.ts"
+			],
 			"src/*": ["./src/*"],
 			"@public/*": [
 				"./public/*"

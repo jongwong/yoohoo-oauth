@@ -7,10 +7,9 @@ import ContentLayout from '@/component/ContentLayout';
 
 const UserList: React.FC = props => {
 	const fetchUserList = async (params: any) => {
-		const response = await http.get('/admin/user', {
+		return await http.get('/admin/user', {
 			params: params,
-		});
-		return response.data; // 假设返回值中包含 token
+		}); // 假设返回值中包含 token
 	};
 
 	const fields: QueryFormFieldType[] = [

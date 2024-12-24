@@ -1,17 +1,11 @@
-import React, { Key, ReactNode, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Button, Col, Form, FormInstance, Row } from 'antd';
-import { BaseProFieldType } from '@/component/pro-component/types';
+import { BaseFormProFieldType } from '@/component/pro-component/types';
 import ProField from '@/component/pro-component/ProField';
 import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
 import { omit } from 'lodash';
 
-export type QueryFormFieldType<T = any> = Omit<
-	BaseProFieldType<T>,
-	'title' | 'dataIndex' | 'label' | 'name'
-> & {
-	label: ReactNode;
-	name?: Key | Key[];
-};
+export type QueryFormFieldType<T = any> = BaseFormProFieldType<T>;
 
 export interface ProQueryFormProps<T = any> {
 	fields: QueryFormFieldType<T>[];
@@ -49,8 +43,6 @@ const ProQueryForm: React.FC<ProQueryFormProps> = ({
 			...formatRenderFun(it, {}),
 		}));
 	}, []);
-
-	console.log('=====formatProField=====', formatProField);
 
 	const renderContent = () => {
 		return (

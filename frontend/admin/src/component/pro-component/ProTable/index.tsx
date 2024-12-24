@@ -1,18 +1,16 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ProQueryForm, { ProQueryFormProps } from '@/component/pro-component/ProQueryForm';
 import { Form, Table, TableProps } from 'antd';
-import { BaseProFieldType } from '@/component/pro-component/types';
+import { BaseTableProFieldType } from '@/component/pro-component/types';
 import { ColumnType } from 'antd/es/table/interface';
 import { isBoolean, isNil } from 'lodash';
 import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
 
 export type ProTableColumnType<T = any> = Omit<
-	BaseProFieldType<T>,
-	'title' | 'label' | 'name' | 'render'
-> & {
-	title: ReactNode;
-	render?: (text: any, record: T, index: number) => ReactNode;
-} & ColumnType<T>;
+	BaseTableProFieldType<T>,
+	'placeholder' | 'fieldProps' | 'renderFormItem' | 'formItemProps'
+> &
+	ColumnType<T>;
 
 export type ProTableProps<T = any, P = any> = {
 	fields: ProQueryFormProps<P>['fields'];

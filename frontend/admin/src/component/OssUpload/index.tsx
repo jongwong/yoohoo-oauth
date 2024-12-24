@@ -21,9 +21,12 @@ const OssUpload: React.FC<
 	const credentialsRef = useRef<any>(null);
 
 	const refreshCredentials = async () => {
-		const response = await http.get('/admin/oss/token');
-
-		const credentials: any = response.data;
+		const res = await http.get('/admin/oss/token');
+		if (res?.code) {
+			message.error('获取凭证失败');
+			return;
+		}
+		const credentials: any = res.data;
 		credentialsRef.current = credentials;
 
 		const config = {

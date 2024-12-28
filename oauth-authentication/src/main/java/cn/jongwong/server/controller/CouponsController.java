@@ -31,8 +31,8 @@ public class CouponsController {
 
     // 获取优惠券通过ID
     @GetMapping("/{id}")
-    public Mono<Response<CouponsVO>> getCouponById(@PathVariable String id) {
-        return couponsService.getCouponById(id)
+    public Mono<Response<CouponsVO>> getDataById(@PathVariable String id) {
+        return couponsService.findById(id)
                 .map(Response::success)
                 .defaultIfEmpty(Response.error("找不到优惠券"));
     }
@@ -47,7 +47,7 @@ public class CouponsController {
     // 更新优惠券
     @PutMapping("/{id}")
     public Mono<Response<CouponsVO>> update(@PathVariable String id, @RequestBody CouponsVO couponsVO) {
-        return couponsService.updateCoupon(id, couponsVO)
+        return couponsService.update(id, couponsVO)
                 .map(Response::success)
                 .defaultIfEmpty(Response.notFound());
     }
@@ -60,20 +60,20 @@ public class CouponsController {
 
     @PutMapping("/{id}/submit")
     public Mono<Response<CouponsVO>> submit(@PathVariable String id, @RequestBody CouponsVO couponsVO) {
-        return couponsService.submitForReview(id, couponsVO)
+        return couponsService.submit(id, couponsVO)
                 .map(Response::success);
     }
 
     @PutMapping("/{id}/reject")
     public Mono<Response<CouponsVO>> reject(@PathVariable String id, @RequestBody CommonRejectDTO rejectRequest) {
-        return couponsService.rejectReview(id, rejectRequest.getRejectionReason())
+        return couponsService.reject(id, rejectRequest.getRejectionReason())
                 .map(Response::success)
                 .defaultIfEmpty(Response.notFound());
     }
 
     @PutMapping("/{id}/approve")
     public Mono<Response<CouponsVO>> approve(@PathVariable String id, @RequestBody CommonRejectDTO rejectRequest) {
-        return couponsService.approveReview(id)
+        return couponsService.approve(id)
                 .map(Response::success)
                 .defaultIfEmpty(Response.notFound());
     }

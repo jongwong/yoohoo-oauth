@@ -1,7 +1,10 @@
 package cn.jongwong.server.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
@@ -11,6 +14,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 @Table(name = "tb_product")
 public class ProductVO {
 
@@ -43,8 +49,7 @@ public class ProductVO {
     @Schema(description = "商品状态")
     private Integer status;
 
-    @Schema(description = "创建时间")
-    private LocalDateTime createdAt;
+
 
     @Schema(description = "SEO优化的标题")
     private String metaTitle;
@@ -64,12 +69,22 @@ public class ProductVO {
     @Schema(description = "创建人ID")
     private String createdBy;
 
+
+    @Transient
     @Schema(description = "创建人名称")
     private String createdByName;
 
     @Schema(description = "更新人ID")
     private String updatedBy;
 
+    @Schema(description = "创建时间")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+
+    @Transient
     @Schema(description = "更新人名称")
     private String updatedByName;
 

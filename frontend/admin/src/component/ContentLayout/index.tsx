@@ -1,20 +1,37 @@
-import React from 'react';
-import { Breadcrumb, Layout, Spin } from 'antd';
-import './index.less';
-// @ts-ignore
+import React, { ReactNode } from 'react';
 import { matchPath } from 'react-router';
-import routes from '@/routes';
 import { useLocation } from 'react-router-dom';
 
-const { Header, Content, Footer } = Layout;
+import { Breadcrumb, Layout, Spin, Tabs, TabsProps } from 'antd';
 
+import routes from '@/routes';
+
+import './index.less';
+
+import styles from './index.module.less';
+import HeaderInfo, { HeaderInfoProps } from '@/component/HeaderInfo';
+
+const { Content, Footer } = Layout;
+
+export type LayoutHeaderProps = {
+	footer?: ReactNode;
+	extra?: ReactNode;
+	tabsProps?: TabsProps;
+	info?: Omit<HeaderInfoProps, 'extra'>;
+};
 type LayoutProps = {
 	footer?: React.ReactNode;
 	children?: React.ReactNode;
 	loading?: boolean;
+	header?: LayoutHeaderProps;
 };
 const ContentLayout: React.FC<LayoutProps> = props => {
-	const { footer, loading, children, ...rest } = props;
+	const { footer, header, loading, children, ...rest } = props;
+	const headerFooter = header?.footer;
+	const tabsProps = header?.tabsProps;
+	const info = header?.info;
+
+	const extra = header?.extra;
 	const minHeight = footer ? 'calc(100vh - 64px - 48px)' : 'calc(100vh - 64px)';
 	const location = useLocation();
 	// 递归查找当前路径对应的路由层级
@@ -41,11 +58,11 @@ const ContentLayout: React.FC<LayoutProps> = props => {
 		<Spin spinning={!!loading}>
 			{/* 内容区域 */}
 			<Content
-				className={footer ? 'yh-layout-content__has-footer yh-layout-content' : 'yh-layout-content'}
+				className={footer ? 'yh-layout__has-footer yh-layout' : 'yh-layout'}
 				style={{ minHeight: minHeight }}>
-				<div style={{ padding: '8px 24px', background: '#fff' }}>
+				<div className={styles['yh-layout-header']}>
 					{/* 动态渲染面包屑 */}
-					<Breadcrumb>
+					<Breadcrumb className={'mb-4'}>
 						{breadcrumbItems.map(item => (
 							<Breadcrumb.Item key={item.path}>{item.title}</Breadcrumb.Item>
 						))}
@@ -53,6 +70,9 @@ const ContentLayout: React.FC<LayoutProps> = props => {
 					<h2 className="yh-header-heading-title">
 						{breadcrumbItems[breadcrumbItems.length - 1].title}
 					</h2>
+					<HeaderInfo {...info} extra={extra} />
+					<div className={!tabsProps ? 'mb-4' : undefined}>{headerFooter}</div>
+					{tabsProps ? <Tabs {...tabsProps} size={'small'} /> : null}
 				</div>
 				<div>{children}</div>
 			</Content>

@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = " 商品建档状态")
 public enum ProductArchivedStatus {
     DRAFT(10, "草稿", "商品尚未提交审核，仅处于编辑阶段"),
-    IN_REVIEW(20, "审核中", "商品正在审核流程中，等待审核人员操作"),
+    REVIEWING(20, "审核中", "商品正在审核流程中，等待审核人员操作"),
     REJECTED(30, "审核拒绝", "商品审核失败，需要修改后重新提交"),
     COMPLETED(40, "审核完成", "商品审核通过，建档流程结束");
 

@@ -42,8 +42,9 @@ const UserList: React.FC = () => {
 		{
 			title: '名称',
 			dataIndex: 'name',
-			width: 200,
+			width: 120,
 			fixed: 'left',
+			ellipsis: true,
 		},
 		{
 			title: '优惠券类型',

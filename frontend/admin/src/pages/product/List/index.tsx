@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import http from '@/utils/http';
-import ProTable, { ProTableColumnType } from '@/component/pro-component/ProTable';
+import ProTable, {
+	ProTableActionType,
+	ProTableColumnType,
+} from '@/component/pro-component/ProTable';
 import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
-import { Card, Space, Tag } from 'antd';
+import { Button, Card, message, Popconfirm, Space } from 'antd';
 import ContentLayout from '@/component/ContentLayout';
-import { ProductArchivedStatusMap, ProductListedStatusMap } from '@/constant/product';
-import dayjs from 'dayjs';
-import { PAGES_PRODUCT_URL } from '@/pages/product/pages';
+import {
+	EProductArchivedStatus,
+	ProductArchivedStatusMap,
+	ProductListedStatusMap,
+} from '@/constant/product';
+import { PAGES_PRODUCT_CREATE_URL, PAGES_PRODUCT_DETAIL_URL } from '@/pages/product/pages';
 import { Link } from 'react-router-dom';
+import { EDefaultValueType } from '@yoohoo/pro-component';
+import { transformUrlByRoutePath } from '@/utils/url';
+import { deleteProductById } from '@/pages/product/service';
 
 const UserList: React.FC = () => {
+	const actionRef = useRef<ProTableActionType>();
+	const [loading, setLoading] = useState(false);
+
 	const fetchUserList = async (params: any) => {
 		return await http.get('/admin/product', {
 			params: params,
@@ -22,42 +34,48 @@ const UserList: React.FC = () => {
 			name: 'name',
 		},
 	];
+	const removeHandler = async (id: string) => {
+		setLoading(true);
+		const res = await deleteProductById(id).finally(() => {
+			setLoading(false);
+		});
+		if (res.success) {
+			message.success('操作成功');
+			actionRef.current?.reload();
+		}
+	};
 
 	const columns: ProTableColumnType[] = [
 		{
 			title: '商品名称',
 			dataIndex: 'name',
-			width: 200,
+			width: 120,
 			fixed: 'left',
+			ellipsis: true,
 		},
 		{
 			title: '价格',
 			dataIndex: 'price',
-			render: (t: number) => `￥${t.toFixed(2)}`,
+			valueType: EDefaultValueType.Money,
 		},
 		{
 			title: '建档状态',
 			dataIndex: 'archived_status',
 			width: 100,
-			render: (t: number) => {
-				const find = ProductArchivedStatusMap.get(t);
-
-				return find ? <Tag color={find?.status}>{find?.text}</Tag> : '--';
-			},
+			valueEnum: ProductArchivedStatusMap,
+			valueType: EDefaultValueType.EnumStatusDot,
 		},
 		{
 			title: '上架状态',
 			dataIndex: 'listed_status',
 			width: 100,
-			render: (t: number) => {
-				const find = ProductListedStatusMap.get(t);
-				return find ? <Tag color={find.status}>{find.text}</Tag> : '--';
-			},
+			valueEnum: ProductListedStatusMap,
+			valueType: EDefaultValueType.EnumStatusDot,
 		},
 		{
 			title: '创建时间',
 			dataIndex: 'created_at',
-			render: (t: string) => dayjs(t).format('YYYY-MM-DD HH:mm:ss'),
+			valueType: EDefaultValueType.DateTimeMinutes,
 		},
 		{
 			title: '创建人',
@@ -66,7 +84,7 @@ const UserList: React.FC = () => {
 		{
 			title: '更新时间',
 			dataIndex: 'updated_at',
-			render: (t: string) => dayjs(t).format('YYYY-MM-DD HH:mm:ss'),
+			valueType: EDefaultValueType.DateTimeMinutes,
 		},
 		{
 			title: '更新人',
@@ -80,7 +98,17 @@ const UserList: React.FC = () => {
 			render: (_t, r) => {
 				return (
 					<Space>
-						<Link to={PAGES_PRODUCT_URL + '/' + r.id}>详情</Link>
+						<Link to={transformUrlByRoutePath(PAGES_PRODUCT_DETAIL_URL, r.id)}>详情</Link>
+						{r?.archived_status === EProductArchivedStatus.Draft ||
+						r?.archived_status === EProductArchivedStatus.Rejected ? (
+							<Popconfirm
+								title="确认是否删除？"
+								onConfirm={() => {
+									removeHandler(r?.id);
+								}}>
+								<a>删除</a>
+							</Popconfirm>
+						) : null}
 					</Space>
 				);
 			},
@@ -97,6 +125,22 @@ const UserList: React.FC = () => {
 					request={params => fetchUserList(params)}
 					fields={fields}
 					columns={columns}
+					footer={{
+						name: 'archived_status',
+						items: ProductArchivedStatusMap.tabs({ addUnLimit: true, limitText: '全部' }),
+					}}
+					loading={loading}
+					actionRef={actionRef}
+					extraOperation={
+						<>
+							<Button
+								onClick={() => {
+									window.open(PAGES_PRODUCT_CREATE_URL);
+								}}>
+								新建
+							</Button>
+						</>
+					}
 				/>
 			</Card>
 		</ContentLayout>

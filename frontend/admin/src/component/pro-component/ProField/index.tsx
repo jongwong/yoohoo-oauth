@@ -1,21 +1,22 @@
 import React from 'react';
 import { BaseFormProFieldType } from '@/component/pro-component/types';
 import { get, isNumber } from 'lodash';
-import { Form } from 'antd';
+import { Form, FormInstance } from 'antd';
 import { getKeyList } from '@/component/pro-component/utils/not-export';
+import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
 
 type ProFieldProps<T = any> = {
-	readonly: boolean;
+	editable: boolean;
 	value: any;
 	name: any;
 	index?: number;
 } & BaseFormProFieldType<T>;
-const ProField: React.FC<ProFieldProps> = props => {
+const InerProField: React.FC<ProFieldProps> = props => {
 	const {
 		label,
-		hidden,
+		visible = true,
 		fieldProps,
-		readonly,
+		editable = false,
 		name,
 		index,
 		value,
@@ -37,14 +38,8 @@ const ProField: React.FC<ProFieldProps> = props => {
 			field: props,
 		});
 	};
-	if (readonly) {
-		return (
-			<Form.Item name={formName as any} label={label} hidden={hidden} {...formItemProps}>
-				{formatRender()}
-			</Form.Item>
-		);
-	}
-	if (!readonly) {
+
+	if (editable) {
 		const idx = isNumber(index) ? index : -1;
 
 		const _curRender = () => {
@@ -62,7 +57,7 @@ const ProField: React.FC<ProFieldProps> = props => {
 		return (
 			<Form.Item
 				name={formName as any}
-				hidden={hidden}
+				hidden={!visible}
 				label={label}
 				{...formItemProps}
 				getValueProps={e => {
@@ -77,6 +72,52 @@ const ProField: React.FC<ProFieldProps> = props => {
 			</Form.Item>
 		);
 	}
-	return null;
+	return (
+		<Form.Item
+			shouldUpdate={!editable ? true : undefined}
+			name={editable ? formName : undefined}
+			label={label}
+			hidden={!visible}
+			{...formItemProps}>
+			{formatRender()}
+		</Form.Item>
+	);
+};
+
+const ProField: React.FC<
+	| ProFieldProps
+	| {
+			fieldFunc: (r: any, form: FormInstance) => ProFieldProps;
+			getRecord?: () => any;
+			allEditable?: boolean;
+	  }
+> = props => {
+	const _props = props as any;
+	const _allEditable = !!_props?.allEditable;
+	const getTransformField = (field: any) => {
+		return {
+			...field,
+			...formatRenderFun(field, {}),
+		};
+	};
+
+	const render = (field: any) => {
+		const formatField = getTransformField(field);
+		const { editable = true } = formatField;
+		return <InerProField {...formatField} editable={editable && _allEditable} />;
+	};
+	if (_props?.fieldFunc) {
+		return (
+			<Form.Item noStyle shouldUpdate={true}>
+				{form => {
+					const r = _props?.getRecord?.() || form.getFieldsValue(true);
+					const _field = (props as any).fieldFunc(r, form);
+					return render(_field);
+				}}
+			</Form.Item>
+		);
+	}
+
+	return render(props);
 };
 export default ProField;

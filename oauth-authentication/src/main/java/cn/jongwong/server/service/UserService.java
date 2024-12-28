@@ -27,4 +27,5 @@ public interface UserService {
     Mono<Page<UserRO>> getUsersList(String username, String email, int page, int size);
 
     Mono<String> getCurrentUserId();
+
 }

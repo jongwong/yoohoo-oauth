@@ -40,6 +40,7 @@ public class CustomGlobalExceptionHandler implements ErrorWebExceptionHandler {
 
         HttpStatusCode s = exchange.getResponse().getStatusCode();
 
+        ex.printStackTrace();
 
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonResponse;

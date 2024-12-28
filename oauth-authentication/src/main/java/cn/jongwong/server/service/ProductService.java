@@ -4,6 +4,7 @@ import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.QueryBuilder;
 import cn.jongwong.server.entity.ProductImageVO;
 import cn.jongwong.server.entity.ProductVO;
+import cn.jongwong.server.enums.coupons.CouponsStatus;
 import cn.jongwong.server.enums.product.ProductArchivedStatus;
 import cn.jongwong.server.repository.ProductImageRepository;
 import cn.jongwong.server.repository.ProductRepository;
@@ -17,6 +18,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,173 +26,195 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     @Autowired
-    ProductImageRepository productImageRepository;
-
-    @Autowired
     private ProductRepository productRepository;
-    @Autowired
-    R2dbcEntityTemplate r2dbcEntityTemplate;
 
     @Autowired
-    ProductImageService productImageService;
+    private ProductImageRepository productImageRepository;
+
+    @Autowired
+    private ProductImageService productImageService;
 
     @Autowired
     private UserService userService;
 
     @Autowired
+    R2dbcEntityTemplate r2dbcEntityTemplate;
+
+
+    @Autowired
     private TransactionalOperator transactionalOperator;
 
-    // 根据商品ID查询商品信息和图片，并进行分组
+    // 获取商品信息与相关图片
     public Mono<ProductVO> getProductWithImagesById(String id) {
-        // 1. 查询商品信息
         Mono<ProductVO> baseProduct = productRepository.findById(id);
-
-
-        // 2. 查询商品图片
         Flux<ProductImageVO> imagesFlux = productImageRepository.findByProductId(id);
 
-        // 3. 聚合商品信息和图片
         return baseProduct.zipWith(imagesFlux.collectList(), (productVO, images) -> {
-            ProductVO newProductVO = new ProductVO();
-            // 复制属性
-            BeanUtils.copyProperties(productVO, newProductVO);
-
-            // 4. 分组图片类型
+            ProductVO newProductVO = productVO.toBuilder().build();
             Map<Integer, List<ProductImageVO>> groupedImages = images.stream()
                     .collect(Collectors.groupingBy(ProductImageVO::getImageType));
 
-            // 5. 设置商品的图片字段
-            newProductVO.setMainImage(findImageByType(groupedImages, 1)); // 主图
-            newProductVO.setThumbnailImage(findImageByType(groupedImages, 2)); // 缩略图
-            newProductVO.setCarouselImages(findImageByType(groupedImages, 3)); // 轮播图
-            newProductVO.setOtherImages(findImageByType(groupedImages, 4)); // 其他图片
+            newProductVO.setMainImage(findImageByType(groupedImages, 1));
+            newProductVO.setThumbnailImage(findImageByType(groupedImages, 2));
+            newProductVO.setCarouselImages(findImageByType(groupedImages, 3));
+            newProductVO.setOtherImages(findImageByType(groupedImages, 4));
 
             return newProductVO;
         });
     }
 
+    private List<ProductImageVO> findImageByType(Map<Integer, List<ProductImageVO>> groupedImages, int type) {
+        return Optional.ofNullable(groupedImages.get(type)).orElse(Collections.emptyList());
+    }
+
+    // 合并商品图片
     public List<ProductImageVO> getImageGroup(ProductVO productVO) {
-        // 合并所有图片
         List<ProductImageVO> allImages = new ArrayList<>();
-
-        // 添加主图，若主图为 null 则添加空列表
-        if (productVO.getMainImage() != null) {
-            for (ProductImageVO image : productVO.getMainImage()) {
-                image.setImageType(1); // 1 表示主图
-                allImages.add(image);
-            }
-        }
-
-        // 添加缩略图，若缩略图为 null 则添加空列表
-        if (productVO.getThumbnailImage() != null) {
-            for (ProductImageVO image : productVO.getThumbnailImage()) {
-                image.setImageType(2); // 2 表示缩略图
-                allImages.add(image);
-            }
-        }
-
-        // 添加轮播图，若轮播图为 null 则添加空列表
-        if (productVO.getCarouselImages() != null) {
-            for (ProductImageVO image : productVO.getCarouselImages()) {
-                image.setImageType(3); // 3 表示轮播图
-                allImages.add(image);
-            }
-        }
-
-        // 添加其他图片，若其他图片为 null 则添加空列表
-        if (productVO.getOtherImages() != null) {
-            for (ProductImageVO image : productVO.getOtherImages()) {
-                image.setImageType(4); // 4 表示其他图片
-                allImages.add(image);
-            }
-        }
-
-        // 返回合并后的图片列表
+        addImageGroup(allImages, productVO.getMainImage(), 1);
+        addImageGroup(allImages, productVO.getThumbnailImage(), 2);
+        addImageGroup(allImages, productVO.getCarouselImages(), 3);
+        addImageGroup(allImages, productVO.getOtherImages(), 4);
         return allImages;
     }
 
-
-    // 根据图片类型获取单张图片
-    private List<ProductImageVO> findImageByType(Map<Integer, List<ProductImageVO>> groupedImages, int type) {
-        List<ProductImageVO> images = groupedImages.getOrDefault(type, Collections.emptyList());
-        if (images.isEmpty()) {
-            return null;  // 如果没有对应类型的图片，返回 null
+    private void addImageGroup(List<ProductImageVO> allImages, List<ProductImageVO> imageList, int type) {
+        if (imageList != null) {
+            imageList.forEach(image -> {
+                image.setImageType(type);
+                allImages.add(image);
+            });
         }
-        // 假设每个类型的图片有多张，返回第一张图片
-        return images; // 或根据其他规则选择图片
     }
 
     @Transactional
     public Mono<ProductVO> updateProductWithImages(String id, ProductVO updatedProductVO) {
-
-        return productRepository.findById(id).flatMap(existingProductVO -> {
-                    if (existingProductVO.getCode() == null) {
-                        return productRepository.findProductWithMaxCode()
-                                .flatMap(find -> {
-                                    Integer newCode = (find != null && find.getCode() != null) ? find.getCode() + 1 : 1; // 如果 find.getCode() 为 null，默认从 1 开始
-                                    existingProductVO.setCode(newCode);
-                                    return productRepository.save(existingProductVO); // 保存更新后的产品
-                                });
-                    }
-                    return Mono.just(existingProductVO); // 如果 code 已经有值，则直接返回 existingProduct
-                })
-                .flatMap(existingProductVO -> {
-                    // 更新商品信息
-                    BeanUtils.copyProperties(updatedProductVO, existingProductVO);
-
-
-                    // 获取与商品相关的所有图片
-                    List<ProductImageVO> imgs = getImageGroup(updatedProductVO);
-
-
-                    // 查找当前商品所有图片
-                    return productImageRepository.findByProductId(id)
-                            .collectList() // 收集所有当前商品的图片
-                            .flatMap(existingImages -> {
-                                // 找出需要删除的图片
-                                List<ProductImageVO> imagesToDelete = existingImages.stream()
-                                        .filter(existingImage -> imgs.stream()
-                                                .noneMatch(newImage -> {
-                                                    return areProductAndUrlEqual(newImage, existingImage);
-                                                }))
-                                        .collect(Collectors.toList());
-
-                                // 删除这些图片，保存更新后的商品，并处理新增/更新图片
-                                return productImageRepository.deleteAll(imagesToDelete)
-                                        .then(productRepository.save(existingProductVO))
-                                        .flatMap(savedProductVO -> Flux.fromIterable(imgs)
-                                                .flatMap(image -> productImageService.save(image, id)) // 保存新增/更新的图片
-                                                .then(Mono.just(savedProductVO)));
-                            });
-                })
-                .as(transactionalOperator::transactional); // 使用事务管理
+        return productRepository.findById(id)
+                .flatMap(existingProduct -> updateProductCodeIfNeeded(existingProduct))
+                .flatMap(existingProduct -> updateProductInfoAndImages(id, updatedProductVO, existingProduct))
+                .as(transactionalOperator::transactional);
     }
+
+    private Mono<ProductVO> updateProductCodeIfNeeded(ProductVO existingProduct) {
+        if (existingProduct.getCode() == null) {
+            return productRepository.findProductWithMaxCode()
+                    .flatMap(product -> {
+                        int newCode = (product != null && product.getCode() != null) ? product.getCode() + 1 : 1;
+                        existingProduct.setCode(newCode);
+                        return productRepository.save(existingProduct);
+                    });
+        }
+        return Mono.just(existingProduct);
+    }
+
+    private Mono<ProductVO> updateProductInfoAndImages(String id, ProductVO updatedProductVO, ProductVO existingProductVO) {
+        BeanUtils.copyProperties(updatedProductVO, existingProductVO);
+        List<ProductImageVO> imagesToSave = getImageGroup(updatedProductVO);
+
+        return productImageRepository.findByProductId(id)
+                .collectList()
+                .flatMap(existingImages -> deleteAndSaveImages(existingImages, imagesToSave, id, existingProductVO));
+    }
+
+    private Mono<ProductVO> deleteAndSaveImages(List<ProductImageVO> existingImages, List<ProductImageVO> newImages,
+                                                String productId, ProductVO updatedProductVO) {
+        List<ProductImageVO> imagesToDelete = findImagesToDelete(existingImages, newImages);
+        return productImageRepository.deleteAll(imagesToDelete)
+                .then(productRepository.save(updatedProductVO))
+                .flatMap(savedProduct -> saveNewImages(newImages, productId, savedProduct));
+    }
+
+    private List<ProductImageVO> findImagesToDelete(List<ProductImageVO> existingImages, List<ProductImageVO> newImages) {
+        return existingImages.stream()
+                .filter(existingImage -> newImages.stream().noneMatch(newImage -> areProductAndUrlEqual(newImage, existingImage)))
+                .collect(Collectors.toList());
+    }
+
+    private Mono<ProductVO> saveNewImages(List<ProductImageVO> newImages, String productId, ProductVO savedProduct) {
+        return Flux.fromIterable(newImages)
+                .flatMap(image -> productImageService.save(image, productId))
+                .then(Mono.just(savedProduct));
+    }
+
+    public boolean areProductAndUrlEqual(ProductImageVO newImage, ProductImageVO existingImage) {
+        return Objects.equals(newImage.getProductId(), existingImage.getProductId()) &&
+                Objects.equals(newImage.getUrl(), existingImage.getUrl());
+    }
+
+    // 提交审核
+    @Transactional
+    public Mono<ProductVO> submit(String id, ProductVO data) {
+        return productRepository.findById(id)
+                .flatMap(existingProduct -> {
+                    if (isSubmitAble(existingProduct)) {
+                        var updatedProduct = data.toBuilder()
+                                .id(id)
+                                .archivedStatus(ProductArchivedStatus.REVIEWING.getCode())
+                                .updatedAt(LocalDateTime.now())
+                                .build();
+                        return productRepository.save(updatedProduct)
+                                .flatMap(savedProduct -> updateProductWithImages(id, savedProduct).thenReturn(savedProduct));
+                    } else {
+                        return Mono.error(new IllegalStateException("优惠券状态不允许提交审核"));
+                    }
+                })
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("优惠券未找到")));
+    }
+
+    private boolean isSubmitAble(ProductVO product) {
+        return product.getArchivedStatus() == ProductArchivedStatus.DRAFT.getCode()
+                || product.getArchivedStatus() == ProductArchivedStatus.REJECTED.getCode();
+    }
+
 
     // 创建商品
-    public Mono<ProductVO> createProduct(ProductVO productVO) {
-        return productRepository.save(productVO); // 保存商品到数据库
+    public Mono<ProductVO> create(ProductVO data) {
+        // 检查商品ID是否为空，如果已有ID则返回错误
+        if (data.getId() != null) {
+            return Mono.error(new IllegalArgumentException("无法创建已存在的数据"));
+        }
+
+        // 获取最大商品代码并更新商品代码
+        return productRepository.findProductWithMaxCode()
+                .map(product -> {
+                    int newCode = (product != null && product.getCode() != null) ? product.getCode() + 1 : 1;
+                    data.setCode(newCode);
+                    return data;
+                })
+                .flatMap(updatedProduct ->
+                        // 获取当前用户ID，并构建新的商品数据
+                        userService.getCurrentUserId()
+                                .map(userId -> updatedProduct.toBuilder()
+                                        .createdAt(LocalDateTime.now())
+                                        .updatedAt(LocalDateTime.now())
+                                        .status(CouponsStatus.DRAFT.getCode())
+                                        .createdBy(userId)
+                                        .updatedBy(userId)
+                                        .id(UUID.randomUUID().toString())
+                                        .build())
+                                .flatMap(productRepository::insert)
+                );
     }
 
 
-    // 删除商品
-    public Mono<Void> deleteProduct(String id) {
-        return productRepository.findById(id)
-                .flatMap(existingProductVO -> productRepository.deleteById(id)); // 删除商品
+    public Mono<ProductVO> update(String productId, ProductVO productVO) {
+        productVO.setId(productId);
+        if (productVO.getArchivedStatus() != ProductArchivedStatus.DRAFT.getCode()) {
+            return Mono.error(new IllegalStateException("只能保存草稿状态的商品"));
+        }
+        return updateProductWithImages(productId, productVO);
     }
 
-
-    public Mono<Page<ProductVO>> getProductList(String name, int page, int size) {
+    public Mono<Page<ProductVO>> search(String name, String status, int page, int size) {
 
 
         return new QueryBuilder<>(r2dbcEntityTemplate, ProductVO.class)
                 .addLikeCondition("name", name)
+                .addEqualCondition("status", status)
                 .executeQuery(page, size).map(pageData -> {
-                    // 转换 User -> UserRes
                     List<ProductVO> userResList = pageData.getData().stream()
                             .map(user -> MapperUtil.mapFields(user, ProductVO.class))
                             .toList();
 
-                    // 构建新的 Page<UserRes>
                     return new Page<>(
                             userResList,
                             pageData.getTotal(),
@@ -202,48 +226,48 @@ public class ProductService {
 
     }
 
-
-    // 审核通过
-    public Mono<ProductVO> approveProduct(String productId) {
-        return productRepository.findById(productId)
-                .flatMap(productVO -> {
-                    productVO.setArchivedStatus(ProductArchivedStatus.COMPLETED.getCode()); // 审核完成
-                    productVO.setRejectionReason(null); // 清除拒绝原因
-                    return productRepository.save(productVO);
-                });
+    public Mono<ProductVO> reject(String id, String rejectionReason) {
+        return productRepository.findById(id)
+                .map(couponsVO -> {
+                    if (couponsVO.getArchivedStatus() == ProductArchivedStatus.REVIEWING.getCode()) { // 仅审核中的优惠券可以被拒绝
+                        couponsVO.setArchivedStatus(ProductArchivedStatus.REJECTED.getCode()); // 设置状态为 "审核拒绝"
+                        couponsVO.setRejectionReason(rejectionReason);
+                        couponsVO.setUpdatedAt(LocalDateTime.now());
+                        return couponsVO;
+                    } else {
+                        throw new IllegalStateException("仅审核中的商品可以被拒绝");
+                    }
+                })
+                .flatMap(productRepository::save)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("商品未找到")));
     }
 
-    public boolean areProductAndUrlEqual(ProductImageVO newImage, ProductImageVO existingImage) {
-        return Objects.equals(newImage.getProductId(), existingImage.getProductId()) &&
-                Objects.equals(newImage.getUrl(), existingImage.getUrl());
+
+    public Mono<ProductVO> approve(String id) {
+        return productRepository.findById(id)
+                .map(couponsVO -> {
+                    if (couponsVO.getArchivedStatus() == ProductArchivedStatus.REVIEWING.getCode()) { // 仅审核中的优惠券可以被审核通过
+                        couponsVO.setArchivedStatus(ProductArchivedStatus.COMPLETED.getCode()); // 设置状态为 "审核通过"
+                        couponsVO.setUpdatedAt(LocalDateTime.now());
+                        return couponsVO;
+                    } else {
+                        throw new IllegalStateException("仅审核中的商品可以被审核通过");
+                    }
+                })
+                .flatMap(productRepository::save)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("商品未找到")));
     }
 
-    // 审核拒绝
-    public Mono<ProductVO> rejectProduct(String productId, String rejectionReason) {
-        return productRepository.findById(productId)
-                .flatMap(productVO -> {
-                    productVO.setArchivedStatus(ProductArchivedStatus.REJECTED.getCode()); // 审核完成
-                    productVO.setRejectionReason(rejectionReason); // 清除拒绝原因
-                    return productRepository.save(productVO);
-                });
+    public Mono<String> delete(String id) {
+        return productRepository.findById(id).switchIfEmpty(Mono.error(new IllegalArgumentException("商品未找到")))
+                .map(data -> {
+                    if (data.getArchivedStatus() == ProductArchivedStatus.DRAFT.getCode() || data.getArchivedStatus() == ProductArchivedStatus.REJECTED.getCode()) { // 仅审核中的优惠券可以被审核通过
+                        return id;
+                    } else {
+                        throw new IllegalStateException("仅草稿中或者审核拒绝的商品可以被删除");
+                    }
+                })
+                .flatMap(productRepository::deleteById).then(Mono.fromCallable(() -> id));
     }
-
-    // 保存草稿
-    @Transactional
-    public Mono<ProductVO> saveDraftProduct(String productId, ProductVO productVO) {
-        productVO.setId(productId);
-        productVO.setStatus(null);
-        productVO.setListedStatus(null);
-        productVO.setArchivedStatus(ProductArchivedStatus.DRAFT.getCode());
-        return updateProductWithImages(productId, productVO);
-    }
-
-    @Transactional
-    public Mono<ProductVO> submit(String productId, ProductVO productVO) {
-        productVO.setId(productId);
-        productVO.setArchivedStatus(ProductArchivedStatus.IN_REVIEW.getCode());
-        return updateProductWithImages(productId, productVO);
-    }
-
 
 }

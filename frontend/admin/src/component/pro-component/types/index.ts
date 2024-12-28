@@ -1,7 +1,9 @@
-import { type ReadonlyEnumMap } from '@/utils/enum';
 import { Key, ReactNode } from 'react';
+
+import { FormInstance, FormItemProps } from 'antd';
+
+import { type ReadonlyEnumMap } from '@/utils/enum';
 import { BaseFormItemOptionType } from '@/component/pro-component/ProField/types';
-import { FormItemProps } from 'antd';
 
 export type BaseProFieldType<T = any> = {
 	valueType?: string; // ProField 类型，如 'text', 'select', 'dateRange'
@@ -11,14 +13,17 @@ export type BaseProFieldType<T = any> = {
 	formItemProps?: FormItemProps; // 额外 Form.Item 属性
 	renderFormItem?: (t: any, r: T, opt: BaseFormItemOptionType) => ReactNode;
 	render?: (t: any, r: T, idx: number, opt: BaseFormItemOptionType) => ReactNode;
-	readonly?: boolean;
+	editable?: boolean;
 };
-
 export type BaseFormProFieldType<T = any> = BaseProFieldType<T> & {
 	name?: Key | Key[]; // 字段名
 	label?: ReactNode; // 显示的标签
-	hidden?: boolean; // 是否隐藏
+	visible?: boolean; // 是否隐藏
 };
+
+export type BaseFormProFieldFuncType<T = any> =
+	| BaseFormProFieldType<T>
+	| ((r: T, form: FormInstance<T>) => BaseFormProFieldType<T>);
 
 export type BaseTableProFieldType<T = any> = BaseProFieldType<T> & {
 	dataIndex?: Key | Key[]; // 字段名

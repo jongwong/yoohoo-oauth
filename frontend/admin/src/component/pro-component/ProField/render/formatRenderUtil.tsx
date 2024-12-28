@@ -119,7 +119,7 @@ export function formatRenderFun(
 			const labelStr = getDefaultPlaceHolder(it, PlaceHolderType.Input);
 			const newFieldProps = { placeholder: labelStr };
 			if (typeof fn !== 'function') {
-				return <Input {...newFieldProps} />;
+				return <Input {...newFieldProps} allowClear />;
 			}
 
 			const val = typeof fn === 'function' ? fn(...args) : null;

@@ -31,6 +31,7 @@ const defaultInputValueTypeMap: {} = {
 		renderFormItem: (t: any, r: any, opts: any, ins: FormInstance) => (
 			<Input
 				className="w-1-1"
+				allowClear
 				placeholder={getDefaultPlaceHolder(opts.field, PlaceHolderType.Input)}
 			/>
 		),

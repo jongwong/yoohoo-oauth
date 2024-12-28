@@ -5,7 +5,7 @@ import ContentLayout from '@/component/ContentLayout';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoohoo/pro-component';
 import { Button, Card, Form, message, Space } from 'antd';
 import { useUpdate } from 'ahooks';
-import { CouponsStatusMap, CouponsTypeMap, ECouponsStatus } from '@/constant/coupons';
+import { CouponsStatusMap, CouponsTypeMap, ECouponsStatus, ECouponsType } from '@/constant/coupons';
 import { transformUrlByRoutePath } from '@/utils/url';
 import { PAGES_COUPONS_DETAIL_URL } from '@/pages/coupons/pages';
 
@@ -17,12 +17,14 @@ const UserDetail: React.FC = props => {
 	const [detailData, setDetailData] = useState<Record<string, any>>({});
 	const [loading, setLoading] = useState(false);
 	const historyEditDataRef = useRef();
+	const [editable, setEditable] = useState(false);
+
 	const fetchDetailData = async () => {
 		if (!couponsId) {
 			setDetailData({
 				status: ECouponsStatus.Draft,
 			});
-			setReadonly(false);
+			setEditable(true);
 			return;
 		}
 		setLoading(true);
@@ -36,24 +38,17 @@ const UserDetail: React.FC = props => {
 		forceUpdate();
 		return res; // 假设返回值中包含 token
 	};
-	const [readonly, setReadonly] = useState(true);
 
 	const fields: ProFormItemsFieldType[] = [
-		{ label: '优惠券名称', name: 'name', placeholder: '请输入优惠券名称' },
-		{
-			label: '优惠券状态',
-			name: 'status',
-			valueType: EDefaultValueType.EnumStatusTag,
-			valueEnum: CouponsStatusMap, // 假设你有 CouponStatusMap 来映射状态
-			hidden: !readonly,
-		},
+		{ label: '优惠券名称', name: 'name', placeholder: '请输入优惠券名称', visible: editable },
 		{
 			label: '优惠券类型',
 			name: 'type',
 			valueEnum: CouponsTypeMap, // 假设你有 CouponTypeMap 来映射优惠券类型
 			placeholder: '请选择优惠券类型',
+			visible: editable,
 		},
-		{
+		r => ({
 			label: '折扣金额',
 			name: 'discount_amount',
 			valueType: EDefaultValueType.Money,
@@ -61,19 +56,23 @@ const UserDetail: React.FC = props => {
 			formItemProps: {
 				rules: [{ required: true, message: '折扣金额不能为空' }],
 			},
-		},
-		{
+			visible: r.type === ECouponsType.Discount,
+		}),
+		r => ({
 			label: '折扣百分比',
 			name: 'discount_percentage',
 			valueType: EDefaultValueType.Percentage,
 			placeholder: '请输入折扣百分比',
-		},
-		{
+			visible: r.type === ECouponsType.Percentage,
+		}),
+		r => ({
 			label: '最低消费金额',
 			name: 'min_spend',
 			valueType: EDefaultValueType.Money,
 			placeholder: '请输入最低消费金额',
-		},
+			visible: r.type === ECouponsType.Cash,
+		}),
+
 		{
 			label: '使用开始时间',
 			name: 'valid_from',
@@ -97,39 +96,16 @@ const UserDetail: React.FC = props => {
 			name: 'total_used',
 			valueType: 'digit',
 			placeholder: '请输入已使用数量',
-			readonly: true,
-			hidden: !readonly,
+			editable: false,
+			visible: !editable,
 		},
 		{
 			label: '已领取数量',
 			name: 'total_claimed',
 			valueType: EDefaultValueType.Integer,
 			placeholder: '请输入已领取数量',
-			readonly: true,
-			hidden: !readonly,
-		},
-		{
-			label: '创建时间',
-			name: 'created_at',
-			valueType: EDefaultValueType.DateTime,
-			hidden: !readonly,
-		},
-		{
-			label: '更新时间',
-			name: 'updated_at',
-			valueType: EDefaultValueType.DateTime,
-			readonly: true,
-			hidden: !readonly,
-		},
-		{
-			label: '创建人名称',
-			name: 'created_by_name',
-			hidden: !readonly,
-		},
-		{
-			label: '更新人名称',
-			name: 'updated_by_name',
-			hidden: !readonly,
+			editable: false,
+			visible: !editable,
 		},
 	];
 
@@ -170,8 +146,8 @@ const UserDetail: React.FC = props => {
 				window.open(transformUrlByRoutePath(PAGES_COUPONS_DETAIL_URL, res.data.id));
 				return;
 			}
-			if (!readonly) {
-				setReadonly(true);
+			if (editable) {
+				setEditable(false);
 			}
 			fetchDetailData();
 		}
@@ -203,11 +179,11 @@ const UserDetail: React.FC = props => {
 	};
 
 	const renderExtra = () => {
-		const editEl = readonly ? (
+		const editEl = !editable ? (
 			<Button
 				onClick={() => {
 					historyEditDataRef.current = form.getFieldsValue(true);
-					setReadonly(false);
+					setEditable(true);
 				}}>
 				编辑
 			</Button>
@@ -216,7 +192,7 @@ const UserDetail: React.FC = props => {
 				<Button
 					onClick={() => {
 						form.setFieldsValue(historyEditDataRef.current);
-						setReadonly(true);
+						setEditable(false);
 					}}>
 					取消
 				</Button>
@@ -259,7 +235,63 @@ const UserDetail: React.FC = props => {
 	};
 
 	return (
-		<ContentLayout loading={loading}>
+		<ContentLayout
+			loading={loading}
+			header={{
+				extra: renderExtra(),
+				info: {
+					data: detailData,
+					leftItems: [
+						{
+							label: '优惠券名称',
+							name: 'name',
+						},
+						{
+							label: '优惠券类型',
+							name: 'type',
+							valueEnum: CouponsTypeMap,
+						},
+						{
+							label: '创建时间',
+							name: 'created_at',
+							valueType: EDefaultValueType.DateTime,
+						},
+						{
+							label: '更新时间',
+							name: 'updated_at',
+							valueType: EDefaultValueType.DateTime,
+						},
+						{
+							label: '创建人',
+							name: 'created_by_name',
+						},
+						{
+							label: '更新人',
+							name: 'updated_by_name',
+						},
+					],
+					rightItems: [
+						{
+							label: '状态',
+							name: 'status',
+							valueEnum: CouponsStatusMap,
+							valueType: EDefaultValueType.EnumStatusText,
+						},
+					],
+				},
+				tabsProps: {
+					items: [
+						{
+							label: '基础信息',
+							key: '1',
+						},
+						{
+							label: '操作日志',
+							key: '2',
+						},
+					],
+				},
+			}}>
 			<Form
 				form={form}
 				labelCol={{
@@ -268,8 +300,8 @@ const UserDetail: React.FC = props => {
 				wrapperCol={{
 					span: 7,
 				}}>
-				<Card extra={renderExtra()}>
-					<ProForm.Items readonly={readonly} fields={fields} />
+				<Card>
+					<ProForm.Items editable={editable} fields={fields} />
 				</Card>
 			</Form>
 		</ContentLayout>

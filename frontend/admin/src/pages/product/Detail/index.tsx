@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import http from '@/utils/http';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ContentLayout from '@/component/ContentLayout';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoohoo/pro-component';
 import {
@@ -12,17 +12,32 @@ import {
 import { Button, Card, Form, message, Space } from 'antd';
 import { useUpdate } from 'ahooks';
 import { OssUploadProps } from '@/component/OssUpload';
+import { getProductById } from '@/pages/product/service';
+import { PAGES_PRODUCT_DETAIL_URL } from '@/pages/product/pages';
+import { transformUrlByRoutePath } from '@/utils/url';
 
-const UserDetail: React.FC = props => {
+const ProductDetail: React.FC = () => {
 	const params = useParams();
 	const { productId } = params;
 	const [form] = Form.useForm();
 	const forceUpdate = useUpdate();
 	const [detailData, setDetailData] = useState<Record<string, any>>({});
 	const [loading, setLoading] = useState(false);
+	const [editable, setEditable] = useState(false);
+
+	const navigator = useNavigate();
+	// Fetch product details
 	const fetchDetailData = async () => {
+		if (!productId) {
+			setDetailData({
+				archived_status: EProductArchivedStatus.Draft,
+			});
+			setEditable(true);
+			return;
+		}
 		setLoading(true);
-		const res = await http.get('/admin/product/' + productId).finally(() => {
+
+		const res = await getProductById(productId).finally(() => {
 			setLoading(false);
 		});
 		form.setFieldsValue({
@@ -30,19 +45,12 @@ const UserDetail: React.FC = props => {
 		});
 		setDetailData({ ...res?.data });
 		forceUpdate();
-		return res; // 假设返回值中包含 token
+		return res;
 	};
-	const [readonly, setReadonly] = useState(true);
 
+	// Fields definition, similar to coupon style
 	const fields: ProFormItemsFieldType[] = [
 		{ label: '商品名称', name: 'name', placeholder: '请输入商品名称' },
-		{
-			label: '建档状态',
-			name: 'archived_status',
-			valueType: EDefaultValueType.EnumStatusTag,
-			valueEnum: ProductArchivedStatusMap,
-			hidden: !readonly,
-		},
 		{
 			label: '商品描述',
 			name: 'description',
@@ -55,13 +63,10 @@ const UserDetail: React.FC = props => {
 			valueType: EDefaultValueType.Textarea,
 			placeholder: '请输入简短描述',
 		},
-
 		{
 			label: '商品主图',
 			name: 'main_image',
-			fieldProps: {
-				maxCount: 1,
-			} as OssUploadProps,
+			fieldProps: { maxCount: 1 } as OssUploadProps,
 			valueType: EDefaultValueType.Image,
 		},
 		{
@@ -88,9 +93,18 @@ const UserDetail: React.FC = props => {
 			} as OssUploadProps,
 			valueType: EDefaultValueType.Image,
 		},
-
-		{ label: '商品价格', name: 'price', valueType: 'money', placeholder: '请输入价格' },
-		{ label: '成本价格', name: 'cost_price', valueType: 'money', placeholder: '请输入成本价格' },
+		{
+			label: '商品价格',
+			name: 'price',
+			valueType: 'money',
+			placeholder: '请输入价格',
+		},
+		{
+			label: '成本价格',
+			name: 'cost_price',
+			valueType: 'money',
+			placeholder: '请输入成本价格',
+		},
 		{
 			label: 'SKU',
 			name: 'sku',
@@ -98,80 +112,65 @@ const UserDetail: React.FC = props => {
 			placeholder: '请输入库存单位',
 		},
 		{
-			label: '商品状态',
-			name: 'status',
-			valueEnum: ProductStatusMap,
-			hidden: !readonly,
+			label: 'SEO标题',
+			name: 'meta_title',
+			placeholder: '请输入SEO标题',
 		},
-
-		{
-			label: '上架状态',
-			name: 'listed_status',
-			valueEnum: ProductListedStatusMap,
-			hidden: !readonly,
-		},
-		{
-			label: '创建时间',
-			name: 'created_at',
-			valueType: EDefaultValueType.DateTime,
-			readonly: true,
-		},
-		{
-			label: '更新时间',
-			name: 'update_at',
-			valueType: EDefaultValueType.DateTime,
-			readonly: true,
-			hidden: !readonly,
-		},
-		{ label: 'SEO标题', name: 'meta_title', placeholder: '请输入SEO标题' },
 		{
 			label: 'SEO描述',
 			name: 'meta_description',
 			valueType: 'textarea',
 			placeholder: '请输入SEO描述',
 		},
-		{ label: 'SEO关键词', name: 'meta_keywords', placeholder: '请输入SEO关键词' },
-		{ label: '创建人名称', name: 'created_by_name', hidden: !readonly },
-		{ label: '更新人名称', name: 'updated_by_name', hidden: !readonly },
+		{
+			label: 'SEO关键词',
+			name: 'meta_keywords',
+			placeholder: '请输入SEO关键词',
+		},
 	];
 
+	// Handle save product data
 	const saveHandle = async () => {
 		await form.validateFields();
 		const val = form.getFieldsValue(true);
 		setLoading(true);
-		const res = await http.put('/admin/product/' + productId, val).finally(() => {
+		const fn = productId
+			? http.put('/admin/product/' + productId, val)
+			: http.post('/admin/product', val);
+		const res = await fn.finally(() => {
 			setLoading(false);
 		});
 		if (res.success) {
 			message.success('保存成功');
+			if (!productId) {
+				navigator(transformUrlByRoutePath(PAGES_PRODUCT_DETAIL_URL, res.data.id));
+			}
+
 			fetchDetailData();
 		}
 	};
 
-	useEffect(() => {
-		fetchDetailData();
-	}, []);
+	// Handle submit product for approval
 	const submitHandle = async () => {
 		await form.validateFields();
 		const val = form.getFieldsValue(true);
 		setLoading(true);
+
 		const res = await http.put('/admin/product/' + productId + '/submit', val).finally(() => {
 			setLoading(false);
 		});
 		if (res.success) {
 			message.success('提交成功');
-			if (!readonly) {
-				setReadonly(true);
-			}
+			setEditable(false);
 			fetchDetailData();
 		}
 	};
+
+	// Handle reject product
 	const rejectHandle = async () => {
 		setLoading(true);
 		const res = await http
-			.put('/admin/product/' + productId + '/reject', {
-				rejection_reason: '审核拒绝',
-			})
+			.put('/admin/product/' + productId + '/reject', { rejection_reason: '审核拒绝' })
 			.finally(() => {
 				setLoading(false);
 			});
@@ -181,8 +180,10 @@ const UserDetail: React.FC = props => {
 		}
 	};
 
+	// Handle approve product
 	const approvalHandle = async () => {
 		setLoading(true);
+
 		const res = await http.put('/admin/product/' + productId + '/approve').finally(() => {
 			setLoading(false);
 		});
@@ -192,76 +193,89 @@ const UserDetail: React.FC = props => {
 		}
 	};
 
+	// Render extra buttons based on status
 	const renderExtra = () => {
-		const editEl = readonly ? (
-			<Button
-				onClick={() => {
-					setReadonly(false);
-				}}>
-				编辑
-			</Button>
+		const editEl = !editable ? (
+			<Button onClick={() => setEditable(true)}>编辑</Button>
 		) : (
 			<>
-				<Button
-					onClick={() => {
-						setReadonly(true);
-					}}>
-					取消
-				</Button>
+				<Button onClick={() => setEditable(false)}>取消</Button>
 				{detailData?.archived_status <= EProductArchivedStatus.Draft ? (
-					<Button type={'primary'} onClick={() => saveHandle()}>
-						保存草稿
-					</Button>
+					<Button onClick={saveHandle}>保存</Button>
 				) : null}
 			</>
 		);
 
 		return (
 			<Space>
-				{detailData?.archived_status <= EProductArchivedStatus.Draft ||
-					(detailData?.archived_status <= EProductArchivedStatus.Rejected && editEl)}
+				{(detailData?.archived_status <= EProductArchivedStatus.Draft ||
+					detailData?.archived_status === EProductArchivedStatus.Rejected) &&
+					editEl}
 
-				{detailData?.archived_status <= EProductArchivedStatus.Draft ? (
-					<Button type={'primary'} onClick={() => submitHandle()}>
+				{productId && detailData?.archived_status <= EProductArchivedStatus.Draft && (
+					<Button type={'primary'} onClick={submitHandle}>
 						提交审核
 					</Button>
-				) : null}
+				)}
 
-				{detailData?.archived_status === EProductArchivedStatus.PendingApproval ? (
-					<Button type={'primary'} danger onClick={() => rejectHandle()}>
-						审核拒绝
-					</Button>
-				) : null}
-				{detailData?.archived_status === EProductArchivedStatus.PendingApproval ? (
-					<Button type={'primary'} onClick={() => approvalHandle()}>
-						审核通过
-					</Button>
-				) : null}
+				{detailData?.archived_status === EProductArchivedStatus.PendingApproval && (
+					<Space>
+						<Button type={'primary'} danger onClick={rejectHandle}>
+							审核拒绝
+						</Button>
+						<Button type={'primary'} onClick={approvalHandle}>
+							审核通过
+						</Button>
+					</Space>
+				)}
 
-				{detailData?.archived_status === EProductArchivedStatus.Rejected ? (
-					<Button type={'primary'} onClick={() => submitHandle()}>
+				{detailData?.archived_status === EProductArchivedStatus.Rejected && (
+					<Button type={'primary'} onClick={submitHandle}>
 						重新提交审核
 					</Button>
-				) : null}
+				)}
 			</Space>
 		);
 	};
 
+	useEffect(() => {
+		fetchDetailData();
+	}, []);
+
 	return (
-		<ContentLayout loading={loading}>
-			<Form
-				form={form}
-				labelCol={{
-					span: 4,
-				}}
-				wrapperCol={{
-					span: 7,
-				}}>
-				<Card title={'基础信息'} extra={renderExtra()}>
-					<ProForm.Items readonly={readonly} fields={fields} />
+		<ContentLayout
+			loading={loading}
+			header={{
+				extra: renderExtra(),
+				info: productId
+					? {
+							data: detailData,
+							leftItems: [
+								{ label: '创建人名称', name: 'created_by_name' },
+								{ label: '创建时间', name: 'created_at', valueType: EDefaultValueType.DateTime },
+								{ label: '更新人名称', name: 'updated_by_name' },
+								{ label: '更新时间', name: 'updated_at', valueType: EDefaultValueType.DateTime },
+							],
+							rightItems: [
+								{ label: '商品状态', name: 'status', valueEnum: ProductStatusMap },
+								{ label: '上架状态', name: 'listed_status', valueEnum: ProductListedStatusMap },
+								{
+									label: '建档状态',
+									name: 'archived_status',
+									valueEnum: ProductArchivedStatusMap,
+									valueType: EDefaultValueType.EnumStatusTag,
+								},
+							],
+					  }
+					: undefined,
+			}}>
+			<Form form={form} labelCol={{ span: 4 }} wrapperCol={{ span: 7 }}>
+				<Card>
+					<ProForm.Items editable={editable} fields={fields} />
 				</Card>
 			</Form>
 		</ContentLayout>
 	);
 };
-export default UserDetail;
+
+export default ProductDetail;

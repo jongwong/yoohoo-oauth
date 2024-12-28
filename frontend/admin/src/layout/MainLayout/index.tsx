@@ -25,7 +25,7 @@ const MainLayout: React.FC = () => {
 			theme={{
 				token: {
 					// Seed Token，影响范围大
-					colorPrimary: '#67aadc',
+					colorPrimary: '#446fef',
 				},
 			}}>
 			<App>
@@ -40,7 +40,7 @@ const MainLayout: React.FC = () => {
 							<Layout style={{ minHeight: '100vh' }}>
 								{/* 侧边栏 */}
 								<Sider
-									width={0}
+									width={200}
 									theme="light"
 									style={{ boxShadow: '1px 0 2px rgba(0, 0, 0, 0.05)', zIndex: 100 }}>
 									<div
@@ -57,19 +57,17 @@ const MainLayout: React.FC = () => {
 
 								<Layout>
 									{/* 顶部导航 */}
-									<Header
-										style={{
-											background: '#fff',
-											padding: 0,
-											boxShadow: '0px 1px 4px rgba(0, 21, 41, .118)',
-											zIndex: 10,
-										}}
-										title="3333">
-										<div style={{ padding: '0 16px' }}>
-											<h2 style={{ margin: 0 }}>管理系统</h2>
-										</div>
-									</Header>
-
+									{/*<Header*/}
+									{/*	style={{*/}
+									{/*		background: '#fff',*/}
+									{/*		padding: 0,*/}
+									{/*		boxShadow: '0px 1px 4px rgba(0, 21, 41, .118)',*/}
+									{/*		zIndex: 10,*/}
+									{/*	}}>*/}
+									{/*	<div style={{ padding: '0 16px' }}>*/}
+									{/*		<h2 style={{ margin: 0 }}>333管理系统</h2>*/}
+									{/*	</div>*/}
+									{/*</Header>*/}
 									<Suspense fallback={<div>Loading...</div>}>
 										<Routes>{renderRoutes(routes)}</Routes>
 									</Suspense>

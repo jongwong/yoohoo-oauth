@@ -1,4 +1,5 @@
 import React from 'react';
+import { PAGES_PRODUCT_CREATE_URL, PAGES_PRODUCT_DETAIL_URL } from '@/pages/product/pages';
 
 const List = React.lazy(() => import('@/pages/product/List'));
 
@@ -10,7 +11,13 @@ const routes = [
 		element: <List />,
 	},
 	{
-		path: '/product/:productId',
+		path: PAGES_PRODUCT_CREATE_URL,
+		hidden: true,
+		title: '创建商品',
+		element: <Detail />,
+	},
+	{
+		path: PAGES_PRODUCT_DETAIL_URL,
 		hidden: true,
 		title: '商品详情',
 		element: <Detail />,

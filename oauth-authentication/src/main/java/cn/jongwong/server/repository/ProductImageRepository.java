@@ -1,13 +1,13 @@
 package cn.jongwong.server.repository;
 
+import cn.jongwong.server.common.GenericReactiveRepository;
 import cn.jongwong.server.entity.ProductImageVO;
-import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface ProductImageRepository extends R2dbcRepository<ProductImageVO, String> {
+public interface ProductImageRepository extends GenericReactiveRepository<ProductImageVO, String> {
 
     Flux<ProductImageVO> findByProductId(String productId);
 

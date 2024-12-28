@@ -28,7 +28,7 @@ public class CouponsService {
     private UserService userService;
 
     // 根据ID查找优惠券
-    public Mono<CouponsVO> getCouponById(String id) {
+    public Mono<CouponsVO> findById(String id) {
         return couponsRepository.findById(id);
     }
 
@@ -65,7 +65,7 @@ public class CouponsService {
     }
 
     // 更新优惠券
-    public Mono<CouponsVO> updateCoupon(String id, CouponsVO couponsVO) {
+    public Mono<CouponsVO> update(String id, CouponsVO couponsVO) {
         return couponsRepository.findById(id)
                 .map(existingCouponsVO -> mergeData(existingCouponsVO, couponsVO)) // 同步合并数据
                 .flatMap(couponsRepository::save); // 异步保存
@@ -105,7 +105,7 @@ public class CouponsService {
      * @param id      优惠券ID
      * @return 更新后的优惠券信息
      */
-    public Mono<CouponsVO> submitForReview(String id, CouponsVO data) {
+    public Mono<CouponsVO> submit(String id, CouponsVO data) {
         return couponsRepository.findById(id)
                 .map(old -> {
                     if (old.getStatus() == CouponsStatus.DRAFT.getCode() || old.getStatus() == CouponsStatus.REJECTED.getCode()) {
@@ -128,7 +128,7 @@ public class CouponsService {
      * @param rejectionReason 拒绝原因
      * @return 更新后的优惠券信息
      */
-    public Mono<CouponsVO> rejectReview(String couponId, String rejectionReason) {
+    public Mono<CouponsVO> reject(String couponId, String rejectionReason) {
         return couponsRepository.findById(couponId)
                 .map(couponsVO -> {
                     if (couponsVO.getStatus() == CouponsStatus.REVIEWING.getCode()) { // 仅审核中的优惠券可以被拒绝
@@ -150,7 +150,7 @@ public class CouponsService {
      * @param couponId 优惠券ID
      * @return 更新后的优惠券信息
      */
-    public Mono<CouponsVO> approveReview(String couponId) {
+    public Mono<CouponsVO> approve(String couponId) {
         return couponsRepository.findById(couponId)
                 .map(couponsVO -> {
                     if (couponsVO.getStatus() == CouponsStatus.REVIEWING.getCode()) { // 仅审核中的优惠券可以被审核通过

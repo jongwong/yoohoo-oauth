@@ -1,14 +1,16 @@
 import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
-import ProQueryForm, { ProQueryFormProps } from '@/component/pro-component/ProQueryForm';
+
 import { Form, FormInstance, Table, TableProps, Tabs } from 'antd';
-import { BaseTableProFieldType } from '@/component/pro-component/types';
 import { ColumnType } from 'antd/es/table/interface';
 import { has, isBoolean, isNil, isNumber } from 'lodash';
-import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
 
-export type ProTableColumnType<T = any> = Omit<
+import ProQueryForm, { ProQueryFormProps } from '@/component/pro-component/ProQueryForm';
+import { BaseTableProFieldType } from '@/component/pro-component/types';
+import useFormatFields from '@/component/pro-component/useFormatFields';
+
+export type ProTableColumnType<T = any> = Pick<
 	BaseTableProFieldType<T>,
-	'placeholder' | 'fieldProps' | 'renderFormItem' | 'formItemProps'
+	'valueType' | 'valueEnum'
 > &
 	ColumnType<T>;
 
@@ -55,12 +57,13 @@ const ProTable: React.FC<ProTableProps> = props => {
 		columns,
 		...rest
 	} = props;
+	const { formatField } = useFormatFields();
 	const [form] = Form.useForm();
 	const formatColumns = (columns || []).map(
 		it =>
 			({
 				...it,
-				...formatRenderFun(it),
+				...formatField(it),
 			} as ProTableColumnType)
 	);
 
@@ -97,7 +100,7 @@ const ProTable: React.FC<ProTableProps> = props => {
 		},
 	}));
 	const initTabValueRef = useRef(
-		isNil((footer as any).initialValue) ? -1 : (footer as any).initialValue
+		isNil((footer as any)?.initialValue) ? -1 : (footer as any)?.initialValue
 	);
 	const renderFooter = () => {
 		if (typeof footer === 'function') {
@@ -106,9 +109,10 @@ const ProTable: React.FC<ProTableProps> = props => {
 		if (has(footer, 'items')) {
 			const cfg = footer as any;
 			return (
-				<Form.Item shouldUpdate={true}>
+				<Form.Item shouldUpdate={true} noStyle>
 					<Tabs
 						defaultActiveKey={cfg?.initialValue}
+						type={'card'}
 						onChange={e => {
 							const _val = Number(e);
 							initTabValueRef.current = _val;
@@ -157,7 +161,7 @@ const ProTable: React.FC<ProTableProps> = props => {
 				/>
 			</Form>
 
-			{footer ? <div className={'mb-16'}>{renderFooter()}</div> : null}
+			{footer ? <div>{renderFooter()}</div> : null}
 			<Table
 				loading={loading || loadingProp}
 				columns={formatColumns as any}

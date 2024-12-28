@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Table("tb_user") // 表名为 tb_user
-public class User implements Serializable {
+public class UserVO implements Serializable {
     private static final long serialVersionUID = -339516038496531943L;
 
     @Id

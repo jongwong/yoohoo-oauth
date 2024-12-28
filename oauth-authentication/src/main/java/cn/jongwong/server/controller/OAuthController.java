@@ -1,6 +1,6 @@
 package cn.jongwong.server.controller;
 
-import cn.jongwong.server.dto.authentication.AuthorizationForm;
+import cn.jongwong.server.dto.authentication.AuthorizationFormDTO;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -44,7 +44,7 @@ public class OAuthController {
 
     // 处理用户同意授权的请求
     @PostMapping("/oauth2/authorize")
-    public Mono<String> processAuthorization(@ModelAttribute AuthorizationForm form) {
+    public Mono<String> processAuthorization(@ModelAttribute AuthorizationFormDTO form) {
 
         // 从 AuthorizationForm 中获取 approve 参数，判断用户是否同意授权
         boolean approve = form.isApprove();

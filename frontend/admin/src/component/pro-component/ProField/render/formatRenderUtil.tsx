@@ -6,6 +6,7 @@ import {
 	findValueEnum,
 	getJsonStringByKey,
 	isDevelopment,
+	throwEmitError,
 	validateElement,
 } from '../../utils/not-export';
 import { EMPTY_TEXT } from '@/component/pro-component/constant';
@@ -48,7 +49,7 @@ export function formatRenderFun(
 	_valueTypeMap?: CommonProConfigType['valueTypeMap'] | any,
 	extraKeys?: string[]
 ) {
-	const valueTypeMap = { defaultValueTypeMap, ..._valueTypeMap };
+	const valueTypeMap = { ...defaultValueTypeMap, ..._valueTypeMap };
 
 	function getRenderFunc(type: 'render' | 'renderFormItem', enumValue?: any) {
 		if (has(it, type)) {
@@ -60,10 +61,11 @@ export function formatRenderFun(
 			return get(valueTypeOb, type);
 		}
 
-		if (has(it, 'valueEnum') && it?.dataIndex) {
+		if (has(it, 'valueEnum') && (it?.dataIndex || it?.name)) {
 			if (isArray(it.valueEnum && isDevelopment())) {
 				formatError(Error('valueEnum not array type'), it);
 			}
+
 			if (type === 'render') {
 				return () => {
 					if (isArray(enumValue) && enumValue.length) {
@@ -72,7 +74,6 @@ export function formatRenderFun(
 							.filter(childIt => childIt)
 							.join('、');
 					}
-
 					const find = findValueEnum(it?.valueEnum, enumValue);
 					return find?.text;
 				};
@@ -169,13 +170,13 @@ export function formatRenderFun(
 }
 
 const formatError = (err: any, _ob: any) => {
-	const str1 = getJsonStringByKey(_ob, ['label', 'title', 'dataIndex', 'key']);
+	const str1 = getJsonStringByKey(_ob, ['label', 'title', 'dataIndex', 'name', 'key']);
 	const str = str1 ? `{${str1},...}` : '';
 	const message = err?.message;
 	const formatStr = str ? `${message}, at ${str}` : `${message}`;
 	const newError: any = err;
 	newError.message = formatStr;
-	// eventEmitterInstance.$emit(PRO_THROW_ERROR_EMITTER_EVENT_NAME, newError);
+	throwEmitError(newError);
 };
 
 const checkObjectError = (val: any, it: any) => {

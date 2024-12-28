@@ -8,6 +8,14 @@ import type { DefaultTimeValueType } from './time';
 import defaultTimeValueTypeMap, { DefaultTimeValueTypeEnum } from './time';
 
 import { BaseFormItemOptionType } from '@/component/pro-component/ProField/types';
+import defaultEnumValueTypeMap, {
+	DefaultEnumValueType,
+	DefaultEnumValueTypeEnum,
+} from '@/component/pro-component/ProField/render/config-provider/enum';
+import defaultNumberValueTypeMap, {
+	DefaultNumberValueType,
+	DefaultNumberValueTypeEnum,
+} from '@/component/pro-component/ProField/render/config-provider/number';
 
 export type UppcaseKey<Str extends string> =
 	Str extends `${infer First}-${infer Second}${infer Other}`
@@ -21,12 +29,25 @@ export type DefaultValueTypeEnumAll = {
 	[K in DefaultValueType as UppcaseFirstKey<UppcaseKey<K>>]: K;
 };
 
-export type DefaultValueType = DefaultInputValueType | DefaultTimeValueType;
+export type DefaultValueType =
+	| DefaultInputValueType
+	| DefaultTimeValueType
+	| DefaultEnumValueType
+	| DefaultNumberValueType;
 
 export const EDefaultValueType: DefaultValueTypeEnumAll = {
 	...DefaultInputValueTypeEnum,
 	...DefaultTimeValueTypeEnum,
+	...DefaultEnumValueTypeEnum,
+	...DefaultNumberValueTypeEnum,
 } as any;
+
+export const defaultValueTypeMap: CommonProConfigType['valueTypeMap'] = {
+	...defaultInputValueTypeMap,
+	...defaultTimeValueTypeMap,
+	...defaultEnumValueTypeMap,
+	...defaultNumberValueTypeMap,
+};
 
 export interface CommonProConfigType {
 	valueTypeMap: Record<
@@ -51,11 +72,6 @@ export interface CommonProConfigType {
 		}
 	>;
 }
-
-export const defaultValueTypeMap: CommonProConfigType['valueTypeMap'] = {
-	...defaultInputValueTypeMap,
-	...defaultTimeValueTypeMap,
-};
 
 const CommonProConfigContext = React.createContext<CommonProConfigType>({
 	valueTypeMap: defaultValueTypeMap,

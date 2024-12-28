@@ -1,6 +1,6 @@
 package cn.jongwong.server;
 
-import cn.jongwong.server.entity.User;
+import cn.jongwong.server.entity.UserVO;
 import cn.jongwong.server.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
@@ -41,7 +41,7 @@ public class OauthServerApplicationTest {
     @Test
     public void getUserByMobileNumber() {
         String mobile = "18060601823";
-        User user = userService.getUserByMobileNumber(mobile).block();
+        UserVO userVO = userService.getUserByMobileNumber(mobile).block();
     }
 
     @Test

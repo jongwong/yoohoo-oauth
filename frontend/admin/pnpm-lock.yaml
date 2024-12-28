@@ -43,7 +43,6 @@ specifiers:
   clean-webpack-plugin: ^4.0.0
   cors: ^2.8.5
   cross-env: ^7.0.3
-  crypto-js: ^4.2.0
   css-loader: ^6.8.1
   cssnano: ^5.0.6
   dayjs: ^1.11.13
@@ -64,6 +63,7 @@ specifiers:
   globals: ^15.9.0
   husky: ^8.0.0
   jotai: ^2.10.1
+  js-base64: ^3.7.7
   jsdom: ^21.1.2
   less: ^4.1.1
   less-loader: ^7.3.0
@@ -113,9 +113,9 @@ dependencies:
   antd: 5.22.5_nnrd3gsncyragczmpvfhocinkq
   axios: 1.7.9
   classnames: 2.5.1
-  crypto-js: 4.2.0
   dayjs: 1.11.13
   jotai: 2.10.3_etakp3t3jkcarp55ny7sncr7iy
+  js-base64: 3.7.7
   lodash: 4.17.21
   react: 18.3.1
   react-dom: 18.3.1_react@18.3.1
@@ -6443,10 +6443,6 @@ packages:
       which: 2.0.2
     dev: true
 
-  /crypto-js/4.2.0:
-    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
-    dev: false
-
   /crypto-random-string/2.0.0:
     resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
     engines: {node: '>=8'}
@@ -10730,6 +10726,10 @@ packages:
 
   /js-base64/2.6.4:
     resolution: {integrity: sha512-pZe//GGmwJndub7ZghVHz7vjb2LgC1m8B07Au3eYqeqv9emhESByMXxaEgkUkEqJe87oBbSniGYoQNIBklc7IQ==}
+    dev: false
+
+  /js-base64/3.7.7:
+    resolution: {integrity: sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==}
     dev: false
 
   /js-cookie/3.0.5:

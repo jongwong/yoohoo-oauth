@@ -1,7 +1,20 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { getCookie } from '@/utils/cookie';
-import { Modal } from 'antd'; // 确保正确引入 Modal
+import { deleteCookie, getCookie } from '@/utils/cookie';
+import { Modal } from 'antd';
+import { isNumber, omitBy } from 'lodash'; // 确保正确引入 Modal
 
+const openLoginConfirm = (message: string) => {
+	Modal.confirm({
+		title: '未登录',
+		content: message,
+		onOk: () => {
+			const pathname = window.location.pathname; // 获取当前页面路径（不包含域名和查询参数）
+			const search = window.location.search; // 获取查询参数部分（包括问号“?”）
+			// 跳转到登录页，并附加当前路径和查询参数
+			window.location.href = '/login?redirect_uri=' + encodeURIComponent(pathname + search);
+		},
+	});
+};
 // 创建 Axios 实例
 const http = axios.create({
 	baseURL: 'http://localhost:8080', // 后端 API 基础地址
@@ -14,8 +27,9 @@ const http = axios.create({
 // 请求拦截器：全局设置 Authorization
 http.interceptors.request.use(
 	config => {
-		const token = getCookie('access_token');
-		if (token) {
+		const token = getCookie('access_token')?.trim();
+
+		if (token?.length) {
 			config.headers['Authorization'] = `Bearer ${token}`;
 		}
 		return config;
@@ -28,20 +42,31 @@ http.interceptors.request.use(
 // 响应拦截器：全局捕获错误
 http.interceptors.response.use(
 	response => {
-		return response.data;
+		const ob = response?.data || {};
+		return { ...ob, success: ob?.code === 0 };
 	},
 	error => {
-		const data = error?.response?.data;
-		if (error.status === 401 || data.code === 401) {
+		const data = error?.response?.data || {
+			code: -1,
+			success: false,
+			message: '',
+		};
+		if (error?.status === 401 || data?.code === 401) {
+			deleteCookie('access_token');
+			openLoginConfirm(data?.message);
+			return Promise.resolve(data);
+		}
+		if (!error?.response && error?.name && error?.code) {
 			Modal.confirm({
-				title: '未登录',
+				title: '请求超时，请重试',
 				content: data?.message,
 				onOk: () => {
-					window.location.href = '/login'; // 跳转到登录页
+					window.location.reload(); // 跳转到登录页
 				},
 			});
+			return Promise.resolve(data);
 		}
-		// 返回被拒绝的 Promise，供调用方继续处理
+
 		return Promise.resolve(data);
 	}
 );
@@ -50,11 +75,21 @@ type ResponseData<T = any> = {
 	code: number;
 	message: string;
 	data: T;
+	success: boolean;
+	total: number;
 };
 
 export default {
 	request: http.request,
-	get: http.get,
+	get: (url: string, config?: AxiosRequestConfig) => {
+		const params = omitBy(config?.params || {}, it => {
+			return isNumber(it) && it === -1;
+		});
+		return http.get(url, {
+			...config,
+			params,
+		});
+	},
 	delete: http.delete,
 	post: http.post,
 	put: http.put,

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Button, Col, Form, FormInstance, Row } from 'antd';
+import { Button, Col, Form, FormInstance, Row, Space } from 'antd';
 import { BaseFormProFieldType } from '@/component/pro-component/types';
 import ProField from '@/component/pro-component/ProField';
 import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
@@ -13,6 +13,8 @@ export interface ProQueryFormProps<T = any> {
 	onSearch?: (values: any) => void; // 查询按钮的回调
 	onReset?: () => void; // 重置按钮的回调
 	hideForm?: boolean;
+	operations?: (el: React.ReactNode[]) => React.ReactNode;
+	extraOperation?: React.ReactNode;
 }
 
 const ProQueryForm: React.FC<ProQueryFormProps> = ({
@@ -21,6 +23,8 @@ const ProQueryForm: React.FC<ProQueryFormProps> = ({
 	fields,
 	onSearch,
 	onReset,
+	operations,
+	extraOperation,
 }) => {
 	const [form] = Form.useForm(formProp);
 
@@ -45,6 +49,18 @@ const ProQueryForm: React.FC<ProQueryFormProps> = ({
 	}, []);
 
 	const renderContent = () => {
+		const els = (
+			<>
+				{extraOperation}
+				<Button key={'reset'} onClick={handleReset}>
+					重置
+				</Button>
+				<Button key={'search'} type="primary" onClick={handleSearch} style={{ marginRight: 8 }}>
+					查询
+				</Button>
+			</>
+		);
+
 		return (
 			<Row gutter={[16, 16]} style={{ width: '100%' }}>
 				{formatProField.map((field: any) => (
@@ -53,10 +69,7 @@ const ProQueryForm: React.FC<ProQueryFormProps> = ({
 					</Col>
 				))}
 				<Col style={{ textAlign: 'right', flex: 'auto' }}>
-					<Button type="primary" onClick={handleSearch} style={{ marginRight: 8 }}>
-						查询
-					</Button>
-					<Button onClick={handleReset}>重置</Button>
+					<Space>{operations ? operations(React.Children.toArray(els)) : els}</Space>
 				</Col>
 			</Row>
 		);
@@ -66,7 +79,7 @@ const ProQueryForm: React.FC<ProQueryFormProps> = ({
 		return renderContent();
 	}
 	return (
-		<Form form={form} layout="inline" style={{ marginBottom: 16 }}>
+		<Form component={'div'} form={form} layout="inline" style={{ marginBottom: 16 }}>
 			{renderContent()}
 		</Form>
 	);

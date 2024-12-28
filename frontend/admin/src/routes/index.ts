@@ -1,12 +1,12 @@
-import {RouteConfig} from 'react-router-config';
+import { RouteConfig } from 'react-router-config';
 import React from 'react';
 import userRoutes from '@/pages/user/routes';
 
 import productRoutes from '@/pages/product/routes';
 
-const Home = React.lazy(() => import('@/pages/Home'));
+import couponsRoutes from '@/pages/coupons/routes';
 
-const Login = React.lazy(() => import('@/pages/Login'));
+const Home = React.lazy(() => import('@/pages/Home'));
 
 const routes: RouteConfig[] = [
 	{
@@ -15,6 +15,7 @@ const routes: RouteConfig[] = [
 		title: '首页',
 		routes: [],
 	},
+	...couponsRoutes,
 	...userRoutes,
 	...productRoutes,
 ];

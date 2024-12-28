@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class UserRes implements Serializable {
+public class UserRO implements Serializable {
     private static final long serialVersionUID = -339516038496531943L;
 
     private String id;

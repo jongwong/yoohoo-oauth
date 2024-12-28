@@ -4,6 +4,7 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { setCookie } from '@/utils/cookie';
 import http from '@/utils/http';
 import { useNavigate } from 'react-router-dom';
+import { getQueryByName } from '@/utils/url';
 
 const Login: React.FC = () => {
 	const [loading, setLoading] = useState(false);
@@ -14,15 +15,21 @@ const Login: React.FC = () => {
 
 		// 模拟登录请求
 		try {
-			const response = await loginRequest(values);
+			const res = await loginRequest(values);
+
+			if (!res.success || !res.data) {
+				return;
+			}
 			// 设置名为 "JWT" 的 Cookie，1 小时过期，HTTPS 下发送，SameSite 为 Strict
-			setCookie('access_token', response.data, {
+			setCookie('access_token', res.data, {
 				maxAge: 3600,
 				secure: true,
 				sameSite: 'Strict',
 			});
+
+			const url = getQueryByName('redirect_uri') || '/home';
 			// 跳转到主页面 (可用 react-router-dom)
-			navigate('/home');
+			navigate(url);
 		} finally {
 			setLoading(false);
 		}

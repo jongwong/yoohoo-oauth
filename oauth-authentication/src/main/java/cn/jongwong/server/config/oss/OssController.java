@@ -1,5 +1,6 @@
 package cn.jongwong.server.config.oss;
 
+import cn.jongwong.server.util.response.Response;
 import com.aliyun.oss.OSS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,9 +29,9 @@ public class OssController {
      * 获取阿里云临时凭证接口
      */
     @GetMapping("/token")
-    public Mono<Map<String, String>> getTemporaryCredentials() {
+    public Mono<Response<Map<String, String>>> getTemporaryCredentials() {
         Map<String, String> data = ossService.getTemporaryCredentials();
-        return Mono.just(data);
+        return Mono.just(Response.success(data));
     }
 
 

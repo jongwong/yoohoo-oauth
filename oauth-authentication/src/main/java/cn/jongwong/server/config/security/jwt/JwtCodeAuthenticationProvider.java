@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -33,8 +34,7 @@ public class JwtCodeAuthenticationProvider implements ReactiveAuthenticationMana
                 // Return a Mono of the new SmsCodeAuthenticationToken
                 return Mono.just(authenticationResult);
             } catch (JwtException | IllegalArgumentException e) {
-                e.printStackTrace();
-                return Mono.error(new JwtException("Invalid or expired token", e));
+                throw new InvalidBearerTokenException(e.getMessage(), e.getCause());
             }
 
 

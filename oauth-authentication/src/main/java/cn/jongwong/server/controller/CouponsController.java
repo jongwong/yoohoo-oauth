@@ -1,0 +1,80 @@
+package cn.jongwong.server.controller;
+
+import cn.jongwong.server.dto.product.CommonRejectDTO;
+import cn.jongwong.server.entity.CouponsVO;
+import cn.jongwong.server.service.CouponsService;
+import cn.jongwong.server.util.response.PageResponse;
+import cn.jongwong.server.util.response.Response;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+@RestController
+@RequestMapping("/admin/coupons")
+public class CouponsController {
+
+    private final CouponsService couponsService;
+
+    @Autowired
+    public CouponsController(CouponsService couponsService) {
+        this.couponsService = couponsService;
+    }
+
+    @GetMapping
+    public Mono<PageResponse<CouponsVO>> search(@RequestParam(required = false) String name,
+                                                @RequestParam(required = false) String status,
+                                                @RequestParam(required = true) int page,
+                                                @RequestParam(required = true) int size) {
+        return PageResponse.reactivePageSuccess(couponsService.search(name, status, page, size));
+    }
+
+
+    // 获取优惠券通过ID
+    @GetMapping("/{id}")
+    public Mono<Response<CouponsVO>> getCouponById(@PathVariable String id) {
+        return couponsService.getCouponById(id)
+                .map(Response::success)
+                .defaultIfEmpty(Response.error("找不到优惠券"));
+    }
+
+    // 创建优惠券
+    @PostMapping
+    public Mono<Response<CouponsVO>> create(@RequestBody CouponsVO couponsVO) {
+        return couponsService.createCoupon(couponsVO)
+                .map(Response::success);
+    }
+
+    // 更新优惠券
+    @PutMapping("/{id}")
+    public Mono<Response<CouponsVO>> update(@PathVariable String id, @RequestBody CouponsVO couponsVO) {
+        return couponsService.updateCoupon(id, couponsVO)
+                .map(Response::success)
+                .defaultIfEmpty(Response.notFound());
+    }
+
+    @DeleteMapping("/{id}")
+    public Mono<Response<String>> delete(@PathVariable String id) {
+        return couponsService.delete(id)
+                .map(Response::success);
+    }
+
+    @PutMapping("/{id}/submit")
+    public Mono<Response<CouponsVO>> submit(@PathVariable String id, @RequestBody CouponsVO couponsVO) {
+        return couponsService.submitForReview(id, couponsVO)
+                .map(Response::success);
+    }
+
+    @PutMapping("/{id}/reject")
+    public Mono<Response<CouponsVO>> reject(@PathVariable String id, @RequestBody CommonRejectDTO rejectRequest) {
+        return couponsService.rejectReview(id, rejectRequest.getRejectionReason())
+                .map(Response::success)
+                .defaultIfEmpty(Response.notFound());
+    }
+
+    @PutMapping("/{id}/approve")
+    public Mono<Response<CouponsVO>> approve(@PathVariable String id, @RequestBody CommonRejectDTO rejectRequest) {
+        return couponsService.approveReview(id)
+                .map(Response::success)
+                .defaultIfEmpty(Response.notFound());
+    }
+}

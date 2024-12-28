@@ -1,7 +1,7 @@
 package cn.jongwong.server.controller;
 
-import cn.jongwong.server.dto.authentication.AuthenticationSmsSendRequest;
-import cn.jongwong.server.dto.authentication.AuthenticationSmsSendResponse;
+import cn.jongwong.server.dto.authentication.AuthenticationSmsSendDTO;
+import cn.jongwong.server.dto.authentication.AuthenticationSmsSendRO;
 import cn.jongwong.server.service.SmsVerificationService;
 import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class AuthenticationController {
 
     // 发送验证码接口
     @PostMapping("/form/sms/send")
-    public Mono<Response<AuthenticationSmsSendResponse>> sendSms(@RequestBody AuthenticationSmsSendRequest body) {
+    public Mono<Response<AuthenticationSmsSendRO>> sendSms(@RequestBody AuthenticationSmsSendDTO body) {
 
         return smsVerificationService.sendVerificationCode(body.getMobile())
                 .flatMap(re -> {

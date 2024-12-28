@@ -1,0 +1,50 @@
+/**
+ * 通用输入组件渲染函数
+ * */
+
+import React from 'react';
+import {
+	getDefaultPlaceHolder,
+	PlaceHolderType,
+} from '@/component/pro-component/ProField/render/formatRenderUtil';
+import { ElementOf } from '@/component/pro-component/types';
+import { Select, Tag } from 'antd';
+import { findValueEnum, toValEnumList } from '@/component/pro-component/utils/not-export';
+
+export const DefaultEnumValueTypeEnum = {
+	EnumStatusTag: 'enum-status-tag',
+};
+
+declare const _valueType: ['enum-status-tag'];
+export type DefaultEnumValueType = ElementOf<typeof _valueType>;
+
+const defaultEnumValueTypeMap = {
+	[DefaultEnumValueTypeEnum.EnumStatusTag]: {
+		render: (val: any, r: any, _idx: number, { field }) => {
+			const find = findValueEnum(field?.valueEnum || {}, val);
+			return find ? <Tag color={find.color || find.status}>{find?.text}</Tag> : undefined;
+		},
+		renderFormItem: (_t: any, _r: any, opts: any) => {
+			const { column } = opts;
+			const _options: any = toValEnumList(column?.valueEnum).map((it: any) => ({
+				value: it.value,
+				label: it.text,
+			}));
+			if (_options.length < 0) {
+				console.warn(
+					`when valueType is 'enum-status',must offer effective valueEnum,in label: ${
+						column?.label || column?.title
+					}`
+				);
+			}
+			return (
+				<Select
+					allowClear
+					options={_options}
+					placeholder={getDefaultPlaceHolder(opts.column, PlaceHolderType.Select)}
+				/>
+			);
+		},
+	},
+};
+export default defaultEnumValueTypeMap;

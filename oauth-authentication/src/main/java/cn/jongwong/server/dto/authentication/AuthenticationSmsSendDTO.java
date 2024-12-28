@@ -4,6 +4,6 @@ package cn.jongwong.server.dto.authentication;
 import lombok.Data;
 
 @Data
-public class AuthenticationSmsSendRequest {
+public class AuthenticationSmsSendDTO {
     private String mobile;
 }

@@ -3,7 +3,7 @@ import { ValueEnumType } from '@/utils/enum';
 import React, { Key } from 'react';
 
 export const findValueEnum = (valueEnum: ValueEnumType<any>, enumValue: any) => {
-	if (isMap(valueEnum)) {
+	if (isMap(valueEnum) || valueEnum instanceof Map) {
 		return valueEnum?.get(enumValue);
 	}
 	return (valueEnum as any)[enumValue];
@@ -102,11 +102,17 @@ export const throwAndFormatColumnError = (
 	if (isReportAsWarning) {
 		console.error(formatStr);
 	} else {
+		setTimeout(() => {
+			throw newError;
+		}, 100);
 		// eventEmitterInstance.$emit(PRO_THROW_ERROR_EMITTER_EVENT_NAME, newError);
 	}
 };
 
-export const throwEmitError = (e: Error) => {
+export const throwEmitError = (error: Error) => {
+	setTimeout(() => {
+		throw error;
+	}, 300);
 	// eventEmitterInstance.$emit(PRO_THROW_ERROR_EMITTER_EVENT_NAME, e);
 };
 /**
@@ -137,3 +143,7 @@ export const formatGetColumns = (origin: any, merge: any) => ({
 	...origin,
 	...merge,
 });
+
+export const toValEnumList = (map: any) => {
+	return Array.from(map.entries());
+};

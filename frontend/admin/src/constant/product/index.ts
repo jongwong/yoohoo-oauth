@@ -4,23 +4,23 @@ import { toValEnumMap } from '@/utils/enum';
 export enum EProductArchivedStatus {
 	Draft = 10, // 草稿
 	PendingApproval = 20, // 审核中
-	ApprovalRejected = 30, // 审核拒绝
+	Rejected = 30, // 审核拒绝
 	Approved = 40, // 建档完成
 }
 
 export const ProductArchivedStatusMap = toValEnumMap<EProductArchivedStatus>([
 	{
 		value: EProductArchivedStatus.Draft,
-		text: '草稿',
-		status: 'warning',
+		text: '草稿中',
+		status: 'default',
 	},
 	{
 		value: EProductArchivedStatus.PendingApproval,
 		text: '审核中',
-		status: 'processing',
+		status: 'warning',
 	},
 	{
-		value: EProductArchivedStatus.ApprovalRejected,
+		value: EProductArchivedStatus.Rejected,
 		text: '审核拒绝',
 		status: 'error',
 	},

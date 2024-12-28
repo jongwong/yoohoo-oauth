@@ -46,7 +46,8 @@ public class WebFluxSecurityConfig {
             "/api-docs",
             "/api-docs/*",
             "/v3/api-docs/**",
-            "/v3/api-docs.yaml"
+            "/v3/api-docs.yaml",
+            "/api-type"
     };
     @Autowired
     private CustomAuthenticationSuccessHandler authenticationSuccessHandler;

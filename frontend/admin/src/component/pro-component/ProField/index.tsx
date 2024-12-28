@@ -11,7 +11,17 @@ type ProFieldProps<T = any> = {
 	index?: number;
 } & BaseFormProFieldType<T>;
 const ProField: React.FC<ProFieldProps> = props => {
-	const { label, hidden, readonly, name, index, value, formItemProps = {}, ...rest } = props;
+	const {
+		label,
+		hidden,
+		fieldProps,
+		readonly,
+		name,
+		index,
+		value,
+		formItemProps = {},
+		...rest
+	} = props;
 	const form = Form.useFormInstance();
 
 	const formName = getKeyList(name);
@@ -50,7 +60,19 @@ const ProField: React.FC<ProFieldProps> = props => {
 			);
 		};
 		return (
-			<Form.Item name={formName as any} hidden={hidden} label={label} {...formItemProps}>
+			<Form.Item
+				name={formName as any}
+				hidden={hidden}
+				label={label}
+				{...formItemProps}
+				getValueProps={e => {
+					const merge = formItemProps?.getValueProps?.(e) || {};
+					return {
+						value: e,
+						...fieldProps,
+						...merge,
+					};
+				}}>
 				{_curRender()}
 			</Form.Item>
 		);

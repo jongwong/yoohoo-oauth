@@ -1,12 +1,12 @@
 package cn.jongwong.server.config.security.jwt;
 
 import cn.jongwong.server.dto.JwtUser;
-import cn.jongwong.server.entity.User;
+import cn.jongwong.server.entity.UserVO;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -22,15 +22,15 @@ public class JwtUtil {
     private long expirationTime;  // 默认1小时（3600000毫秒）
 
     // 生成 JWT
-    public String generateToken(User user) {
-        List<String> authoritiesArray = List.of(user.getAuthorities());
+    public String generateToken(UserVO userVO) {
+        List<String> authoritiesArray = List.of(userVO.getAuthorities());
 
         return Jwts.builder()
-                .setSubject(user.getId())
-                .claim("id", user.getId()) // 自定义 claim，存储用户 ID
-                .claim("username", user.getUsername()) // 自定义 claim，存储用户名
-                .claim("name", user.getName())
-                .claim("nickname", user.getNickname())
+                .setSubject(userVO.getId())
+                .claim("id", userVO.getId()) // 自定义 claim，存储用户 ID
+                .claim("username", userVO.getUsername()) // 自定义 claim，存储用户名
+                .claim("name", userVO.getName())
+                .claim("nickname", userVO.getNickname())
                 .claim("authorities", authoritiesArray)  // 使用 String[] 类型
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
@@ -97,7 +97,7 @@ public class JwtUtil {
 
         // 检查 token 是否已过期
         if (claims.getExpiration().before(new Date())) {
-            throw new JwtException("Token has expired");
+            throw new InvalidBearerTokenException("Token has expired");
         }
 
         // 返回 JwtUser 对象

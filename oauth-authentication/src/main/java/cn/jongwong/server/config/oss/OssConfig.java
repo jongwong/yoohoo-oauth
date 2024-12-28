@@ -11,17 +11,20 @@ public class OssConfig {
 
     private String endpoint = "oss-cn-shanghai.aliyuncs.com";
 
-    @Value("${aliyun.oss.accessKeyId:default-access-key-id}")
+    @Value("${aliyun.oss.accessKeyId:defaultAccessKeyId}")
     private String accessKeyId;
 
-    @Value("${aliyun.oss.accessKeySecret:default-secret}")
+
+    @Value("${aliyun.oss.accessKeySecret:defaultAccessSecret}")
     private String accessKeySecret;
 
     private String bucketName = "yoohoo-oss";
 
     @Bean
-    public OSS ossClient() {
-
+    public OSS ossClient() throws Exception {
+        if ("default-access-key-id".equals(accessKeyId)) {
+            throw new Exception("环境变量中不存在OSS_ACCESS_KEY_ID");
+        }
         return new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
     }
 

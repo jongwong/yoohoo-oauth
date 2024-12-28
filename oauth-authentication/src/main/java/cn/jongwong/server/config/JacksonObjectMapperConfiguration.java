@@ -1,20 +1,11 @@
 package cn.jongwong.server.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +13,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
-import java.time.*;
+import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Configuration
 @ConditionalOnClass(Jackson2ObjectMapperBuilder.class)
@@ -36,27 +31,68 @@ public class JacksonObjectMapperConfiguration {
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
-        // 配置序列化选项
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT); // 格式化输出
-        objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true); // 允许字段名不加引号
-        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true); // 允许单引号
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // 不抛出未知字段异常
-        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false); // 允许空对象序列化
+        // 启用字符串化日期时间反序列化
+        objectMapper.disable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
-        // 注册 JavaTimeModule 以支持日期时间序列化
+        // 注册支持 Java 8 日期时间 API 的模块
         JavaTimeModule javaTimeModule = new JavaTimeModule();
-        javaTimeModule.addSerializer(Instant.class, InstantSerializer.INSTANCE);
-        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ISO_LOCAL_DATE));
-        javaTimeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(DateTimeFormatter.ISO_LOCAL_TIME));
 
-        // 日期时间反序列化配置
-        javaTimeModule.addDeserializer(Instant.class, InstantDeserializer.INSTANT);
-        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ISO_LOCAL_DATE));
-        javaTimeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ISO_LOCAL_TIME));
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+        // 忽略未知字段
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+
+        // 设置 LocalDateTime 和 Instant 的序列化为时间戳（毫秒级）
+        javaTimeModule.addSerializer(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
+            @Override
+            public void serialize(LocalDateTime value, JsonGenerator gen, SerializerProvider serializers) throws IOException, IOException {
+                gen.writeNumber(value.atZone(ZoneOffset.UTC).toInstant().toEpochMilli()); // 转为毫秒级时间戳
+            }
+        });
+
+        javaTimeModule.addDeserializer(LocalDateTime.class, new JsonDeserializer<LocalDateTime>() {
+            @Override
+            public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+                long timestamp = p.getLongValue();
+                return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneOffset.UTC);
+            }
+        });
+
+        // 启用时间序列化为时间戳
         objectMapper.registerModule(javaTimeModule);
+
+
+        SimpleModule module = new SimpleModule();
+
+        // 显式注册 UUID 的序列化和反序列化处理器
+        module.addSerializer(UUID.class, new com.fasterxml.jackson.databind.ser.std.UUIDSerializer());
+        module.addDeserializer(UUID.class, new com.fasterxml.jackson.databind.deser.std.UUIDDeserializer());
+
+        // 注册枚举的自定义序列化器
+        module.addSerializer(Enum.class, new JsonSerializer<Enum>() {
+            @Override
+            public void serialize(Enum value, JsonGenerator gen, com.fasterxml.jackson.databind.SerializerProvider serializers) throws IOException {
+                if (value != null) {
+                    gen.writeNumber(value.ordinal());  // 写入枚举的 ordianl 值作为 int 存储
+                }
+            }
+        });
+
+        // 注册枚举的自定义反序列化器
+        module.addDeserializer(Enum.class, new JsonDeserializer<Enum>() {
+            @Override
+            public Enum deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+                int value = p.getIntValue();
+                Class<?> enumClass = p.getCurrentValue().getClass();
+
+                // 返回对应枚举值，通过枚举的 ordinal 值进行反序列化
+                Object[] enumConstants = enumClass.getEnumConstants();
+                return (Enum) enumConstants[value];
+            }
+        });
+
+        objectMapper.registerModule(module);
 
         return objectMapper;
     }

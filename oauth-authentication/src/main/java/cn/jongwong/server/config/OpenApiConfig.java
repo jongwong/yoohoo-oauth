@@ -25,6 +25,6 @@ import static io.swagger.v3.oas.annotations.enums.SecuritySchemeType.HTTP;
         bearerFormat = "JWT"
 )
 public class OpenApiConfig {
-
+  
 
 }

@@ -77,4 +77,11 @@ public class Response<T> implements Serializable {
     public static <T> Response<T> error(String message) {
         return new Response<>(ResponseErrorCodeEnum.INTERNAL_SERVER_ERROR.getCode(), message, null);
     }
+
+    // 错误响应，默认500
+    public static <T> Response<T> notFound() {
+        return new Response<>(ResponseErrorCodeEnum.NOT_FOUND.getCode(), ResponseErrorCodeEnum.NOT_FOUND.getMessage(), null);
+    }
+
+
 }

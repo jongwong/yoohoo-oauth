@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom'; // 使用 Routes 来包裹路由
+import { Route, Routes, useSearchParams } from 'react-router-dom'; // 使用 Routes 来包裹路由
 import { App, ConfigProvider, Layout } from 'antd';
 import zhCN from 'antd/es/locale/zh_CN';
 
@@ -17,6 +17,7 @@ const MainLayout: React.FC = () => {
 			return <Route key={route.path} path={route.path} element={route.element} />;
 		});
 	};
+	const [searchParams] = useSearchParams();
 
 	return (
 		<ConfigProvider
@@ -39,7 +40,7 @@ const MainLayout: React.FC = () => {
 							<Layout style={{ minHeight: '100vh' }}>
 								{/* 侧边栏 */}
 								<Sider
-									width={200}
+									width={0}
 									theme="light"
 									style={{ boxShadow: '1px 0 2px rgba(0, 0, 0, 0.05)', zIndex: 100 }}>
 									<div

@@ -19,9 +19,10 @@ export const DefaultInputValueTypeEnum = {
 	Switch: 'switch',
 	RadioBool: 'radio-bool',
 	File: 'file',
+	Image: 'image',
 };
 
-declare const _valueType: ['input', 'textarea', 'switch', 'radio-bool', 'file'];
+declare const _valueType: ['input', 'textarea', 'switch', 'radio-bool', 'file', 'image'];
 export type DefaultInputValueType = ElementOf<typeof _valueType>;
 
 const defaultInputValueTypeMap: {} = {
@@ -62,14 +63,42 @@ const defaultInputValueTypeMap: {} = {
 	// 	),
 	// },
 	[DefaultInputValueTypeEnum.File]: {
-		renderFormItem: (t: any, r: any) => (
-			<ProxyWrapped>
-				{(op: any) => <Upload multiple {...op} value={Array.isArray(op?.value) ? op?.value : []} />}
-			</ProxyWrapped>
-		),
+		renderFormItem: (t: any, r: any) => {
+			return (
+				<ProxyWrapped>
+					{(op: any) => (
+						<Upload multiple {...op} fileList={Array.isArray(op?.value) ? op?.value : []} />
+					)}
+				</ProxyWrapped>
+			);
+		},
 		render: (e: any) => {
 			const val = Array.isArray(e) ? e : [];
-			return val?.length ? <OssUpload readOnly value={val} multiple /> : null;
+			return val?.length ? <OssUpload readonly value={val} multiple /> : null;
+		},
+	},
+	[DefaultInputValueTypeEnum.Image]: {
+		renderFormItem: (t: any, r: any) => {
+			return (
+				<ProxyWrapped>
+					{(op: any) => (
+						<OssUpload
+							multiple
+							listType={'picture-card'}
+							{...op}
+							onChange={(e: any) => {
+								op?.onChange?.(e);
+							}}
+							value={Array.isArray(op?.value) ? op?.value : []}></OssUpload>
+					)}
+				</ProxyWrapped>
+			);
+		},
+		render: (e: any) => {
+			const val = Array.isArray(e) ? e : [];
+			return val?.length ? (
+				<OssUpload value={val} listType={'picture-card'} readonly multiple />
+			) : null;
 		},
 	},
 };

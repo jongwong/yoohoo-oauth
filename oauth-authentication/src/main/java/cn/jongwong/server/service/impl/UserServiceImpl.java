@@ -2,13 +2,16 @@ package cn.jongwong.server.service.impl;
 
 import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.QueryBuilder;
-import cn.jongwong.server.dto.user.UserRes;
-import cn.jongwong.server.entity.User;
+import cn.jongwong.server.dto.user.UserRO;
+import cn.jongwong.server.entity.UserVO;
 import cn.jongwong.server.repository.UserRepository;
 import cn.jongwong.server.service.UserService;
 import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -26,23 +29,23 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public Mono<User> getUserByIdentifier(String identifier) {
+    public Mono<UserVO> getUserByIdentifier(String identifier) {
         return userRepository.findByIdentifier(identifier);
     }
 
     @Override
-    public Mono<User> getUserByMobileNumber(String mobile) {
+    public Mono<UserVO> getUserByMobileNumber(String mobile) {
         return userRepository.findByMobile(mobile);
     }
 
     @Override
-    public Mono<User> createUser(User user) {
-        return userRepository.save(user);
+    public Mono<UserVO> createUser(UserVO userVO) {
+        return userRepository.save(userVO);
     }
 
     @Override
-    public Mono<User> updateUser(User user) {
-        return userRepository.save(user);  // 如果存在同样的 ID，会执行更新操作
+    public Mono<UserVO> updateUser(UserVO userVO) {
+        return userRepository.save(userVO);  // 如果存在同样的 ID，会执行更新操作
     }
 
 
@@ -51,21 +54,21 @@ public class UserServiceImpl implements UserService {
         return userRepository.deleteById(userId);
     }
 
-    public Mono<Page<UserRes>> getUsersList(String username, String email, int page, int size) {
+    public Mono<Page<UserRO>> getUsersList(String username, String email, int page, int size) {
 
 
-        return new QueryBuilder<>(r2dbcEntityTemplate, User.class).addLikeCondition("username", username)
+        return new QueryBuilder<>(r2dbcEntityTemplate, UserVO.class).addLikeCondition("username", username)
                 .addEqualCondition("username", username)
                 .addEqualCondition("email", email)
                 .executeQuery(page, size).map(userPage -> {
                     // 转换 User -> UserRes
-                    List<UserRes> userResList = userPage.getData().stream()
-                            .map(user -> MapperUtil.mapFields(user, UserRes.class))
+                    List<UserRO> userROList = userPage.getData().stream()
+                            .map(user -> MapperUtil.mapFields(user, UserRO.class))
                             .toList();
 
                     // 构建新的 Page<UserRes>
                     return new Page<>(
-                            userResList,
+                            userROList,
                             userPage.getTotal(),
                             userPage.getPage(),
                             userPage.getSize()
@@ -73,5 +76,21 @@ public class UserServiceImpl implements UserService {
                 });
     }
 
+
+    /**
+     * 获取当前用户的 ID。
+     *
+     * @return 当前用户的 ID，如果没有认证的用户则返回 "系统用户"
+     */
+    public Mono<String> getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return Mono.just(userDetails.getUsername());  // 返回用户的用户名作为 ID
+        }
+
+        return Mono.just("系统用户");  // 如果没有认证的用户，返回一个默认值
+    }
 
 }

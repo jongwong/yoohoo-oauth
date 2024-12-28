@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 public class DevTestController {
 
 
+
     @GetMapping("/admin/hello")
     public Mono<Response<String>> login() {
         // Return the name of the Thymeleaf template
@@ -23,6 +24,11 @@ public class DevTestController {
     @GetMapping("/admin/test")
     public Mono<Response<String>> test() {
         // Return the name of the Thymeleaf template
+        return Mono.just(Response.success("test"));   // It will look for 'src/main/resources/templates/login.html'
+    }
+
+    @GetMapping("/api-type")
+    public Mono<Response<String>> type() {
         return Mono.just(Response.success("test"));   // It will look for 'src/main/resources/templates/login.html'
     }
 

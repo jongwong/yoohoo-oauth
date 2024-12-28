@@ -26,7 +26,8 @@ public class OssConfigTest {
         System.out.println("OSS Client Initialized Successfully");
 
         // 你可以添加更多测试逻辑，如调用 API 验证
-        // ossClient.listBuckets();  // 示例调用：列出所有存储桶（需确保配置正确）
+        List<Bucket> list = ossClient.listBuckets();  // 示例调用：列出所有存储桶（需确保配置正确）
+
     }
 
 

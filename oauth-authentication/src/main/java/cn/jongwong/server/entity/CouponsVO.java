@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "tb_coupon")
+@Table(name = "tb_coupons")
 public class CouponsVO {
 
     @Id

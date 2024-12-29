@@ -210,7 +210,8 @@ public class ProductService {
         return new QueryBuilder<>(r2dbcEntityTemplate, ProductVO.class)
                 .addLikeCondition("name", name)
                 .addEqualCondition("status", status)
-                .executeQuery(page, size).map(pageData -> {
+                .paginate(page, size)
+                .exec().map(pageData -> {
                     List<ProductVO> userResList = pageData.getData().stream()
                             .map(user -> MapperUtil.mapFields(user, ProductVO.class))
                             .toList();

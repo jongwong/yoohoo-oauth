@@ -72,7 +72,25 @@ const ContentLayout: React.FC<LayoutProps> = props => {
 					</h2>
 					<HeaderInfo {...info} extra={extra} />
 					<div className={!tabsProps ? 'mb-4' : undefined}>{headerFooter}</div>
-					{tabsProps ? <Tabs {...tabsProps} size={'small'} /> : null}
+					{tabsProps ? (
+						<Tabs
+							{...tabsProps}
+							items={tabsProps?.items?.map(it => ({
+								...it,
+								children: (
+									<div
+										style={{
+											background: '#f5f5f5',
+											padding: 24,
+										}}
+										key={it.key}>
+										{it.children}
+									</div>
+								),
+							}))}
+							size={'small'}
+						/>
+					) : null}
 				</div>
 				<div>{children}</div>
 			</Content>

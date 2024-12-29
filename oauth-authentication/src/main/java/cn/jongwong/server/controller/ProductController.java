@@ -77,7 +77,6 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     public Mono<Response<String>> delete(@PathVariable String id) {
-        System.out.printf("-------id-------%s%n", id);
         return productService.delete(id)
                 .map(Response::success);
     }

@@ -33,7 +33,7 @@ export interface ProTableActionType<T = any> {
 	}>; // 暴露一个 reload 方法
 }
 export type ProTableProps<T = any, P = any> = {
-	fields: ProQueryFormProps<P>['fields'];
+	fields?: ProQueryFormProps<P>['fields'];
 	columns: Array<ProTableColumnType<T>>;
 	request?: (params: any) => Promise<{
 		total: number;
@@ -136,30 +136,32 @@ const ProTable: React.FC<ProTableProps> = props => {
 
 	return (
 		<div>
-			<Form form={form} className={'mb-24'}>
-				<ProQueryForm
-					fields={fields}
-					form={form}
-					onReset={() => {
-						setTimeout(() => {
-							const cfg = footer as any;
-							if (cfg?.name) {
-								form.setFields([
-									{
-										name: cfg.name,
-										value: initTabValueRef.current,
-									},
-								]);
-							}
-						}, 100);
-					}}
-					extraOperation={extraOperation}
-					operations={operations}
-					onSearch={() => {
-						fetchData({ page: 1 });
-					}}
-				/>
-			</Form>
+			{fields?.length ? (
+				<Form form={form} className={'mb-24'}>
+					<ProQueryForm
+						fields={fields}
+						form={form}
+						onReset={() => {
+							setTimeout(() => {
+								const cfg = footer as any;
+								if (cfg?.name) {
+									form.setFields([
+										{
+											name: cfg.name,
+											value: initTabValueRef.current,
+										},
+									]);
+								}
+							}, 100);
+						}}
+						extraOperation={extraOperation}
+						operations={operations}
+						onSearch={() => {
+							fetchData({ page: 1 });
+						}}
+					/>
+				</Form>
+			) : null}
 
 			{footer ? <div>{renderFooter()}</div> : null}
 			<Table

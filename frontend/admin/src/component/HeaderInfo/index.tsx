@@ -1,6 +1,8 @@
 import React, { Key, ReactNode } from 'react';
+
 import { Descriptions, Space, Statistic } from 'antd';
 import { get } from 'lodash';
+
 import { BaseFormProFieldType } from '@/component/pro-component/types';
 import useFormatFields from '@/component/pro-component/useFormatFields';
 
@@ -32,6 +34,7 @@ const HeaderInfo: React.FC<HeaderInfoProps> = props => {
 			{/* 左侧基础信息 */}
 			<Descriptions
 				size={'small'}
+				className={'mb-8'}
 				style={{
 					flex: '1 1 60%', // 左侧占 45% 宽度
 					minWidth: '300px', // 确保最小宽度

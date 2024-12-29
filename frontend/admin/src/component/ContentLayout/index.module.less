@@ -1,8 +1,15 @@
 .yh-layout-header {
-	padding: 8px 24px 0 24px;
 	background: #fff;
 
+	& > * {
+		padding: 0 24px;
+	}
+
+	:global(.ant-tabs) {
+		padding: 0;
+	}
 	:global(.ant-tabs-nav) {
+		padding: 0 24px;
 		margin-bottom: 0 !important;
 	}
 }

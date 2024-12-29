@@ -60,7 +60,8 @@ public class UserServiceImpl implements UserService {
         return new QueryBuilder<>(r2dbcEntityTemplate, UserVO.class).addLikeCondition("username", username)
                 .addEqualCondition("username", username)
                 .addEqualCondition("email", email)
-                .executeQuery(page, size).map(userPage -> {
+                .paginate(page, size)
+                .exec().map(userPage -> {
                     // 转换 User -> UserRes
                     List<UserRO> userROList = userPage.getData().stream()
                             .map(user -> MapperUtil.mapFields(user, UserRO.class))

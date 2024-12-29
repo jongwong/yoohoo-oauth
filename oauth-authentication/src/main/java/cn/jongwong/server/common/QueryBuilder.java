@@ -1,34 +1,55 @@
 package cn.jongwong.server.common;
 
 import cn.jongwong.server.util.response.Page;
+import io.r2dbc.spi.Row;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.relational.core.query.Criteria;
-import org.springframework.data.relational.core.query.Query;
+import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class QueryBuilder<T> {
+
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
+    private final DatabaseClient databaseClient;
     private final Class<T> entityType;
     private final List<Criteria> criteriaList = new ArrayList<>();
-
+    private String tableName;
+    private String selectFields = "*"; // 默认查询所有字段
+    private List<String> joinClauseList = new ArrayList<>(); // 联表查询
+    private String orderByClause = ""; // ORDER BY 子句
+    private int page = 1;
+    private int size = 10;
+    private FieldMappingCallback<T> fieldMappingCallback;
 
     public QueryBuilder(R2dbcEntityTemplate r2dbcEntityTemplate, Class<T> entityType) {
         this.r2dbcEntityTemplate = r2dbcEntityTemplate;
+        this.databaseClient = r2dbcEntityTemplate.getDatabaseClient();
         this.entityType = entityType;
     }
 
-    // Add LIKE condition
-    public QueryBuilder<T> addLikeCondition(String column, String value) {
-        if (value != null && !value.isEmpty()) {
-            criteriaList.add(Criteria.where(column).like("%" + value + "%"));
-        }
+    // 设置表名
+    public QueryBuilder<T> fromTable(String tableName) {
+        this.tableName = tableName;
         return this;
     }
 
-    // Add EQUAL condition
+    // 设置 SELECT 字段
+    public QueryBuilder<T> selectFields(String fields) {
+        this.selectFields = fields;
+        return this;
+    }
+
+    public QueryBuilder<T> withJoin(String joinClause) {
+        joinClauseList.add(joinClause);
+        return this;
+    }
+
+    // 添加 WHERE 子句条件
     public QueryBuilder<T> addEqualCondition(String column, Object value) {
         if (value != null) {
             criteriaList.add(Criteria.where(column).is(value));
@@ -36,22 +57,134 @@ public class QueryBuilder<T> {
         return this;
     }
 
-    // Execute query with pagination
-    public Mono<Page<T>> executeQuery(int page, int size) {
-        // Build the query object
-        Query query = Query.query(Criteria.from(criteriaList))
-                .limit(size)
-                .offset((long) (page - 1) * size);
+    // 设置回调接口
+    public QueryBuilder<T> withFieldMapping(FieldMappingCallback<T> fieldMappingCallback) {
+        this.fieldMappingCallback = fieldMappingCallback;
+        return this;
+    }
 
-        // Fetch the data
-        Mono<List<T>> dataMono = r2dbcEntityTemplate.select(query, entityType).collectList();
+    // 添加 LIKE 条件
+    public QueryBuilder<T> addLikeCondition(String column, String value) {
+        if (value != null && !value.isEmpty()) {
+            criteriaList.add(Criteria.where(column).like("%" + value + "%"));
+        }
+        return this;
+    }
 
-        // Fetch the total count
-        Query countQuery = Query.query(Criteria.from(criteriaList));
-        Mono<Long> countMono = r2dbcEntityTemplate.count(countQuery, entityType);
+    // 设置排序
+    public QueryBuilder<T> addSort(String orderByClause) {
+        this.orderByClause = orderByClause;
+        return this;
+    }
 
-        // Combine data and count into a Page object
+    // 设置分页
+    public QueryBuilder<T> paginate(int page, int size) {
+        this.page = page;
+        this.size = size;
+        return this;
+    }
+
+    // 执行查询
+    public Mono<Page<T>> exec() {
+        return executeAdvancedQuery();
+    }
+
+    // 复杂查询使用 DatabaseClient 执行自定义 SQL
+    private Mono<Page<T>> executeAdvancedQuery() {
+        String curTableName = getTableNameFromEntity(entityType);
+        StringBuilder sqlBuilder = new StringBuilder();
+
+// 构建 FROM 和 JOIN 子句
+        sqlBuilder.append(" FROM ").append(curTableName);
+
+        for (String join : joinClauseList) {
+            sqlBuilder.append(" JOIN ").append(join);  // 拼接每个 JOIN 子句
+        }
+
+// 构建 WHERE 子句
+        String whereClause = buildWhereClause();
+        if (!whereClause.isEmpty()) {
+            sqlBuilder.append(" ").append(whereClause);
+        }
+
+// 构建 ORDER BY 子句
+        String orderByClause = buildOrderByClause();
+        if (!orderByClause.isEmpty()) {
+            sqlBuilder.append(" ").append(orderByClause);
+        }
+
+        StringBuilder sqlSelectBuilder = new StringBuilder();
+        // 构建 SELECT 子句
+        sqlSelectBuilder.append("SELECT ");
+        sqlSelectBuilder.append(selectFields.isEmpty() ? curTableName + ".*" : selectFields);
+
+
+// 构建分页查询语句
+        String sql = sqlSelectBuilder.append(' ').append(sqlBuilder).append(" LIMIT ").append(size).append(" OFFSET ").append((page - 1) * size).toString();
+        System.out.printf("SQL: %s%n", sql);
+
+// 执行查询
+        Mono<List<T>> dataMono = databaseClient.sql(sql)
+                .map((row, metadata) -> {
+                    var data = r2dbcEntityTemplate.getConverter().read(entityType, row);
+                    if (this.fieldMappingCallback != null) {
+                        return this.fieldMappingCallback.mapFields(row, data);
+                    } else {
+                        return data;
+
+                    }
+                })
+                .all()
+                .collectList();
+
+// 构建 COUNT 查询语句 (复用 SQL 构建部分，不包含 LIMIT 和 OFFSET)
+        String countSql = "SELECT COUNT(*) " + sqlBuilder;
+        System.out.printf("COUNT SQL: %s%n", countSql);
+
+        Mono<Long> countMono = databaseClient.sql(countSql)
+                .map((row, metadata) -> row.get(0, Long.class))
+                .one();
+
+        // 组合数据和总数，返回分页对象
         return Mono.zip(dataMono, countMono)
                 .map(tuple -> new Page<>(tuple.getT1(), tuple.getT2(), page, size));
+    }
+
+    // 构建 WHERE 子句
+    private String buildWhereClause() {
+        if (criteriaList.isEmpty()) {
+            return "";
+        }
+
+        return "WHERE " + criteriaList.stream()
+                .map(Criteria::toString)
+                .collect(Collectors.joining(" AND "));
+    }
+
+    // 构建 ORDER BY 子句
+    private String buildOrderByClause() {
+        return orderByClause.isEmpty() ? "" : "ORDER BY " + orderByClause;
+    }
+
+    // 获取表名
+    private String getTableNameFromEntity(Class<T> entityType) {
+        if (this.tableName != null) {
+            return this.tableName;
+        }
+
+        Table tableAnnotation = entityType.getAnnotation(Table.class);
+        if (tableAnnotation != null) {
+            String name = tableAnnotation.name();
+            if (name.isEmpty()) {
+                throw new IllegalStateException("Table name must be defined via @Table annotation on entity class.");
+            }
+            return name;
+        } else {
+            throw new IllegalStateException("Table name must be defined via @Table annotation on entity class.");
+        }
+    }
+
+    public interface FieldMappingCallback<T> {
+        T mapFields(Row row, T entity);
     }
 }

@@ -8,6 +8,7 @@ import { useUpdate } from 'ahooks';
 import { CouponsStatusMap, CouponsTypeMap, ECouponsStatus, ECouponsType } from '@/constant/coupons';
 import { transformUrlByRoutePath } from '@/utils/url';
 import { PAGES_COUPONS_DETAIL_URL } from '@/pages/coupons/pages';
+import UserCouponsTable from './UserCouponsTable';
 
 const UserDetail: React.FC = props => {
 	const params = useParams();
@@ -233,6 +234,22 @@ const UserDetail: React.FC = props => {
 			</Space>
 		);
 	};
+	const renderBaseInfo = () => {
+		return (
+			<Card>
+				<Form
+					form={form}
+					labelCol={{
+						span: 4,
+					}}
+					wrapperCol={{
+						span: 7,
+					}}>
+					<ProForm.Items editable={editable} fields={fields} />
+				</Form>
+			</Card>
+		);
+	};
 
 	return (
 		<ContentLayout
@@ -279,31 +296,27 @@ const UserDetail: React.FC = props => {
 						},
 					],
 				},
-				tabsProps: {
-					items: [
-						{
-							label: '基础信息',
-							key: '1',
-						},
-						{
-							label: '操作日志',
-							key: '2',
-						},
-					],
-				},
+				tabsProps:
+					detailData?.status >= ECouponsStatus.Approved
+						? {
+								items: [
+									{
+										label: '基础信息',
+										key: 'baseInfo',
+										children: renderBaseInfo(),
+									},
+									{
+										label: '用户优惠券',
+										key: 'userCoupons',
+										children: <UserCouponsTable couponsId={couponsId} />,
+									},
+								],
+						  }
+						: undefined,
 			}}>
-			<Form
-				form={form}
-				labelCol={{
-					span: 4,
-				}}
-				wrapperCol={{
-					span: 7,
-				}}>
-				<Card>
-					<ProForm.Items editable={editable} fields={fields} />
-				</Card>
-			</Form>
+			{detailData?.status < ECouponsStatus.Approved ? renderBaseInfo() : null}
+
+			{/*{userCouponsVisible && <UserCouponsTable />}*/}
 		</ContentLayout>
 	);
 };

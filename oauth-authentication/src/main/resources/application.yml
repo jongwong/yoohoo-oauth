@@ -74,7 +74,10 @@ logging:
     org:
       springframework:
         security: DEBUG
-        r2dbc: DEBUG
+        r2dbc:
+          core:
+            log:
+              DEBUG
         web:
           server:
             reactive: DEBUG

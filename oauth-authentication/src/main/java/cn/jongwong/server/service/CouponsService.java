@@ -81,8 +81,8 @@ public class CouponsService {
 
         return new QueryBuilder<>(r2dbcEntityTemplate, CouponsVO.class)
                 .addLikeCondition("name", name)
-                .addEqualCondition("status", status)
-                .executeQuery(page, size).map(pageData -> {
+                .addEqualCondition("status", status).paginate(page, size)
+                .exec().map(pageData -> {
                     List<CouponsVO> userResList = pageData.getData().stream()
                             .map(user -> MapperUtil.mapFields(user, CouponsVO.class))
                             .toList();

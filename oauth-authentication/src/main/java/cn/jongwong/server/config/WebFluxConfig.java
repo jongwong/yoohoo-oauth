@@ -8,6 +8,7 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.r2dbc.convert.R2dbcCustomConversions;
 import org.springframework.web.reactive.config.ResourceHandlerRegistry;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,5 +50,10 @@ public class WebFluxConfig implements WebFluxConfigurer {
         }
     }
 
+
+    @Bean
+    public WebClient webClient() {
+        return WebClient.create();  // Creates a simple WebClient instance
+    }
 
 }

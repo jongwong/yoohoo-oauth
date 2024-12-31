@@ -2,6 +2,8 @@ package cn.jongwong.server.common;
 
 import cn.jongwong.server.util.response.Page;
 import io.r2dbc.spi.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.relational.core.query.Criteria;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class QueryBuilder<T> {
+    private static final Logger log = LoggerFactory.getLogger(QueryBuilder.class);
 
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
     private final DatabaseClient databaseClient;
@@ -121,7 +124,7 @@ public class QueryBuilder<T> {
 
 // 构建分页查询语句
         String sql = sqlSelectBuilder.append(' ').append(sqlBuilder).append(" LIMIT ").append(size).append(" OFFSET ").append((page - 1) * size).toString();
-        System.out.printf("SQL: %s%n", sql);
+        log.debug("QueryBuilder Select:" + sql);
 
 // 执行查询
         Mono<List<T>> dataMono = databaseClient.sql(sql)
@@ -139,8 +142,7 @@ public class QueryBuilder<T> {
 
 // 构建 COUNT 查询语句 (复用 SQL 构建部分，不包含 LIMIT 和 OFFSET)
         String countSql = "SELECT COUNT(*) " + sqlBuilder;
-        System.out.printf("COUNT SQL: %s%n", countSql);
-
+        log.debug("QueryBuilder Count Select:" + countSql);
         Mono<Long> countMono = databaseClient.sql(countSql)
                 .map((row, metadata) -> row.get(0, Long.class))
                 .one();

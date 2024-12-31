@@ -7,6 +7,8 @@
 .idea
 .env
 
+oauth-authentication/src/main/resources/application-local.yml
+
 # misc
 .DS_Store
 .env.local

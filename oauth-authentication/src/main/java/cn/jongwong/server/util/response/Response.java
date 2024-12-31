@@ -68,6 +68,11 @@ public class Response<T> implements Serializable {
         return new Response<>(code, message, null);
     }
 
+    // 错误响应
+    public static <T> Mono<Response<T>> error(Throwable e) {
+        return Mono.just(new Response<>(ResponseErrorCodeEnum.INTERNAL_SERVER_ERROR.getCode(), e.getMessage(), null));
+    }
+
     // 错误响应，基于枚举
     public static <T> Response<T> error(ResponseErrorCodeEnum errorCode) {
         return new Response<>(errorCode.getCode(), errorCode.getMessage(), null);

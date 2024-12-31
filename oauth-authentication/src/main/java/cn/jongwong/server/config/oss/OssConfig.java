@@ -11,11 +11,11 @@ public class OssConfig {
 
     private String endpoint = "oss-cn-shanghai.aliyuncs.com";
 
-    @Value("${aliyun.oss.accessKeyId:defaultAccessKeyId}")
+    @Value("${custom-config.aliyun.oss.accessKeyId:defaultAccessKeyId}")
     private String accessKeyId;
 
 
-    @Value("${aliyun.oss.accessKeySecret:defaultAccessSecret}")
+    @Value("${custom-config.aliyun.oss.accessKeySecret:defaultAccessSecret}")
     private String accessKeySecret;
 
     private String bucketName = "yoohoo-oss";

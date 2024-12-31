@@ -6,10 +6,10 @@ server:
 
 
 spring:
+  profiles:
+    active: local
   webflux:
     static-path-pattern: /static/**
-  #  profiles:
-  #    active: dev
   session:
     store-type: redis      # 使用 Redis 存储 Session
     redis:
@@ -27,10 +27,10 @@ spring:
     locations:
       - classpath:db/migration
     cleanDisabled: false
-    url: jdbc:mysql://101.34.152.79:3305/yoohoo-oauth?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-    password: wwwwww
-    user: root
+    url: jdbc:mysql://${custom-config.mysql.host}:${custom-config.mysql.port}/${custom-config.mysql.database}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    password: ${custom-config.mysql.password}
     baseline-on-migrate: true
+    user: ${custom-config.mysql.username}
 
   jackson:
     time-zone: GMT+8
@@ -40,18 +40,18 @@ spring:
     cache: false
     mode: HTML
   r2dbc:
-    url: r2dbc:mysql://101.34.152.79:3305/yoohoo-oauth
-    username: root
-    password: wwwwww
+    url: r2dbc:mysql://${custom-config.mysql.host}:${custom-config.mysql.port}/${custom-config.mysql.database}
+    username: ${custom-config.mysql.username}
+    password: ${custom-config.mysql.password}
     pool:
       initial-size: 5
       max-size: 20
   data:
     redis:
-      port: 6378
-      database: 0
-      host: 101.34.152.79
-      password: 123456
+      port: ${custom-config.redis.port}
+      database: ${custom-config.redis.database}
+      host: ${custom-config.redis.host}
+      password: ${custom-config.redis.password}
 
 
 springdoc:
@@ -60,28 +60,11 @@ springdoc:
   api-docs:
     path: /api-docs
 
-aliyun:
-  oss:
-    accessKeyId: ${OSS_ACCESS_KEY_ID}
-    accessKeySecret: ${OSS_ACCESS_KEY_SECRET}
 
 
 
 
 
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG
-        r2dbc:
-          core:
-            log:
-              DEBUG
-        web:
-          server:
-            reactive: DEBUG
-            session: DEBUG
 
 
 

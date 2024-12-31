@@ -47,7 +47,9 @@ public class WebFluxSecurityConfig {
             "/api-docs/*",
             "/v3/api-docs/**",
             "/v3/api-docs.yaml",
-            "/api-type"
+            "/api-type",
+            "/auth/wechat-login",
+            "/client/wechat/openid"
     };
     @Autowired
     private CustomAuthenticationSuccessHandler authenticationSuccessHandler;
@@ -83,6 +85,7 @@ public class WebFluxSecurityConfig {
         http.authorizeExchange(t -> t
                 .pathMatchers(WHITELIST_URLS).permitAll()
                 .pathMatchers("/admin/*").hasAuthority("ROLE_ADMIN")
+                .pathMatchers("/client/*").hasAuthority("ROLE_CLIENT")
                 .anyExchange().authenticated());   // 其他路径需要认证
         // @formatter:off
         http.httpBasic(ServerHttpSecurity.HttpBasicSpec::disable);

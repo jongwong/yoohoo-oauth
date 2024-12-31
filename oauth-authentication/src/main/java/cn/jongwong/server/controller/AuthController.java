@@ -1,21 +1,28 @@
 package cn.jongwong.server.controller;
 
 import cn.jongwong.server.config.security.jwt.JwtUtil;
+import cn.jongwong.server.dto.WeChatLoginDTO;
+import cn.jongwong.server.dto.WeChatPhoneDecryptDTO;
+import cn.jongwong.server.service.ThirdPartyLoginService;
 import cn.jongwong.server.service.UserService;
+import cn.jongwong.server.service.WeChatAuthService;
 import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
-public class LoginController {
+public class AuthController {
+    @Autowired
+    WeChatAuthService weChatAuthService;
+
 
     @Autowired
     private UserService userService; // 用于验证用户名和密码
@@ -23,8 +30,48 @@ public class LoginController {
     @Autowired
     private JwtUtil jwtUtil; // 用于生成 JWT
 
+    @Autowired
+    ThirdPartyLoginService thirdPartyLoginService;
 
-    @PostMapping("/token")
+    // 登录接口
+    @PostMapping("/client/wechat/openid")
+    public Mono<Response<Map<String, String>>> login(@RequestBody WeChatLoginDTO request) {
+        return weChatAuthService.wxLogin(request.getCode())
+                .flatMap(map -> {
+                    if (map == null || map.isEmpty()) {
+                        return Mono.error(new IllegalArgumentException("Response map is empty"));
+                    }
+                    String openid = map.get("openid");
+                    System.out.printf("-------openid-------%s%n", openid);
+                    if (openid == null || openid.isBlank()) {
+                        return Mono.error(new IllegalArgumentException("OpenID not found in response"));
+                    }
+                    // 查询第三方登录信息
+                    return thirdPartyLoginService.findById(openid)
+                            .flatMap(t -> {
+                                System.out.printf("-------t.getUserId()-------%s%n", t.getUserId());
+                                // 将第三方登录信息合并到返回的 map 中
+                                map.put("userId", t.getUserId());
+                                map.put("provider", String.valueOf(t.getProvider())); // 第三方平台
+                                return Mono.just(map);
+                            })
+                            .switchIfEmpty(Mono.defer(() -> {
+                                // 如果没有绑定用户，也可返回部分 weChatAuthService 数据
+                                map.put("userId", null); // 未绑定用户
+                                return Mono.just(map);
+                            })).onErrorResume(throwable -> Mono.just(map));
+                })
+                .map(Response::success)
+                .onErrorResume(Response::error);
+    }
+
+    // 解密手机号接口
+    @PostMapping("/client/wechat/decrypt-phone")
+    public Mono<String> decryptPhoneNumber(@RequestBody WeChatPhoneDecryptDTO request) {
+        return weChatAuthService.getUserInfoAndPhoneNumber(request.getEncryptedData(), request.getIv(), request.getSessionKey());
+    }
+
+    @PostMapping("/auth/token")
     public Mono<Response<String>> login(ServerWebExchange exchange) {
         // 从请求中解析表单数据
         return exchange.getFormData()
@@ -69,5 +116,4 @@ public class LoginController {
                     return Mono.just(Response.error("Unsupported grant type"));
                 });
     }
-
 }

@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 @Controller
 public class OAuthController {
 
+
     // 显示授权页面
     @GetMapping("/oauth2/authorize")
     public Mono<String> showAuthorizePage(
@@ -72,4 +73,6 @@ public class OAuthController {
             return Mono.just("redirect:/error");  // 你可以处理错误页面
         }
     }
+
+
 }

@@ -22,6 +22,7 @@ public class OssConfig {
 
     @Bean
     public OSS ossClient() throws Exception {
+        System.out.printf("-------accessKeyId-------%s%n", accessKeyId);
         if ("default-access-key-id".equals(accessKeyId)) {
             throw new Exception("环境变量中不存在OSS_ACCESS_KEY_ID");
         }

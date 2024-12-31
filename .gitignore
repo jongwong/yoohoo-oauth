@@ -16,4 +16,4 @@ oauth-authentication/src/main/resources/application-local.yml
 .env.test.local
 .env.production.local
 
-
+oauth-authentication/target

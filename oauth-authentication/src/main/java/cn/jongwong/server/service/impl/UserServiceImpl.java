@@ -57,7 +57,8 @@ public class UserServiceImpl implements UserService {
     public Mono<Page<UserRO>> getUsersList(String username, String email, int page, int size) {
 
 
-        return new QueryBuilder<>(r2dbcEntityTemplate, UserVO.class).addLikeCondition("username", username)
+        return new QueryBuilder<>(r2dbcEntityTemplate, UserVO.class)
+                .addLikeCondition("username", username)
                 .addEqualCondition("username", username)
                 .addEqualCondition("email", email)
                 .paginate(page, size)

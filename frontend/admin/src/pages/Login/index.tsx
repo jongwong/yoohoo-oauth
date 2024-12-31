@@ -23,8 +23,6 @@ const Login: React.FC = () => {
 			// 设置名为 "JWT" 的 Cookie，1 小时过期，HTTPS 下发送，SameSite 为 Strict
 			setCookie('access_token', res.data, {
 				maxAge: 3600,
-				secure: true,
-				sameSite: 'Strict',
 			});
 
 			const url = getQueryByName('redirect_uri') || '/home';

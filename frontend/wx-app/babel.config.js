@@ -1,4 +1,5 @@
-const isVite = process.env.TARO_BUILD_TYPE === "vite";
+const isVite = process.argv.includes("--vite");
+
 module.exports = {
   presets: [
     [

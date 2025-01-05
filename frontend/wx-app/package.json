@@ -27,6 +27,7 @@
     "@babel/runtime": "^7.21.5",
     "@nutui/icons-react-taro": "2.0.1",
     "@nutui/nutui-react-taro": "2.7.4",
+    "@tarojs/components": "^4.0.8",
     "@tarojs/helper": "4.0.8",
     "@tarojs/plugin-platform-h5": "4.0.8",
     "@tarojs/plugin-platform-weapp": "4.0.8",
@@ -34,6 +35,7 @@
     "@tarojs/runtime": "4.0.8",
     "@tarojs/shared": "4.0.8",
     "@tarojs/taro": "4.0.8",
+    "classnames": "^2.5.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },

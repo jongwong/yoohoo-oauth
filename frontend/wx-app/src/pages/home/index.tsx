@@ -1,14 +1,9 @@
 import React from "react";
-import "./index.less";
-import Layout from "../../component/Layout";
+import { View } from "@tarojs/components";
+import styles from "./index.module.less";
 
 const Index: React.FC = () => {
-  // const { gotToRegisteredElement, hasInit } = useCheckLogin();
-  //
-  // if (hasInit && gotToRegisteredElement) {
-  //   return <Layout>{gotToRegisteredElement}</Layout>;
-  // }
-  return <Layout></Layout>;
+  return <View className={styles.container}>首页</View>;
 };
 
 export default Index;

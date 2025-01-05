@@ -9,6 +9,7 @@ specifiers:
   '@nutui/nutui-react-taro': 2.7.4
   '@pmmmwh/react-refresh-webpack-plugin': ^0.5.5
   '@tarojs/cli': 4.0.8
+  '@tarojs/components': ^4.0.8
   '@tarojs/helper': 4.0.8
   '@tarojs/plugin-framework-react': 4.0.8
   '@tarojs/plugin-html': 4.0.8
@@ -29,6 +30,7 @@ specifiers:
   '@vitejs/plugin-react': ^4.1.0
   babel-plugin-import: ^1.13.8
   babel-preset-taro: 4.0.8
+  classnames: ^2.5.1
   eslint: ^8.12.0
   eslint-config-taro: 4.0.8
   eslint-plugin-import: ^2.12.0
@@ -45,7 +47,6 @@ specifiers:
   tsconfig-paths-webpack-plugin: ^4.0.1
   typescript: ^5.1.0
   vite: ^4.2.0
-  vite-plugin-commonjs: ^0.10.4
   vite-plugin-imp: ^2.4.0
   webpack: 5.78.0
 
@@ -53,13 +54,15 @@ dependencies:
   '@babel/runtime': 7.26.0
   '@nutui/icons-react-taro': 2.0.1
   '@nutui/nutui-react-taro': 2.7.4_nnrd3gsncyragczmpvfhocinkq
+  '@tarojs/components': 4.0.8_z7sjsydjr5eafpmusdhhlspbwq
   '@tarojs/helper': 4.0.8
   '@tarojs/plugin-platform-h5': 4.0.8_634q77ofzckxu5rmige7uxcnay
   '@tarojs/plugin-platform-weapp': 4.0.8_@tarojs+shared@4.0.8
   '@tarojs/react': 4.0.8_react@18.3.1
   '@tarojs/runtime': 4.0.8
   '@tarojs/shared': 4.0.8
-  '@tarojs/taro': 4.0.8_6e6adelfdogl4w27h5wrlgvdqu
+  '@tarojs/taro': 4.0.8_nh5x4ezo6gkaf5u6bqkwql2t7i
+  classnames: 2.5.1
   react: 18.3.1
   react-dom: 18.3.1_react@18.3.1
 
@@ -96,7 +99,6 @@ devDependencies:
   tsconfig-paths-webpack-plugin: 4.2.0
   typescript: 5.7.2
   vite: 4.5.5_@types+node@18.19.68
-  vite-plugin-commonjs: 0.10.4
   vite-plugin-imp: 2.4.0_vite@4.5.5
   webpack: 5.78.0
 
@@ -2659,7 +2661,7 @@ packages:
       solid-js: '*'
     dependencies:
       '@babel/runtime': 7.26.0
-      '@tarojs/components': 4.0.8_z7sjsydjr5eafpmusdhhlspbwq
+      '@tarojs/components': 4.0.8_5uenvadwffyahesdvzxwrmglhi
       '@tarojs/shared': 4.0.8
       '@tarojs/taro': 4.0.8_nh5x4ezo6gkaf5u6bqkwql2t7i
       classnames: 2.5.1
@@ -2673,6 +2675,40 @@ packages:
       - postcss
       - rollup
       - vue
+      - webpack
+      - webpack-chain
+      - webpack-dev-server
+    dev: false
+
+  /@tarojs/components/4.0.8_5uenvadwffyahesdvzxwrmglhi:
+    resolution: {integrity: sha512-bmC94tY0eMNgChrbANkqlmkWk95BJp9/Nt+ghek+Qt3Vf5G1MOx2sGbLosj/VHA4EiBofGNSC1Pii2JWxvYIJw==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@types/react': '*'
+      vue: '*'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      vue:
+        optional: true
+    dependencies:
+      '@stencil/core': 2.22.3
+      '@tarojs/components-advanced': 4.0.8_rdm2fhdqjmaywo3fnnbctqjj2a
+      '@tarojs/runtime': 4.0.8
+      '@tarojs/shared': 4.0.8
+      '@tarojs/taro': 4.0.8_nh5x4ezo6gkaf5u6bqkwql2t7i
+      '@types/react': 18.3.18
+      classnames: 2.5.1
+      hammerjs: 2.0.8
+      hls.js: 1.5.18
+      resolve-pathname: 3.0.0
+      swiper: 11.1.0
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - '@tarojs/helper'
+      - html-webpack-plugin
+      - postcss
+      - rollup
       - webpack
       - webpack-chain
       - webpack-dev-server
@@ -3045,7 +3081,7 @@ packages:
       '@tarojs/runtime': 4.0.8
       '@tarojs/service': 4.0.8
       '@tarojs/shared': 4.0.8
-      '@tarojs/taro-h5': 4.0.8_dfodntqrodshica7sghiu4t7o4
+      '@tarojs/taro-h5': 4.0.8_twyqcg52a4tbh75redskrewr4a
       babel-plugin-transform-taroapi: 4.0.8_@babel+core@7.26.0
       change-case: 4.1.2
       lodash-es: 4.17.21
@@ -3098,7 +3134,7 @@ packages:
     dependencies:
       '@tarojs/runtime': 4.0.8
       '@tarojs/shared': 4.0.8
-      '@tarojs/taro': 4.0.8_6e6adelfdogl4w27h5wrlgvdqu
+      '@tarojs/taro': 4.0.8_nh5x4ezo6gkaf5u6bqkwql2t7i
       dingtalk-jsapi: 2.15.4
       history: 5.3.0
       mobile-detect: 1.4.5
@@ -3146,8 +3182,10 @@ packages:
     resolution: {integrity: sha512-U7i6S1jZaQ4fbbeUh1zqc+JVPQjTOTb2st+V7S42Oj01xhFa+q5tbHGOJH27Ftg75XHW8H/b2iNAUtl7WL/FCA==}
     engines: {node: '>= 18'}
 
-  /@tarojs/taro-h5/4.0.8_dfodntqrodshica7sghiu4t7o4:
+  /@tarojs/taro-h5/4.0.8_twyqcg52a4tbh75redskrewr4a:
     resolution: {integrity: sha512-mHKc44WhAdFzXeomqalYXd06BrW3bM1WDXMg+lQWMHa0BVrn2Qgb88r4b9TVNoPqENKhU+2bqH+/EnDcko4S7g==}
+    peerDependencies:
+      '@tarojs/components': ~4.0.8
     dependencies:
       '@tarojs/api': 4.0.8_xwc3frbgg7ldjvignuez4prde4
       '@tarojs/components': 4.0.8_z7sjsydjr5eafpmusdhhlspbwq
@@ -3165,17 +3203,7 @@ packages:
       tslib: 2.8.1
       whatwg-fetch: 3.6.20
     transitivePeerDependencies:
-      - '@tarojs/helper'
       - '@tarojs/taro'
-      - '@types/react'
-      - html-webpack-plugin
-      - postcss
-      - react
-      - rollup
-      - vue
-      - webpack
-      - webpack-chain
-      - webpack-dev-server
     dev: false
 
   /@tarojs/taro-loader/4.0.8_webpack@5.78.0:
@@ -3191,47 +3219,6 @@ packages:
       - '@swc/helpers'
       - supports-color
     dev: true
-
-  /@tarojs/taro/4.0.8_6e6adelfdogl4w27h5wrlgvdqu:
-    resolution: {integrity: sha512-jozEMEZNl/VB4POJdtW9yT41fKm+KtJVrxmZNDX23rB+4D3ecbCNPsp6EJu/NOwZ2Y+7eXrZOTZrXmJbBQiFJw==}
-    engines: {node: '>= 18'}
-    peerDependencies:
-      '@tarojs/components': 4.0.8
-      '@tarojs/helper': 4.0.8
-      '@tarojs/shared': 4.0.8
-      '@types/react': ^18
-      html-webpack-plugin: ^5
-      postcss: ^8
-      rollup: ^3
-      vue: ^3
-      webpack: ^5
-      webpack-chain: ^6
-      webpack-dev-server: ^4
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-      html-webpack-plugin:
-        optional: true
-      rollup:
-        optional: true
-      vue:
-        optional: true
-      webpack:
-        optional: true
-      webpack-chain:
-        optional: true
-      webpack-dev-server:
-        optional: true
-    dependencies:
-      '@tarojs/api': 4.0.8_xwc3frbgg7ldjvignuez4prde4
-      '@tarojs/helper': 4.0.8
-      '@tarojs/runtime': 4.0.8
-      '@tarojs/shared': 4.0.8
-      '@types/postcss-url': 10.0.4
-      '@types/react': 18.3.18
-      postcss: 8.4.49
-      webpack: 5.78.0
-    dev: false
 
   /@tarojs/taro/4.0.8_nh5x4ezo6gkaf5u6bqkwql2t7i:
     resolution: {integrity: sha512-jozEMEZNl/VB4POJdtW9yT41fKm+KtJVrxmZNDX23rB+4D3ecbCNPsp6EJu/NOwZ2Y+7eXrZOTZrXmJbBQiFJw==}
@@ -5910,10 +5897,6 @@ packages:
 
   /es-module-lexer/0.9.3:
     resolution: {integrity: sha512-1HQ2M2sPtxwnvOvT1ZClHyQDiggdNjURWpY2we6aMKCQiUVxTmVs2UYPLIrD84sS+kMdUwfBSylbJPwNnBrnHQ==}
-
-  /es-module-lexer/1.6.0:
-    resolution: {integrity: sha512-qqnD1yMU6tk/jnaMosogGySTZP8YtUgAffA9nMN+E/rjxcfRQ6IEk7IiozUjgxKoFHBGjTLnrHB/YC45r/59EQ==}
-    dev: true
 
   /es-object-atoms/1.0.0:
     resolution: {integrity: sha512-MZ4iQ6JwHOBQjahnjwaC1ZtIBH+2ohjamzAO3oaHcXYup7qxjF2fixyH+Q71voWHeOkI2q/TnJao/KfXYIZWbw==}
@@ -11483,23 +11466,6 @@ packages:
   /vary/1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
-    dev: true
-
-  /vite-plugin-commonjs/0.10.4:
-    resolution: {integrity: sha512-eWQuvQKCcx0QYB5e5xfxBNjQKyrjEWZIR9UOkOV6JAgxVhtbZvCOF+FNC2ZijBJ3U3Px04ZMMyyMyFBVWIJ5+g==}
-    dependencies:
-      acorn: 8.14.0
-      magic-string: 0.30.17
-      vite-plugin-dynamic-import: 1.6.0
-    dev: true
-
-  /vite-plugin-dynamic-import/1.6.0:
-    resolution: {integrity: sha512-TM0sz70wfzTIo9YCxVFwS8OA9lNREsh+0vMHGSkWDTZ7bgd1Yjs5RV8EgB634l/91IsXJReg0xtmuQqP0mf+rg==}
-    dependencies:
-      acorn: 8.14.0
-      es-module-lexer: 1.6.0
-      fast-glob: 3.3.2
-      magic-string: 0.30.17
     dev: true
 
   /vite-plugin-imp/2.4.0_vite@4.5.5:

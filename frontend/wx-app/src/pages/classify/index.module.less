@@ -1,0 +1,51 @@
+.container {
+  display: flex;
+  height: 100vh; // 适配屏幕高度
+}
+
+.menu {
+  padding-top: 16px;
+  width: 28%; // 左侧菜单宽度
+  background-color: #f5f5f5;
+  overflow-y: scroll;
+}
+
+.menuItem {
+  padding: 12px 16px;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  color: #333;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+}
+
+.menuItem.active {
+  background-color: #ffffff;
+}
+
+.content {
+  width: 72%; // 右侧内容宽度
+  overflow-y: scroll;
+}
+
+.contentBlock {
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.contentTitle {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.contentDescription {
+  font-size: 14px;
+  color: #666;
+}

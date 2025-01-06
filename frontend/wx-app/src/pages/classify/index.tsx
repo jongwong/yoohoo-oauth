@@ -5,6 +5,7 @@ import ProductCardItem from "./component/ProductCardItem";
 import Taro from "@tarojs/taro";
 import classNames from "classnames";
 import { Space } from "@nutui/nutui-react-taro";
+import { Location, Star } from "@nutui/icons-react-taro";
 
 const state = {
   src: "//img10.360buyimg.com/n2/s240x240_jfs/t1/210890/22/4728/163829/6163a590Eb7c6f4b5/6390526d49791cb9.jpg!q70.jpg",
@@ -68,48 +69,65 @@ const Index: React.FC = () => {
   };
   return (
     <View className={styles.container}>
-      {/* 左侧菜单 */}
-      <ScrollView className={styles.menu} scrollY>
-        {menu.map((item, index) => (
-          <View
-            key={item.id}
-            className={`${styles.menuItem} ${
-              activeIndex === index ? styles.active : ""
-            }`}
-            onClick={() => handleMenuClick(index)}
-          >
-            {item.title}
-          </View>
-        ))}
-      </ScrollView>
+      <View className={styles.header}>
+        {/* 第一行：收藏图标 + 红星商务大厦 */}
+        <View className={styles["store-title"]}>
+          <Star size={14} className={styles.icon} />
+          <View>红星商务大厦{" >"}</View>
+        </View>
 
-      {/* 右侧内容 */}
-      <ScrollView
-        className={styles.content}
-        scrollY
-        scrollWithAnimation
-        scrollIntoView={scrollToId} // 指定滚动目标
-        onScroll={handleContentScroll}
-      >
-        {menu.map((item) => (
-          <View
-            key={item.id}
-            id={`content-${item.id}`} // 绑定对应的内容区域
-            className={styles.contentBlock}
-          >
-            <View className={classNames(styles.contentTitle, "content-title")}>
+        {/* 第二行：定位图标 + 具体地址 */}
+        <View className={styles["store-location"]}>
+          <Location size={12} className={styles.icon} />
+          <View className={styles.text}>福建省福州市台江区万达广场</View>
+        </View>
+      </View>
+      <View className={styles.menuContainer}>
+        {/* 左侧菜单 */}
+        <ScrollView className={styles.menu} scrollY>
+          {menu.map((item, index) => (
+            <View
+              key={item.id}
+              className={`${styles.menuItem} ${
+                activeIndex === index ? styles.active : ""
+              }`}
+              onClick={() => handleMenuClick(index)}
+            >
               {item.title}
             </View>
-            <View className={styles.contentDescription}>
-              <Space direction={"vertical"}>
-                <ProductCardItem {...state} />
-                <ProductCardItem {...state} />
-                <ProductCardItem {...state} />
-              </Space>
+          ))}
+        </ScrollView>
+
+        {/* 右侧内容 */}
+        <ScrollView
+          className={styles.content}
+          scrollY
+          scrollWithAnimation
+          scrollIntoView={scrollToId} // 指定滚动目标
+          onScroll={handleContentScroll}
+        >
+          {menu.map((item) => (
+            <View
+              key={item.id}
+              id={`content-${item.id}`} // 绑定对应的内容区域
+              className={styles.contentBlock}
+            >
+              <View
+                className={classNames(styles.contentTitle, "content-title")}
+              >
+                {item.title}
+              </View>
+              <View className={styles.contentDescription}>
+                <Space direction={"vertical"}>
+                  <ProductCardItem {...state} />
+                  <ProductCardItem {...state} />
+                  <ProductCardItem {...state} />
+                </Space>
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      </View>
     </View>
   );
 };

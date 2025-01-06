@@ -36,12 +36,12 @@ export default defineAppConfig({
         iconPath: "assets/tab-bar/order.png",
         selectedIconPath: "assets/tab-bar/order-active.png",
       },
-      {
-        pagePath: "pages/profile/index", // 正确的路径，指向 pages/profile/index
-        text: "我的",
-        iconPath: "assets/tab-bar/profile.png",
-        selectedIconPath: "assets/tab-bar/profile-active.png",
-      },
+      // {
+      //   pagePath: "pages/profile/index", // 正确的路径，指向 pages/profile/index
+      //   text: "我的",
+      //   iconPath: "assets/tab-bar/profile.png",
+      //   selectedIconPath: "assets/tab-bar/profile-active.png",
+      // },
     ],
   },
 });

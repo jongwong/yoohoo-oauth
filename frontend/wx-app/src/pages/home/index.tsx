@@ -8,12 +8,14 @@ import {
   Swiper,
   SwiperItem,
 } from "@nutui/nutui-react-taro";
+import classNames from "classnames";
+import Taro from "@tarojs/taro";
 
 const Index: React.FC = () => {
   const [current, setCurrent] = useState(0);
   const banners = [
-    "https://storage.360buyimg.com/jdc-article/NutUItaro34.jpg",
-    "https://storage.360buyimg.com/jdc-article/NutUItaro2.jpg",
+    "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/swiper/1.png",
+    "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/swiper/2.png",
   ];
   return (
     <View className={styles.container}>
@@ -27,7 +29,8 @@ const Index: React.FC = () => {
         }}
         height={"40vh"}
         indicatorDots={false}
-        duration={10000}
+        duration={20000}
+        loop
         indicator={
           <View className={styles.indicatorContainer}>
             {banners.map((_, index) => (
@@ -79,12 +82,21 @@ const Index: React.FC = () => {
 
       <View className={styles.pickupBox}>
         {/* 企业入口 */}
-        <View className={styles.deliveryItem}>
+        <View
+          className={classNames(styles.deliveryItem, styles.enterpriseItem)}
+        >
           <View className={styles.deliveryTitle}>企业</View>
           <View className={styles.deliveryDescription}>专享企业定制服务</View>
         </View>
         {/* 单人点餐 */}
-        <View className={styles.pickupItem}>
+        <View
+          className={styles.pickupItem}
+          onClick={() => {
+            Taro.switchTab({
+              url: "/pages/classify/index",
+            });
+          }}
+        >
           <View className={styles.pickupTitle}>个人</View>
           <View className={styles.pickupDescription}>快速轻松下单</View>
         </View>
@@ -92,7 +104,7 @@ const Index: React.FC = () => {
 
       <View className={styles.integralBanner}>
         <Image
-          src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/integral.jpeg" // 确保图片路径正确
+          src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/banner/integral.jpeg" // 确保图片路径正确
           className={styles.bannerImage}
           mode="aspectFill" // 使用 aspectFill 来确保图片填充容器
         />
@@ -103,7 +115,7 @@ const Index: React.FC = () => {
 
       <View className={styles.integralBanner} style={{ marginTop: 0 }}>
         <Image
-          src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/recommend-banner.png" // 确保图片路径正确
+          src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/banner/recommend.png" // 确保图片路径正确
           className={styles.bannerImage}
           mode="aspectFill" // 使用 aspectFill 来确保图片填充容器
         />

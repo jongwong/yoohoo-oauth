@@ -13,10 +13,11 @@ export default defineAppConfig({
     backgroundTextStyle: "light",
     navigationBarTitleText: "WeChat",
     navigationBarTextStyle: "black",
-    backgroundColor: "#fff", // 设置窗口背景色
-    backgroundColorContent: "#fff",
+    backgroundColor: "#f6f6f6", // 设置窗口背景色
+    backgroundColorContent: "#f6f6f6",
   },
   tabBar: {
+    backgroundColor: "#ffffff",
     list: [
       {
         pagePath: "pages/home/index", // 正确的路径，指向 pages/home/index

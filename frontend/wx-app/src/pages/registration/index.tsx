@@ -60,7 +60,7 @@ const Registration: React.FC = () => {
   return (
     <Layout
       style={{
-        backgroundColor: "#73ba9c",
+        backgroundColor: "#f8faf6",
       }}
     >
       <Form

@@ -63,11 +63,19 @@ public class JacksonObjectMapperConfiguration {
         objectMapper.registerModule(javaTimeModule);
 
 
+        // 创建一个模块
+
+
+        // 注册模块
+
+
         SimpleModule module = new SimpleModule();
+
 
         // 显式注册 UUID 的序列化和反序列化处理器
         module.addSerializer(UUID.class, new com.fasterxml.jackson.databind.ser.std.UUIDSerializer());
         module.addDeserializer(UUID.class, new com.fasterxml.jackson.databind.deser.std.UUIDDeserializer());
+
 
         // 注册枚举的自定义序列化器
         module.addSerializer(Enum.class, new JsonSerializer<Enum>() {
@@ -92,8 +100,7 @@ public class JacksonObjectMapperConfiguration {
             }
         });
 
-        objectMapper.registerModule(module);
-
+    
         return objectMapper;
     }
 
@@ -109,5 +116,29 @@ public class JacksonObjectMapperConfiguration {
     public ObjectMapper defaultObjectMapper(Jackson2ObjectMapperBuilder builder) {
         ObjectMapper objectMapper = builder.createXmlMapper(false).build();
         return configureObjectMapper(objectMapper);
+    }
+
+
+    // 字符串数组的自定义序列化器
+    public static class StringArraySerializer extends JsonSerializer<String[]> {
+        @Override
+        public void serialize(String[] value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            if (value != null) {
+                String joined = String.join(",", value);  // 使用逗号连接字符串数组
+                gen.writeString(joined);  // 写入 JSON 字符串
+            }
+        }
+    }
+
+    // 字符串数组的自定义反序列化器
+    public static class StringArrayDeserializer extends JsonDeserializer<String[]> {
+        @Override
+        public String[] deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getText();
+            if (value != null && !value.isEmpty()) {
+                return value.split(",");  // 根据逗号拆分字符串为数组
+            }
+            return new String[0];  // 空数组
+        }
     }
 }

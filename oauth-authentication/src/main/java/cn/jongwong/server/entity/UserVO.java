@@ -1,6 +1,11 @@
 package cn.jongwong.server.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.impl.StringArraySerializer;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -8,7 +13,11 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 @Table("tb_user") // 表名为 tb_user
 public class UserVO implements Serializable {
     private static final long serialVersionUID = -339516038496531943L;
@@ -40,7 +49,8 @@ public class UserVO implements Serializable {
 
     private String nickname;
 
-    private String[] authorities; // e.g., "ROLE_USER,ROLE_ADMIN"
+    @JsonSerialize(using = StringArraySerializer.class)
+    private String authorities; // e.g., "ROLE_USER,ROLE_ADMIN"
 
     private LocalDateTime lastLoginAt;
 
@@ -48,4 +58,14 @@ public class UserVO implements Serializable {
 
     private LocalDateTime updatedAt;
 
+
+    public String[] getAuthoritiesArray() {
+        // 将逗号分隔的字符串转换为数组
+        return authorities != null ? authorities.split(",") : new String[0];
+    }
+
+    public void setAuthoritiesArray(String[] tagsArray) {
+        // 将数组转换为逗号分隔的字符串存储
+        this.authorities = String.join(",", tagsArray);
+    }
 }

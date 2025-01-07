@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
@@ -24,11 +25,10 @@ public class ThirdPartyLoginVO {
 
     private int provider;  // 第三方平台的枚举数字
 
-    private String providerUserId;  // 第三方平台上的用户ID
+    @Column("provider_user_id")
+    private String thirdPartyUserId;  // 第三方平台上的用户ID
 
-    private String accessToken;  // 第三方平台的授权令牌
 
-    private String refreshToken;  // 刷新令牌
 
     private LocalDateTime expiresAt;  // 令牌的过期时间
 

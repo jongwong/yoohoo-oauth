@@ -3,13 +3,20 @@
 }
 .form {
   padding-top: 20%;
-  border-radius: 20px;
+  border-radius: 16px;
 
   height: 100%;
   background: #fff;
+
+  :global(.nut-form-item-body-tips) {
+  }
+
+  :global(.nut-form-item-label-required) {
+    display: none;
+  }
 }
 .input {
-  border-radius: 16px;
+  border-radius: 6px;
   background: #eeeeee;
   padding: 4px 12px !important;
 }

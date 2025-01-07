@@ -12,10 +12,13 @@ import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -28,29 +31,82 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
-    public Mono<UserVO> getUserByIdentifier(String identifier) {
+    public Mono<UserRO> getUserByIdentifier(String identifier) {
+        return userRepository.findByIdentifier(identifier).map((e) -> MapperUtil.mapFields(e, UserRO.class));
+
+    }
+
+    @Override
+    public Mono<UserVO> getUserWithPasswordByIdentifier(String identifier) {
         return userRepository.findByIdentifier(identifier);
     }
 
     @Override
-    public Mono<UserVO> getUserByMobileNumber(String mobile) {
-        return userRepository.findByMobile(mobile);
+    public Mono<UserRO> getUserByMobileNumber(String mobile) {
+        return userRepository.findByMobile(mobile).map((e) -> MapperUtil.mapFields(e, UserRO.class));
     }
 
     @Override
-    public Mono<UserVO> createUser(UserVO userVO) {
-        return userRepository.save(userVO);
+    public Mono<UserVO> getUserWithPasswordByMobileNumber(String mobile) {
+        return null;
     }
 
     @Override
-    public Mono<UserVO> updateUser(UserVO userVO) {
-        return userRepository.save(userVO);  // 如果存在同样的 ID，会执行更新操作
+    public Mono<UserRO> createUser(UserVO userVO) {
+        // 检查未设置的字段并设置默认值
+        if (userVO.getId() == null) {
+            userVO.setId(UUID.randomUUID().toString());
+        }
+        if (userVO.getCreatedAt() == null) {
+            userVO.setCreatedAt(LocalDateTime.now());
+        }
+        if (userVO.getUpdatedAt() == null) {
+            userVO.setUpdatedAt(LocalDateTime.now());
+        }
+        if (userVO.getExpired() == 0) {
+            userVO.setExpired(0); // 默认未过期
+        }
+        if (userVO.getLocked() == 0) {
+            userVO.setLocked(0); // 默认未锁定
+        }
+        if (userVO.getEnabled() == 0) {
+            userVO.setEnabled(1); // 默认启用
+        }
+        if (userVO.getAuthorities() == null) {
+            userVO.setAuthorities("ROLE_USER"); // 默认角色
+        }
+        if (userVO.getName() == null) {
+            userVO.setName(""); // 默认角色
+        }
+
+
+        // 插入到数据库
+        return userRepository.insert(userVO).map(e -> MapperUtil.mapFields(e, UserRO.class));
+    }
+
+    @Override
+    public Mono<UserRO> updateUser(UserVO userVO) {
+        return userRepository.save(userVO).map((e) -> MapperUtil.mapFields(e, UserRO.class));  // 如果存在同样的 ID，会执行更新操作
+    }
+
+    @Override
+    public Mono<UserRO> updateMergeUser(UserVO userVO) {
+        return userRepository.findById(userVO.getId())
+                .flatMap(existingUser -> {
+
+                    MapperUtil.merge(existingUser, userVO);
+                    // 继续增加其他字段的判断
+                    return userRepository.save(existingUser);
+                }).map((e) -> MapperUtil.mapFields(e, UserRO.class));
     }
 
 
     @Override
-    public Mono<Void> deleteUser(Long userId) {
+    public Mono<Void> deleteUser(String userId) {
         return userRepository.deleteById(userId);
     }
 
@@ -95,5 +151,8 @@ public class UserServiceImpl implements UserService {
         return Mono.just("系统用户");  // 如果没有认证的用户，返回一个默认值
     }
 
+    public Mono<UserRO> findById(String id) {
+        return userRepository.findById(id).map((e) -> MapperUtil.mapFields(e, UserRO.class));
+    }
 
 }

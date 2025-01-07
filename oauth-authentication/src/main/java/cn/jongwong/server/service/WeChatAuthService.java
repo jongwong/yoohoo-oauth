@@ -1,9 +1,18 @@
 package cn.jongwong.server.service;
 
 import cn.jongwong.server.config.WeChatConfig;
+import cn.jongwong.server.config.security.jwt.JwtUtil;
+import cn.jongwong.server.controller.RedisService;
+import cn.jongwong.server.entity.ThirdPartyLoginVO;
+import cn.jongwong.server.entity.UserVO;
+import cn.jongwong.server.repository.ThirdPartyLoginRepository;
+import cn.jongwong.server.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
@@ -11,11 +20,17 @@ import reactor.core.publisher.Mono;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class WeChatAuthService {
+
+    private static final String AES_ALGORITHM = "AES/CBC/PKCS5Padding";
+
 
     @Autowired
     private WeChatConfig weChatConfig;
@@ -23,63 +38,118 @@ public class WeChatAuthService {
     @Autowired
     private WebClient webClient;
 
-    // 模拟会话存储，这里使用一个 Map 进行存储，实际可以用 Redis 或数据库存储
-    private final Map<String, String> sessionStore = new java.util.HashMap<>();
+    @Autowired
+    private UserService userService;
 
-    // 登录处理：通过 code 获取 openid 和 session_key
+    @Autowired
+    private UserRepository userRepository; // 用户数据访问层
+
+    @Autowired
+    private RedisService redisService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder; // 密码加密工具
+
+    @Autowired
+    private ThirdPartyLoginRepository thirdPartyLoginRepository; // 第三方登录数据访问层
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    private String getSessionMapKey(String unionId) {
+        return "UnionIdSessionMapKey:" + unionId;
+        //"UnionIdSessionMapKey:" + responseMap.get("union_id")
+    }
+
+    @Transactional
     public Mono<Map<String, String>> wxLogin(String code) {
-        // 打印 appid 和 secret
+        // 构造微信登录 URL
         String url = UriComponentsBuilder.fromHttpUrl("https://api.weixin.qq.com/sns/jscode2session")
-                .queryParam("appid", weChatConfig.getAppid())  // 使用配置中的 appid
-                .queryParam("secret", weChatConfig.getSecret())  // 使用配置中的 secret
-                .queryParam("js_code", code)  // 微信小程序返回的 code
-                .queryParam("grant_type", "authorization_code")  // 固定参数
+                .queryParam("appid", weChatConfig.getAppid())
+                .queryParam("secret", weChatConfig.getSecret())
+                .queryParam("js_code", code)
+                .queryParam("grant_type", "authorization_code")
                 .toUriString();
+
+        Map<String, String> mapRe = new HashMap<>();
+
 
         return webClient.get()
                 .uri(url)
                 .retrieve()
-                .bodyToMono(String.class) // 获取响应体
+                .bodyToMono(String.class)
                 .flatMap(responseBody -> {
+                    // 解析微信接口返回的 JSON 数据
+                    ObjectMapper objectMapper = new ObjectMapper();
                     try {
-                        // 解析 JSON 响应
-                        ObjectMapper objectMapper = new ObjectMapper();
                         Map<String, String> responseMap = objectMapper.readValue(responseBody, Map.class);
-
                         if (responseMap.containsKey("openid") && responseMap.containsKey("session_key")) {
-                            // 提取 openid 和 session_key
-                            String openid = responseMap.get("openid");
-                            String sessionKey = responseMap.get("session_key");
+                            mapRe.put("union_id", responseMap.getOrDefault("unionid", null)); // unionid 可能为空
+                            mapRe.put("session_key", responseMap.getOrDefault("session_key", null));
 
-                            // 存储会话信息到 sessionStore
-                            sessionStore.put(openid, sessionKey);
-
-                            // 返回 openid 和 session_key
-                            return Mono.just(Map.of("openid", openid, "session_key", sessionKey));
+                            return Mono.just(responseMap);
                         } else {
-                            return Mono.error(new RuntimeException("微信接口调用失败，返回: " + responseBody));
+                            return Mono.error(new RuntimeException("微信接口返回数据不完整: " + responseBody));
                         }
-                    } catch (Exception e) {
-                        return Mono.error(new RuntimeException("微信接口返回解析失败", e));
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException("JSON 解析失败: " + e.getMessage()));
                     }
+                }).flatMap(map -> {
+                    // 将 session_key 存入 Redis，并设置过期时间为 3600 秒
+                    return redisService.set(getSessionMapKey(mapRe.get("union_id")), mapRe.get("session_key"), 3600)
+                            .then(Mono.just(mapRe)); // 确保返回 rawP
+                })
+                .flatMap((e) -> {
+                    String unionId = mapRe.get("union_id");
+                    // 查询 ThirdPartyLogin
+                    return thirdPartyLoginRepository.findByThirdPartyUserId(unionId)
+                            .switchIfEmpty(Mono.defer(() -> {
+                                // 如果不存在 ThirdPartyLogin，先创建用户
+                                String createUserId = UUID.randomUUID().toString();
+                                String encodedPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+
+                                UserVO newUser = UserVO.builder()
+                                        .id(createUserId)
+                                        .username(unionId)
+                                        .password(encodedPassword)
+                                        .enabled(1) // 默认启用
+                                        .createdAt(LocalDateTime.now())
+                                        .build();
+
+                                return userService.createUser(newUser)
+                                        .flatMap(user -> {
+                                            // 插入 ThirdPartyLogin
+                                            ThirdPartyLoginVO newParty = ThirdPartyLoginVO.builder()
+                                                    .id(UUID.randomUUID().toString())
+                                                    .createdAt(LocalDateTime.now())
+                                                    .userId(user.getId())
+                                                    .provider(1) // 微信平台 provider 标识
+                                                    .thirdPartyUserId(unionId)
+                                                    .build();
+
+                                            // 插入 ThirdPartyLogin 并返回
+                                            return thirdPartyLoginRepository.insert(newParty);
+                                        });
+                            }))
+                            .flatMap(thirdParty -> {
+                                mapRe.put("user_id", thirdParty.getUserId());
+                                // 根据 user_id 查询用户信息
+                                return userService.findById(thirdParty.getUserId());
+                            })
+                            .map(user -> {
+                                // 根据用户信息生成 Token
+                                var accessToken = jwtUtil.generateToken(user, false);
+                                var refreshToken = jwtUtil.generateToken(user, true);
+                                mapRe.put("access_token", accessToken);
+                                mapRe.put("refresh_token", refreshToken);
+                                return mapRe;
+                            });
                 });
     }
 
-    private static final String AES_ALGORITHM = "AES/CBC/PKCS5Padding";
-
-    // 解密手机号
-    public Mono<String> decryptPhoneNumber(String encryptedData, String iv, String sessionKey) {
-        return Mono.fromCallable(() -> {
-            try {
-                return decryptPhoneNumberInternal(encryptedData, iv, sessionKey);
-            } catch (Exception e) {
-                throw new RuntimeException("解密手机号失败", e);
-            }
-        });
-    }
 
     // 实际解密手机号逻辑
-    private String decryptPhoneNumberInternal(String encryptedData, String iv, String sessionKey) throws Exception {
+    private Map<String, String> decryptPhoneNumberInternal(String encryptedData, String iv, String sessionKey) throws Exception {
+
         byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
         byte[] ivBytes = Base64.getDecoder().decode(iv);
         byte[] sessionKeyBytes = Base64.getDecoder().decode(sessionKey);
@@ -91,24 +161,41 @@ public class WeChatAuthService {
         cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
 
         byte[] decryptedData = cipher.doFinal(encryptedDataBytes);
-        return new String(decryptedData, "UTF-8");
+        var str = new String(decryptedData, "UTF-8");
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // 将 JSON 字符串解析为 Map
+            Map<String, Object> resultMap = objectMapper.readValue(decryptedData, Map.class);
+
+            // 创建一个新的 map
+            var map = new HashMap<String, String>();
+
+            // 从 resultMap 中获取所需字段并放入新的 map
+            map.put("phoneNumber", (String) resultMap.get("phoneNumber"));
+            map.put("purePhoneNumber", (String) resultMap.get("purePhoneNumber"));
+            map.put("countryCode", (String) resultMap.get("countryCode"));
+            return map;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("解析解密数据失败: " + e.getMessage());
+        }
     }
 
     // 解密用户信息并获取手机号
-    public Mono<String> getUserInfoAndPhoneNumber(String openid, String encryptedData, String iv) {
-        return Mono.fromCallable(() -> {
+    public Mono<Map<String, String>> getEncryptedPhoneNumber(String unionId, String encryptedData, String iv) {
+        return redisService.get(getSessionMapKey(unionId)).flatMap((sessionKey) -> {
             try {
-                // 验证是否存在有效的 sessionKey
-                String sessionKey = sessionStore.get(openid);
-                if (sessionKey == null) {
-                    throw new RuntimeException("会话已过期，请重新登录");
-                }
-
-                // 调用解密手机号方法
-                return decryptPhoneNumberInternal(encryptedData, iv, sessionKey);
-            } catch (Exception e) {
-                throw new RuntimeException("解密手机号失败", e);
+                var re = decryptPhoneNumberInternal(encryptedData, iv, sessionKey);
+                return Mono.just(re);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return Mono.error(ex);
             }
-        });
+        }).switchIfEmpty(Mono.defer(() -> {
+            return Mono.error(new Exception("sessionKey过期，或者不合法")); // 或者返回一个默认值
+        }));
+
+
     }
+
+
 }

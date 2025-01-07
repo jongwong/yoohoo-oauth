@@ -1,13 +1,18 @@
 package cn.jongwong.server.dto.user;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class UserRO implements Serializable {
-    private static final long serialVersionUID = -339516038496531943L;
 
     private String id;
 
@@ -30,7 +35,7 @@ public class UserRO implements Serializable {
 
     private String nickname;
 
-    private String[] authorities;
+    private String authorities;
 
     private LocalDateTime lastLoginAt;
 
@@ -38,4 +43,13 @@ public class UserRO implements Serializable {
 
     private LocalDateTime updatedAt;
 
+    public String[] getAuthoritiesArray() {
+        // 将逗号分隔的字符串转换为数组
+        return authorities != null ? authorities.split(",") : new String[0];
+    }
+
+    public void setAuthoritiesArray(String[] tagsArray) {
+        // 将数组转换为逗号分隔的字符串存储
+        this.authorities = String.join(",", tagsArray);
+    }
 }

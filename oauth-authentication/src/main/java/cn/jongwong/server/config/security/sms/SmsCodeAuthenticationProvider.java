@@ -3,14 +3,9 @@ package cn.jongwong.server.config.security.sms;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-
-import java.util.Collection;
-import java.util.Collections;
 
 @Component
 public class SmsCodeAuthenticationProvider implements ReactiveAuthenticationManager {
@@ -29,7 +24,7 @@ public class SmsCodeAuthenticationProvider implements ReactiveAuthenticationMana
             // Perform validation on the phone number and code (e.g., check against a database or cache)
             if (isValidSmsCode(phoneNumber, presentedCode)) {
                 // Create a new authentication token with user details and granted authorities
-                Authentication auth = new SmsCodeAuthenticationToken(phoneNumber, presentedCode, getAuthorities());
+                Authentication auth = new SmsCodeAuthenticationToken(phoneNumber, presentedCode);
 
                 // Store authentication into the security context (ReactiveSecurityContextHolder)
                 return Mono.just(auth)
@@ -56,10 +51,5 @@ public class SmsCodeAuthenticationProvider implements ReactiveAuthenticationMana
     private boolean isValidSmsCode(String phoneNumber, String presentedCode) {
         // Add your SMS code validation logic here (e.g., check against a database or cache)
         return true;  // For demonstration, assume always valid
-    }
-
-    private Collection<? extends GrantedAuthority> getAuthorities() {
-        // Define roles or authorities for the authenticated user
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 }

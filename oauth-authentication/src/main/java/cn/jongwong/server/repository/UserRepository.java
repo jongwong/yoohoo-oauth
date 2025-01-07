@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface UserRepository extends GenericReactiveRepository<UserVO, Long> {
+public interface UserRepository extends GenericReactiveRepository<UserVO, String> {
 
     // 根据标识符查找用户（支持手机号、用户名、邮箱或 ID）
     @Query("SELECT * FROM tb_user WHERE id = :identifier OR username = :identifier OR mobile = :identifier OR email = :identifier")
@@ -16,5 +16,6 @@ public interface UserRepository extends GenericReactiveRepository<UserVO, Long> 
     // 根据手机号查找用户
     Mono<UserVO> findByMobile(String mobile);
 
+    Mono<Boolean> existsByMobile(String mobile); // 检查手机号是否已存在
 
 }

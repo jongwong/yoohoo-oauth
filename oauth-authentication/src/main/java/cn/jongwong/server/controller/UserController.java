@@ -17,19 +17,19 @@ public class UserController {
 
     // 根据标识符查询用户
     @GetMapping("/{identifier}")
-    public Mono<UserVO> getUserByIdentifier(@PathVariable String identifier) {
+    public Mono<UserRO> getUserByIdentifier(@PathVariable String identifier) {
         return userService.getUserByIdentifier(identifier);
     }
 
     // 根据手机号查询用户
     @GetMapping("/mobile/{mobile}")
-    public Mono<UserVO> getUserByMobile(@PathVariable String mobile) {
+    public Mono<UserRO> getUserByMobile(@PathVariable String mobile) {
         return userService.getUserByMobileNumber(mobile);
     }
 
     // 创建用户
     @PostMapping
-    public Mono<UserVO> createUser(@RequestBody UserVO userVO) {
+    public Mono<UserRO> createUser(@RequestBody UserVO userVO) {
         return userService.createUser(userVO);
     }
 
@@ -43,14 +43,14 @@ public class UserController {
 
     // 更新用户
     @PutMapping("/{id}")
-    public Mono<UserVO> updateUser(@PathVariable String id, @RequestBody UserVO userVO) {
+    public Mono<UserRO> updateUser(@PathVariable String id, @RequestBody UserVO userVO) {
         userVO.setId(id);
         return userService.updateUser(userVO);
     }
 
     // 删除用户
     @DeleteMapping("/{id}")
-    public Mono<Void> deleteUser(@PathVariable Long id) {
+    public Mono<Void> deleteUser(@PathVariable String id) {
         return userService.deleteUser(id);
     }
 

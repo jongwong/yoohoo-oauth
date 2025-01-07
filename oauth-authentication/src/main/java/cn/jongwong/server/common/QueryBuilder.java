@@ -176,8 +176,6 @@ public class QueryBuilder<T> {
 
         Table tableAnnotation = entityType.getAnnotation(Table.class);
         if (tableAnnotation != null) {
-            System.out.printf("-------tableAnnotation" +
-                    "-------%s%n", tableAnnotation);
             String name = tableAnnotation.name();
             if (name.isEmpty()) {
                 name = tableAnnotation.value();

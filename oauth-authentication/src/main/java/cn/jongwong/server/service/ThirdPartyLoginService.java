@@ -1,6 +1,7 @@
 package cn.jongwong.server.service;
 
 import cn.jongwong.server.entity.ThirdPartyLoginVO;
+import cn.jongwong.server.entity.UserVO;
 import cn.jongwong.server.repository.ThirdPartyLoginRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,9 @@ public class ThirdPartyLoginService {
 
     @Autowired
     ThirdPartyLoginRepository thirdPartyLoginRepository;
+    @Autowired
+    UserService userService;
+
 
     public Mono<ThirdPartyLoginVO> save(ThirdPartyLoginVO data) {
         return thirdPartyLoginRepository.save(data);
@@ -20,8 +24,12 @@ public class ThirdPartyLoginService {
         return thirdPartyLoginRepository.insert(data);
     }
 
-    public Mono<ThirdPartyLoginVO> findById(String id) {
-        return thirdPartyLoginRepository.findById(id);
+    public Mono<UserVO> findWithPasswordUserByThirdPartyUserId(String thirdPartyUserId) {
+        return thirdPartyLoginRepository.findByThirdPartyUserId(thirdPartyUserId).flatMap(e -> {
+
+            return userService.getUserWithPasswordByIdentifier(e.getUserId());
+
+        });
     }
 
 

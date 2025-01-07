@@ -18,7 +18,7 @@ public class JwtAuthenticationWebFilter extends AuthenticationWebFilter {
     public JwtAuthenticationWebFilter(@Qualifier("customAuthenticationManager") ReactiveAuthenticationManager authenticationManager,
                                       ServerAuthenticationSuccessHandler authenticationSuccessHandler, ServerAuthenticationFailureHandler customAuthenticationFailureHandler) {
         super(authenticationManager);
-        setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/admin/**"));
+        setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/admin/**", "/client/**"));
         setServerAuthenticationConverter(new SmsCodeAuthenticationConverter());
         setAuthenticationSuccessHandler(authenticationSuccessHandler); // 确保执行成功处理器
         setAuthenticationFailureHandler(customAuthenticationFailureHandler);
@@ -30,7 +30,6 @@ public class JwtAuthenticationWebFilter extends AuthenticationWebFilter {
         public Mono<Authentication> convert(ServerWebExchange exchange) {
             // 从请求头中获取 Authorization 字段
             String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-
             if (token == null || !token.startsWith("Bearer ")) {
                 return Mono.empty();
             }

@@ -8,24 +8,38 @@ import reactor.core.publisher.Mono;
 public interface UserService {
 
     // 根据标识符查询用户
-    Mono<UserVO> getUserByIdentifier(String identifier);
+    Mono<UserRO> getUserByIdentifier(String identifier);
+
+    // 根据标识符查询用户
+    Mono<UserVO> getUserWithPasswordByIdentifier(String identifier);
+
 
     // 根据手机号查询用户
-    Mono<UserVO> getUserByMobileNumber(String mobile);
+    Mono<UserRO> getUserByMobileNumber(String mobile);
+
+    // 根据手机号查询用户
+    Mono<UserVO> getUserWithPasswordByMobileNumber(String mobile);
+
 
     // 创建新用户
-    Mono<UserVO> createUser(UserVO userVO);
+    Mono<UserRO> createUser(UserVO userVO);
 
     // 更新用户信息
-    Mono<UserVO> updateUser(UserVO userVO);
+    Mono<UserRO> updateUser(UserVO userVO);
+
+    // 更新用户信息
+    Mono<UserRO> updateMergeUser(UserVO userVO);
 
 
     // 删除用户
-    Mono<Void> deleteUser(Long userId);
+    Mono<Void> deleteUser(String userId);
 
 
     Mono<Page<UserRO>> getUsersList(String username, String email, int page, int size);
 
     Mono<String> getCurrentUserId();
+
+
+    public Mono<UserRO> findById(String id);
 
 }

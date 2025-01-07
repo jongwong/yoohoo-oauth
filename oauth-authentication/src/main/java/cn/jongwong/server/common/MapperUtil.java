@@ -1,6 +1,9 @@
 package cn.jongwong.server.common;
 
 import io.r2dbc.spi.Row;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.data.relational.core.mapping.Column;
 
 import java.lang.reflect.Field;
@@ -104,6 +107,20 @@ public class MapperUtil {
         } catch (Exception e) {
             throw new RuntimeException("Error mapping fields between objects", e);
         }
+    }
+
+    public static <T> void merge(T source, T target) {
+        BeanUtils.copyProperties(source, target, getNullPropertyNames(source));
+    }
+
+    // 获取 source 中为 null 的属性名称
+    private static String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
+        return Arrays.stream(pds)
+                .filter(pd -> src.getPropertyValue(pd.getName()) == null)
+                .map(pd -> pd.getName())
+                .toArray(String[]::new);
     }
 
 }

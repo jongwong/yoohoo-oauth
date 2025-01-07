@@ -1,7 +1,7 @@
 package cn.jongwong.server.config.security.jwt;
 
 import cn.jongwong.server.dto.JwtUser;
-import cn.jongwong.server.entity.UserVO;
+import cn.jongwong.server.dto.user.UserRO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,19 +21,22 @@ public class JwtUtil {
     @Value("${jwt.expiration:3600000}")
     private long expirationTime;  // 默认1小时（3600000毫秒）
 
-    // 生成 JWT
-    public String generateToken(UserVO userVO) {
-        List<String> authoritiesArray = List.of(userVO.getAuthorities());
+    @Value("${jwt.expiration:604800000}")
+    private long refreshExpirationTime;  // 默认7天（604800000毫秒）
 
+
+    // 生成 JWT
+    public String generateToken(UserRO user, boolean isFresh) {
+        List<String> authoritiesArray = List.of(user.getAuthoritiesArray());
+
+        var time = isFresh ? refreshExpirationTime : expirationTime;
         return Jwts.builder()
-                .setSubject(userVO.getId())
-                .claim("id", userVO.getId()) // 自定义 claim，存储用户 ID
-                .claim("username", userVO.getUsername()) // 自定义 claim，存储用户名
-                .claim("name", userVO.getName())
-                .claim("nickname", userVO.getNickname())
+                .setSubject(user.getId())
+                .claim("id", user.getId()) // 自定义 claim，存储用户 ID
+                .claim("username", user.getUsername()) // 自定义 claim，存储用户名
                 .claim("authorities", authoritiesArray)  // 使用 String[] 类型
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .setExpiration(new Date(System.currentTimeMillis() + time))
                 .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
     }

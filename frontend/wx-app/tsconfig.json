@@ -21,7 +21,17 @@
     "typeRoots": [
       "node_modules/@types"
     ],
-    "types": ["miniprogram-api-typings"]
+    "types": [
+      "miniprogram-api-typings"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "src/*": [
+        "./src/*"
+      ]
+    }
   },
   "include": ["./src", "./types"],
   "compileOnSave": false

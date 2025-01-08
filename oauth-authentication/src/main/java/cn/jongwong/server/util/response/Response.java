@@ -59,7 +59,16 @@ public class Response<T> implements Serializable {
 
 
     // 工厂方法，带数据
+
+    /**
+     * @deprecated
+     */
     public static <T> Response<T> success(T data) {
+        return new Response<>(ResponseErrorCodeEnum.SUCCESS.getCode(), "Success", data);
+    }
+
+    // 工厂方法，带数据
+    public static <T> Response<T> ok(T data) {
         return new Response<>(ResponseErrorCodeEnum.SUCCESS.getCode(), "Success", data);
     }
 

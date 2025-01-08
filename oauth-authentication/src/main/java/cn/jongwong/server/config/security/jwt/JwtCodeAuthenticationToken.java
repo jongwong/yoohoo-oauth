@@ -1,5 +1,6 @@
 package cn.jongwong.server.config.security.jwt;
 
+import cn.jongwong.server.dto.user.CurrentAuthenticationUserRO;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +15,8 @@ public class JwtCodeAuthenticationToken extends UsernamePasswordAuthenticationTo
 
     private String token;
 
+
+    private CurrentAuthenticationUserRO currentUser;
 
     public JwtCodeAuthenticationToken(Object principal, Object credentials) {
         super(principal, credentials);

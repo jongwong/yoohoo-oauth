@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Form, Input } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { setCookie } from '@/utils/cookie';
@@ -8,8 +8,9 @@ import { getQueryByName } from '@/utils/url';
 
 const Login: React.FC = () => {
 	const [loading, setLoading] = useState(false);
-
+	const [lastLoginUsername, setLastLoginUsername] = useState<string>();
 	const navigate = useNavigate();
+
 	const onFinish = async (values: { username: string; password: string; remember: boolean }) => {
 		setLoading(true);
 
@@ -24,6 +25,9 @@ const Login: React.FC = () => {
 			setCookie('access_token', res.data, {
 				maxAge: 3600,
 			});
+			if (process.env.NODE_ENV === 'development') {
+				localStorage.setItem('LAST_LOGIN_USERNAME', values.username);
+			}
 
 			const url = getQueryByName('redirect_uri') || '/home';
 			// 跳转到主页面 (可用 react-router-dom)
@@ -46,6 +50,13 @@ const Login: React.FC = () => {
 		}); // 假设返回值中包含 token
 	};
 
+	useEffect(() => {
+		const savedUsername = localStorage.getItem('LAST_LOGIN_USERNAME');
+		if (savedUsername) {
+			setLastLoginUsername(savedUsername); // 自动填充用户名
+		}
+	}, []);
+
 	return (
 		<div className="login-container">
 			<div
@@ -60,7 +71,11 @@ const Login: React.FC = () => {
 					name="login_form"
 					className="login-form"
 					onFinish={onFinish}>
-					<Form.Item name="username" rules={[{ required: true, message: '请输入用户名!' }]}>
+					<Form.Item
+						name="username"
+						key={lastLoginUsername}
+						initialValue={lastLoginUsername}
+						rules={[{ required: true, message: '请输入用户名!' }]}>
 						<Input prefix={<UserOutlined />} placeholder="用户名" size="large" />
 					</Form.Item>
 

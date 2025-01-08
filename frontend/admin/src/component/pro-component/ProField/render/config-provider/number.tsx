@@ -13,10 +13,11 @@ export const DefaultNumberValueTypeEnum = {
 	Money: 'money',
 	Percentage: 'percentage',
 	Integer: 'integer',
+	Number: 'number',
 	PositiveInteger: 'positive-integer',
 };
 
-declare const _valueType: ['money', 'percentage', 'integer', 'positive-integer'];
+declare const _valueType: ['money', 'percentage', 'integer', 'positive-integer', 'number'];
 export type DefaultNumberValueType = ElementOf<typeof _valueType>;
 
 function formatNumberToThousands(value: number | string): string {
@@ -79,11 +80,13 @@ const defaultNumberValueTypeMap = {
 			return (
 				<InputNumber
 					precision={0}
+					className={'w-1-1'}
 					placeholder={getDefaultPlaceHolder(opts.field, PlaceHolderType.Input)}
 				/>
 			);
 		},
 	},
+
 	[DefaultNumberValueTypeEnum.PositiveInteger]: {
 		render: (t: number) => {
 			return isNumber(t) ? formatNumberToThousands(t) : t;
@@ -91,8 +94,22 @@ const defaultNumberValueTypeMap = {
 		renderFormItem: (_t: any, _r: any, opts: any) => {
 			return (
 				<InputNumber
+					className={'w-1-1'}
 					precision={0}
 					min={1}
+					placeholder={getDefaultPlaceHolder(opts.field, PlaceHolderType.Input)}
+				/>
+			);
+		},
+	},
+	[DefaultNumberValueTypeEnum.Number]: {
+		render: (t: number) => {
+			return isNumber(t) ? formatNumberToThousands(t) : t;
+		},
+		renderFormItem: (_t: any, _r: any, opts: any) => {
+			return (
+				<InputNumber
+					className={'w-1-1'}
 					placeholder={getDefaultPlaceHolder(opts.field, PlaceHolderType.Input)}
 				/>
 			);

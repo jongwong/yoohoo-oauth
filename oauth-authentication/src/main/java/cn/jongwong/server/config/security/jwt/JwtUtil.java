@@ -32,7 +32,8 @@ public class JwtUtil {
         var time = isFresh ? refreshExpirationTime : expirationTime;
         return Jwts.builder()
                 .setSubject(user.getId())
-                .claim("id", user.getId()) // 自定义 claim，存储用户 ID
+                .claim("id", user.getId())
+                .claim("name", user.getName()) // 自定义 claim，存储用户 ID
                 .claim("username", user.getUsername()) // 自定义 claim，存储用户名
                 .claim("authorities", authoritiesArray)  // 使用 String[] 类型
                 .setIssuedAt(new Date())

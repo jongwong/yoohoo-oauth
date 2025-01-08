@@ -1,6 +1,7 @@
 package cn.jongwong.server.config.security.jwt;
 
 import cn.jongwong.server.dto.JwtUser;
+import cn.jongwong.server.dto.user.CurrentAuthenticationUserRO;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -31,6 +32,10 @@ public class JwtCodeAuthenticationProvider implements ReactiveAuthenticationMana
 
                 // Create a new SmsCodeAuthenticationToken with the user, authorities, and token
                 JwtCodeAuthenticationToken authenticationResult = new JwtCodeAuthenticationToken(authenticationToken.getToken(), null, user.getGrantedAuthorities());
+
+                var u = CurrentAuthenticationUserRO.builder().id(user.getId()).name(user.getName()).build();
+                authenticationResult.setCurrentUser(u);
+
                 // Return a Mono of the new SmsCodeAuthenticationToken
                 return Mono.just(authenticationResult);
             } catch (JwtException | IllegalArgumentException e) {

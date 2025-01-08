@@ -67,9 +67,9 @@ public class DistributionPointController {
 
     // 删除配送点
     @DeleteMapping("/{id}")
+    // 控制器层
     public Mono<Response<Void>> delete(@PathVariable String id) {
         return distributionPointService.delete(id)
-                .map(Response::ok)
-                .defaultIfEmpty(Response.notFound());
+                .then(Mono.just(Response.success()));  // 删除成功后返回一个空的响应
     }
 }

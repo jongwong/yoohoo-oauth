@@ -116,10 +116,14 @@ const DistributionPointDetail: React.FC = () => {
 			message.success('保存成功');
 			if (!distributionPointId) {
 				navigator(transformUrlByRoutePath(PAGES_DISTRIBUTION_POINT_DETAIL_URL, res.data.id));
-			}
-			setEditable(false);
+				fetchDetailData();
+				setEditable(false);
+				return;
+			} else {
+				setEditable(false);
 
-			fetchDetailData();
+				fetchDetailData();
+			}
 		}
 	};
 	// Render extra buttons

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +22,10 @@ public class DistributionPointService {
 
     @Autowired
     private DistributionPointRepository distributionPointRepository;
+
+
+    @Autowired
+    R2dbcEntityTemplate r2dbcEntityTemplate;
 
     // 删除配送点
     public Mono<Void> delete(String id) {
@@ -32,8 +37,6 @@ public class DistributionPointService {
         return distributionPointRepository.findById(id);
     }
 
-    @Autowired
-    R2dbcEntityTemplate r2dbcEntityTemplate;
 
 
     // 更新配送点
@@ -66,8 +69,8 @@ public class DistributionPointService {
 
     // 新增配送点
     public Mono<DistributionPointVO> create(@AutoCreatedField DistributionPointVO distributionPointVO) {
-
-        return distributionPointRepository.save(distributionPointVO);
+        distributionPointVO.setId(UUID.randomUUID().toString());
+        return distributionPointRepository.insert(distributionPointVO);
     }
 
 

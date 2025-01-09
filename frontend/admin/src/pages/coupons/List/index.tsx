@@ -1,18 +1,21 @@
 import React, { useRef, useState } from 'react';
-import ProTable, {
+import { Link } from 'react-router-dom';
+
+import { ContentLayout } from '@yoo/component';
+import type { ProTableSearchFieldType } from '@yoo/pro-component';
+import {
+	EDefaultValueType,
+	ProTable,
 	ProTableActionType,
 	ProTableColumnType,
-} from '@/component/pro-component/ProTable';
-import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
+} from '@yoo/pro-component';
 import { Button, Card, message, Popconfirm, Space } from 'antd';
-import ContentLayout from '@/component/ContentLayout';
 import dayjs from 'dayjs';
-import { Link } from 'react-router-dom';
+
 import { CouponsStatusMap, CouponsTypeMap, ECouponsStatus } from '@/constant/coupons';
-import { EDefaultValueType } from '@yoohoo/pro-component';
-import { transformUrlByRoutePath } from '@/utils/url';
 import { PAGES_COUPONS_CREATE_URL, PAGES_COUPONS_DETAIL_URL } from '@/pages/coupons/pages';
 import { deleteCouponsById, getCouponsPage } from '@/pages/coupons/service';
+import { transformUrlByRoutePath } from '@/utils/url';
 
 const UserList: React.FC = () => {
 	const fetchList = async (params: any) => {
@@ -21,7 +24,7 @@ const UserList: React.FC = () => {
 	const [loading, setLoading] = useState(false);
 
 	const actionRef = useRef<ProTableActionType>();
-	const fields: QueryFormFieldType[] = [
+	const fields: ProTableSearchFieldType[] = [
 		{
 			label: '名称',
 			name: 'name',

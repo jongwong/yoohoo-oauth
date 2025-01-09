@@ -9,6 +9,8 @@ import distributionPointRoutes from '@/pages/distribution-point/routes';
 
 import productCategoryRoutes from '@/pages/product-category/routes';
 
+import purchaseGroupRoutes from '@/pages/purchase-group/routes';
+
 const Home = React.lazy(() => import('@/pages/Home'));
 
 const routes: RouteConfig[] = [
@@ -23,6 +25,7 @@ const routes: RouteConfig[] = [
 	...productRoutes,
 	...distributionPointRoutes,
 	...productCategoryRoutes,
+	...purchaseGroupRoutes,
 ];
 
 export default routes;

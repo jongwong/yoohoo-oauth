@@ -7,15 +7,15 @@ import defaultInputValueTypeMap, { DefaultInputValueTypeEnum } from './input';
 import type { DefaultTimeValueType } from './time';
 import defaultTimeValueTypeMap, { DefaultTimeValueTypeEnum } from './time';
 
-import { BaseFormItemOptionType } from '@/component/pro-component/ProField/types';
+import { BaseFormItemOptionType } from '../../../ProField/types';
 import defaultEnumValueTypeMap, {
 	DefaultEnumValueType,
 	DefaultEnumValueTypeEnum,
-} from '@/component/pro-component/ProField/render/config-provider/enum';
+} from '../../../ProField/render/config-provider/enum';
 import defaultNumberValueTypeMap, {
 	DefaultNumberValueType,
 	DefaultNumberValueTypeEnum,
-} from '@/component/pro-component/ProField/render/config-provider/number';
+} from '../../../ProField/render/config-provider/number';
 
 export type UppcaseKey<Str extends string> =
 	Str extends `${infer First}-${infer Second}${infer Other}`

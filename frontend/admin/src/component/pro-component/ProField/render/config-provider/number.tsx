@@ -2,11 +2,8 @@ import React from 'react';
 
 import { InputNumber } from 'antd';
 
-import {
-	getDefaultPlaceHolder,
-	PlaceHolderType,
-} from '@/component/pro-component/ProField/render/formatRenderUtil';
-import { ElementOf } from '@/component/pro-component/types';
+import { getDefaultPlaceHolder, PlaceHolderType } from '../../render/formatRenderUtil';
+import { ElementOf } from '../../../types';
 import { isNumber } from 'lodash';
 
 export const DefaultNumberValueTypeEnum = {

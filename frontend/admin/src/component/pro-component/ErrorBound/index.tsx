@@ -1,7 +1,7 @@
 import React, { PureComponent, useEffect, useRef } from 'react';
 import { WarningOutlined } from '@ant-design/icons';
 import { has } from 'lodash';
-import { throwEmitError } from '@/component/pro-component/utils/not-export';
+import { throwEmitError } from '../utils/not-export';
 
 class ErrorBound extends PureComponent {
 	constructor(props: any) {

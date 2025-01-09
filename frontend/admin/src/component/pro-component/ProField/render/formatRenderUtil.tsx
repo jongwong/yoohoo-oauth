@@ -9,8 +9,8 @@ import {
 	throwEmitError,
 	validateElement,
 } from '../../utils/not-export';
-import { EMPTY_TEXT } from '@/component/pro-component/constant';
-import { DefaultErrorContent } from '@/component/pro-component/ErrorBound';
+import { EMPTY_TEXT } from '../../constant';
+import { DefaultErrorContent } from '../../ErrorBound';
 
 export const getLabelOrTitle = (op = {}) => {
 	let val: any = '';

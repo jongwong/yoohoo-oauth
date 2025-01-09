@@ -1,5 +1,6 @@
-import { BaseFormProFieldFuncType } from '@/component/pro-component/types';
 import { DependencyList } from 'react';
+
+import { BaseFormProFieldFuncType } from '../../types';
 
 export type ProFormItemsFieldType<T = any> = BaseFormProFieldFuncType<T>;
 

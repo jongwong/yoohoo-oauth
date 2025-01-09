@@ -6,14 +6,11 @@ import dayjs from 'dayjs';
 import { isNumber } from 'lodash';
 
 import { DatePicker, DatePickerProps } from 'antd';
-import {
-	getDefaultPlaceHolder,
-	PlaceHolderType,
-} from '@/component/pro-component/ProField/render/formatRenderUtil';
-import ProxyWrapped from '@/component/pro-component/ProxyWrapped';
-import { CommonProConfigType } from '@/component/pro-component/ProField/render';
-import { EMPTY_TEXT } from '@/component/pro-component/constant';
-import { ElementOf } from '@/component/pro-component/types';
+import { getDefaultPlaceHolder, PlaceHolderType } from '../../render/formatRenderUtil';
+import ProxyWrapped from '../../../ProxyWrapped';
+import { CommonProConfigType } from '../../../ProField/render';
+import { EMPTY_TEXT } from '../../../constant';
+import { ElementOf } from '../../../types';
 
 const { RangePicker } = DatePicker;
 

@@ -3,14 +3,11 @@
  * */
 
 import React from 'react';
-import {
-	getDefaultPlaceHolder,
-	PlaceHolderType,
-} from '@/component/pro-component/ProField/render/formatRenderUtil';
-import { ElementOf } from '@/component/pro-component/types';
+import { getDefaultPlaceHolder, PlaceHolderType } from '../../render/formatRenderUtil';
+import { ElementOf } from '../../../types';
 import { Select, Tag } from 'antd';
-import { findValueEnum, toValEnumList } from '@/component/pro-component/utils/not-export';
-import StatusText from '@/component/StatusText';
+import { findValueEnum, toValEnumList } from '../../../utils/not-export';
+import { StatusText } from '@yoo/component';
 
 export const DefaultEnumValueTypeEnum = {
 	EnumStatusTag: 'enum-status-tag',

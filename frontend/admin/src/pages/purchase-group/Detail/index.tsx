@@ -7,21 +7,21 @@ import { Button, Card, Form, message, Space } from 'antd';
 
 import ContentLayout from '@yoo/component';
 import { GlobalEnableTypeMap } from '@/constant/common';
-import { CategoryLevelMap } from '@/constant/product_category';
-import { PAGES_PRODUCT_CATEGORY_DETAIL_URL } from '@/pages/product-category/pages';
+
+import { PAGES_PURCHASE_GROUP_DETAIL_URL } from '../pages'; // 相对路径
 import {
-	createProductCategory,
-	getProductCategoryById,
-	updateProductCategory,
-	updateProductCategoryDisable,
-	updateProductCategoryEnable,
-} from '@/pages/product-category/service';
-import { transformUrlByRoutePath } from '@/utils/url';
+	createPurchaseGroup,
+	getPurchaseGroupById,
+	updatePurchaseGroup,
+	updatePurchaseGroupDisable,
+	updatePurchaseGroupEnable,
+} from '../service';
+import { PurchaseGroupStatusMap } from '@/constant/purchase-group'; // 相对路径
 
 const Detail: React.FC = () => {
 	const params = useParams();
-	const { categoryId } = params as { categoryId: string };
-	const [form] = Form.useForm();
+	const { groupId } = params as { groupId: string };
+	const [form] = Form.useForm<any>();
 	const forceUpdate = useUpdate();
 	const [detailData, setDetailData] = useState<Record<string, any>>({});
 	const [loading, setLoading] = useState(false);
@@ -29,74 +29,102 @@ const Detail: React.FC = () => {
 
 	const navigator = useNavigate();
 
-	// Fetch category details
+	// 获取团购详情
 	const fetchDetailData = async () => {
-		if (!categoryId) {
+		if (!groupId) {
 			setEditable(true);
 			return;
 		}
 		setLoading(true);
 
-		const res = await getProductCategoryById(categoryId).finally(() => {
+		const res = await getPurchaseGroupById(groupId).finally(() => {
 			setLoading(false);
 		});
 
-		form.setFieldsValue({
-			...res?.data,
-		});
+		form.setFieldsValue({ ...res?.data });
 		setDetailData({ ...res?.data });
 		setEditable(false);
 		forceUpdate();
 		return res;
 	};
 
+	// fields 配置
 	const fields: ProFormItemsFieldType[] = [
 		{
-			label: '类别名称',
+			label: '团购名称',
 			name: 'name',
-			placeholder: '请输入类别名称',
+			placeholder: '请输入团购名称',
 			formItemProps: {
 				rules: [{ required: true }],
 			},
 		},
 		{
-			label: '类别代码',
-			name: 'code',
-			placeholder: '请输入类别代码',
-			formItemProps: {
-				rules: [{ required: true }],
-			},
-		},
-		{
-			label: '类别描述',
+			label: '团购描述',
 			name: 'description',
 			valueType: EDefaultValueType.Textarea,
-			placeholder: '请输入类别描述',
+			placeholder: '请输入团购描述',
 		},
 		{
-			label: '类别层级',
-			name: 'level',
-			valueEnum: CategoryLevelMap,
-			placeholder: '请选择类别层级',
+			label: '最大参与人数',
+			name: 'max_participants',
+			placeholder: '请输入最大参与人数',
 			formItemProps: {
-				rules: [{ required: true }],
+				rules: [{ required: true, type: 'number', min: 1 }],
 			},
+			valueType: EDefaultValueType.PositiveInteger,
+		},
+		{
+			label: '当前参与人数',
+			name: 'current_participants',
+			valueType: EDefaultValueType.PositiveInteger,
+			visible: !editable,
+		},
+		{
+			label: '是否启用',
+			name: 'enable',
+			valueEnum: GlobalEnableTypeMap, // 使用已有的启用/停用状态
+
+			visible: !editable,
+		},
+		{
+			label: '开始配送时间',
+			name: 'time_delivery_start',
+			valueType: EDefaultValueType.DateTime,
+			placeholder: '请选择开始配送时间',
+		},
+		{
+			label: '配送截止时间',
+			name: 'time_delivery_end',
+			valueType: EDefaultValueType.DateTime,
+			placeholder: '请选择配送截止时间',
+		},
+		{
+			label: '团购开始时间',
+			name: 'time_start',
+			valueType: EDefaultValueType.DateTime,
+			placeholder: '请选择团购开始时间',
+		},
+		{
+			label: '团购结束时间',
+			name: 'time_end',
+			valueType: EDefaultValueType.DateTime,
+			placeholder: '请选择团购结束时间',
 		},
 	];
 
-	// Handle save category data
+	// 保存团购数据
 	const saveHandle = async () => {
 		await form.validateFields();
 		const val = form.getFieldsValue(true);
 		setLoading(true);
-		const fn = categoryId ? updateProductCategory(categoryId, val) : createProductCategory(val);
+		const fn = groupId ? updatePurchaseGroup(groupId, val) : createPurchaseGroup(val);
 		const res = await fn.finally(() => {
 			setLoading(false);
 		});
 		if (res.success) {
 			message.success('保存成功');
-			if (!categoryId) {
-				navigator(transformUrlByRoutePath(PAGES_PRODUCT_CATEGORY_DETAIL_URL, res.data.id));
+			if (!groupId) {
+				navigator(PAGES_PURCHASE_GROUP_DETAIL_URL.replace(':groupId', res.data.id));
 				setEditable(false);
 				return;
 			} else {
@@ -106,7 +134,6 @@ const Detail: React.FC = () => {
 		}
 	};
 
-	// Render extra buttons
 	const renderExtra = () => {
 		const editEl = !editable ? (
 			<>
@@ -114,7 +141,7 @@ const Detail: React.FC = () => {
 					<Button
 						onClick={async () => {
 							setLoading(true);
-							const res = await updateProductCategoryEnable(categoryId).finally(() => {
+							const res = await updatePurchaseGroupEnable(groupId).finally(() => {
 								setLoading(false);
 							});
 							if (res.success) {
@@ -129,7 +156,7 @@ const Detail: React.FC = () => {
 						danger
 						onClick={async () => {
 							setLoading(true);
-							const res = await updateProductCategoryDisable(categoryId).finally(() => {
+							const res = await updatePurchaseGroupDisable(groupId).finally(() => {
 								setLoading(false);
 							});
 							if (res.success) {
@@ -163,10 +190,14 @@ const Detail: React.FC = () => {
 			loading={loading}
 			header={{
 				extra: renderExtra(),
-				info: categoryId
+				info: groupId
 					? {
 							data: detailData,
 							leftItems: [
+								{
+									label: '团购名称',
+									name: 'name',
+								},
 								{ label: '创建人', name: 'created_by_name' },
 								{
 									label: '创建时间',
@@ -187,13 +218,18 @@ const Detail: React.FC = () => {
 									valueEnum: GlobalEnableTypeMap,
 									valueType: EDefaultValueType.EnumStatusText,
 								},
+								{
+									label: '状态',
+									name: 'status',
+									valueEnum: PurchaseGroupStatusMap, // 映射状态
+								},
 							],
 					  }
 					: undefined,
 			}}>
 			<Form form={form} labelCol={{ span: 4 }} wrapperCol={{ span: 7 }}>
 				<Card>
-					<ProForm.Items editable={editable} fields={fields} />
+					<ProForm.Items fields={fields} editable={editable} />
 				</Card>
 			</Form>
 		</ContentLayout>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import http from '@/utils/http';
 import { useNavigate, useParams } from 'react-router-dom';
-import ContentLayout from '@/component/ContentLayout';
-import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoohoo/pro-component';
+import ContentLayout from '@yoo/component';
+import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
 import {
 	EProductArchivedStatus,
 	ProductArchivedStatusMap,

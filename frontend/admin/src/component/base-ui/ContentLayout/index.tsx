@@ -9,23 +9,23 @@ import routes from '@/routes';
 import './index.less';
 
 import styles from './index.module.less';
-import HeaderInfo, { HeaderInfoProps } from '@/component/HeaderInfo';
+import HeaderInfo, { HeaderInfoProps } from '../HeaderInfo';
 
 const { Content, Footer } = Layout;
 
-export type LayoutHeaderProps = {
+export type ContentLayoutHeaderProps = {
 	footer?: ReactNode;
 	extra?: ReactNode;
 	tabsProps?: TabsProps;
 	info?: Omit<HeaderInfoProps, 'extra'>;
 };
-type LayoutProps = {
+export type ContentLayoutProps = {
 	footer?: React.ReactNode;
 	children?: React.ReactNode;
 	loading?: boolean;
-	header?: LayoutHeaderProps;
+	header?: ContentLayoutHeaderProps;
 };
-const ContentLayout: React.FC<LayoutProps> = props => {
+const ContentLayout: React.FC<ContentLayoutProps> = props => {
 	const { footer, header, loading, children, ...rest } = props;
 	const headerFooter = header?.footer;
 	const tabsProps = header?.tabsProps;

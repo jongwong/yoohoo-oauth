@@ -3,7 +3,7 @@ import { Badge, BadgeProps, theme } from 'antd';
 import { get, isNil } from 'lodash';
 
 const { useToken } = theme;
-type StatusTextProps = BadgeProps & {
+export type StatusTextProps = BadgeProps & {
 	dot?: boolean;
 };
 const StatusText: React.FC<StatusTextProps> = props => {

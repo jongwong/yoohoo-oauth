@@ -1,22 +1,25 @@
 import React, { useRef, useState } from 'react';
-import http from '@/utils/http';
-import ProTable, {
+import { Link } from 'react-router-dom';
+
+import { ContentLayout } from '@yoo/component';
+import type { ProTableSearchFieldType } from '@yoo/pro-component';
+import {
+	EDefaultValueType,
+	ProTable,
 	ProTableActionType,
 	ProTableColumnType,
-} from '@/component/pro-component/ProTable';
-import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
+} from '@yoo/pro-component';
 import { Button, Card, message, Popconfirm, Space } from 'antd';
-import ContentLayout from '@/component/ContentLayout';
+
 import {
 	EProductArchivedStatus,
 	ProductArchivedStatusMap,
 	ProductListedStatusMap,
 } from '@/constant/product';
 import { PAGES_PRODUCT_CREATE_URL, PAGES_PRODUCT_DETAIL_URL } from '@/pages/product/pages';
-import { Link } from 'react-router-dom';
-import { EDefaultValueType } from '@yoohoo/pro-component';
-import { transformUrlByRoutePath } from '@/utils/url';
 import { deleteProductById } from '@/pages/product/service';
+import http from '@/utils/http';
+import { transformUrlByRoutePath } from '@/utils/url';
 
 const UserList: React.FC = () => {
 	const actionRef = useRef<ProTableActionType>();
@@ -28,7 +31,7 @@ const UserList: React.FC = () => {
 		}); // 假设返回值中包含 token
 	};
 
-	const fields: QueryFormFieldType[] = [
+	const fields: ProTableSearchFieldType[] = [
 		{
 			label: '商品名称',
 			name: 'name',

@@ -6,12 +6,27 @@
 		"lib": ["es6", "dom"],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@yoohoo/pro-component": [
+			"@yoo/pro-component": [
 				"./src/component/pro-component/index.ts"
+			],
+			"@yoo/component": [
+				"./src/component/base-ui/index.ts"
 			],
 			"src/*": ["./src/*"],
 			"@public/*": [
 				"./public/*"
+			],
+			"@/component/base-ui": [
+				"./src/index.ts"
+			],
+			"@/component/pro-component": [
+				"./src/index.ts"
+			],
+			"src/component/base-ui": [
+				"./src/index.ts"
+			],
+			"src/component/pro-component": [
+				"./src/index.ts"
 			]
 		},
 		"sourceMap": true,

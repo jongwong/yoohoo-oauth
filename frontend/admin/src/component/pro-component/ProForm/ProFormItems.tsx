@@ -1,8 +1,11 @@
 import React from 'react';
-import { ProFormItemsProps } from '@/component/pro-component/ProForm/types';
-import ProField from '@/component/pro-component/ProField';
-import './index.less';
+
 import { isFunction } from 'lodash';
+
+import ProField from '../ProField';
+import { ProFormItemsProps } from '@yoo/pro-component';
+
+import './index.less';
 
 const ProFormItems: React.FC<ProFormItemsProps> = props => {
 	const { fields = [], editable = false, ...rest } = props;

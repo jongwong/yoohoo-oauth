@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Col, Form, FormInstance, Row, Space } from 'antd';
-import { BaseFormProFieldFuncType } from '@/component/pro-component/types';
-import ProField from '@/component/pro-component/ProField';
+import { BaseFormProFieldFuncType } from '../../pro-component/types';
+import ProField from '../ProField';
 import { isFunction } from 'lodash';
 
 export type QueryFormFieldType<T = any> = BaseFormProFieldFuncType<T>;

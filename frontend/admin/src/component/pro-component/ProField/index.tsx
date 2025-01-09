@@ -1,9 +1,9 @@
 import React from 'react';
-import { BaseFormProFieldType } from '@/component/pro-component/types';
+import { BaseFormProFieldType } from '../types';
 import { get, isNumber } from 'lodash';
 import { Form, FormInstance } from 'antd';
-import { getKeyList } from '@/component/pro-component/utils/not-export';
-import { formatRenderFun } from '@/component/pro-component/ProField/render/formatRenderUtil';
+import { getKeyList } from '../utils/not-export';
+import { formatRenderFun } from '../ProField/render/formatRenderUtil';
 
 type ProFieldProps<T = any> = {
 	editable: boolean;

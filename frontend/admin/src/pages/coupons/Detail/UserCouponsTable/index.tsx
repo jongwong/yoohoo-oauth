@@ -1,6 +1,6 @@
 import React from 'react';
-import { EDefaultValueType, ProTable } from '@yoohoo/pro-component';
-import { ProTableColumnType } from '@/component/pro-component/ProTable';
+import type { ProTableColumnType } from '@yoo/pro-component';
+import { EDefaultValueType, ProTable } from '@yoo/pro-component';
 import http from '@/utils/http';
 import { Card } from 'antd';
 

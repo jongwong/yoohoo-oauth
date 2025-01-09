@@ -4,9 +4,11 @@ import { Form, FormInstance, Table, TableProps, Tabs } from 'antd';
 import { ColumnType } from 'antd/es/table/interface';
 import { has, isBoolean, isNil, isNumber } from 'lodash';
 
-import ProQueryForm, { ProQueryFormProps } from '@/component/pro-component/ProQueryForm';
-import { BaseTableProFieldType } from '@/component/pro-component/types';
-import useFormatFields from '@/component/pro-component/useFormatFields';
+import ProQueryForm, { ProQueryFormProps, QueryFormFieldType } from '../ProQueryForm';
+import { BaseTableProFieldType } from '../types';
+import useFormatFields from '../useFormatFields';
+
+export type ProTableSearchFieldType<T = any> = QueryFormFieldType<T>;
 
 export type ProTableColumnType<T = any> = Pick<
 	BaseTableProFieldType<T>,

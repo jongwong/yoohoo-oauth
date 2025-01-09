@@ -1,10 +1,9 @@
 import React from 'react';
 import http from '@/utils/http';
-import ProTable, { ProTableColumnType } from '@/component/pro-component/ProTable';
-import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
+import type { ProTableColumnType } from '@yoo/pro-component';
+import { EDefaultValueType, ProTable } from '@yoo/pro-component';
 import { Card } from 'antd';
-import ContentLayout from '@/component/ContentLayout';
-import { EDefaultValueType } from '@yoohoo/pro-component';
+import { ContentLayout } from '@yoo/component';
 
 const UserList: React.FC = props => {
 	const fetchUserList = async (params: any) => {

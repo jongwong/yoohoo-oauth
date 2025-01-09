@@ -1,22 +1,23 @@
 import React, { useRef, useState } from 'react';
-import ProTable, {
+import type { ProTableSearchFieldType } from '@yoo/pro-component';
+import {
+	EDefaultValueType,
+	ProTable,
 	ProTableActionType,
 	ProTableColumnType,
-} from '@/component/pro-component/ProTable';
+} from '@yoo/pro-component';
 import { Button, Card, message, Popconfirm, Space } from 'antd';
-import ContentLayout from '@/component/ContentLayout';
+import { ContentLayout } from '@yoo/component';
 import {
 	PAGES_PRODUCT_CATEGORY_CREATE_URL,
 	PAGES_PRODUCT_CATEGORY_DETAIL_URL,
 } from '@/pages/product-category/pages';
-import { EDefaultValueType } from '@yoohoo/pro-component';
 import { transformUrlByRoutePath } from '@/utils/url';
 import {
 	deleteProductCategoryById,
 	getProductCategoryPage,
 } from '@/pages/product-category/service';
 import { Link } from 'react-router-dom';
-import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
 import { CategoryLevelMap } from '@/constant/product_category';
 import { GlobalEnableTypeMap } from '@/constant/common';
 
@@ -42,7 +43,7 @@ const List: React.FC = () => {
 	};
 
 	// 修改查询表单字段
-	const fields: QueryFormFieldType[] = [
+	const fields: ProTableSearchFieldType[] = [
 		{
 			label: '名称',
 			name: 'name',

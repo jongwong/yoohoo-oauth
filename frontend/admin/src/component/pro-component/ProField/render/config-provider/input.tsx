@@ -4,14 +4,11 @@
 
 import React from 'react';
 import { FormInstance, Input, Switch, Upload } from 'antd';
-import {
-	getDefaultPlaceHolder,
-	PlaceHolderType,
-} from '@/component/pro-component/ProField/render/formatRenderUtil';
-import { EMPTY_TEXT } from '@/component/pro-component/constant';
-import ProxyWrapped from '@/component/pro-component/ProxyWrapped';
-import { ElementOf } from '@/component/pro-component/types';
-import OssUpload from '@/component/OssUpload';
+import { getDefaultPlaceHolder, PlaceHolderType } from '../../../ProField/render/formatRenderUtil';
+import { EMPTY_TEXT } from '../../../constant';
+import ProxyWrapped from '../../../ProxyWrapped';
+import { ElementOf } from '../../../types';
+import { OssUpload } from '@yoo/component';
 
 export const DefaultInputValueTypeEnum = {
 	Input: 'input',

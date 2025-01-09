@@ -3,8 +3,8 @@ import React, { Key, ReactNode } from 'react';
 import { Descriptions, Space, Statistic } from 'antd';
 import { get } from 'lodash';
 
-import { BaseFormProFieldType } from '@/component/pro-component/types';
-import useFormatFields from '@/component/pro-component/useFormatFields';
+import { BaseFormProFieldType } from '../../pro-component/types';
+import useFormatFields from '../../pro-component/useFormatFields';
 
 type ItemType = {
 	label: ReactNode;

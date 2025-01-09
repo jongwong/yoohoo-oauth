@@ -3,7 +3,7 @@ import { Key, ReactNode } from 'react';
 import { FormInstance, FormItemProps } from 'antd';
 
 import { type ReadonlyEnumMap } from '@/utils/enum';
-import { BaseFormItemOptionType } from '@/component/pro-component/ProField/types';
+import { BaseFormItemOptionType } from '../ProField/types';
 
 export type BaseProFieldType<T = any> = {
 	valueType?: string; // ProField 类型，如 'text', 'select', 'dateRange'

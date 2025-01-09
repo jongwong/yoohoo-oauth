@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ContentLayout from '@/component/ContentLayout';
-import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoohoo/pro-component';
-import { Button, Card, Form, message, Space } from 'antd';
-import { useUpdate } from 'ahooks';
-import {
-	createDistributionPoint,
-	getDistributionPointById,
-	updateDistributionPoint,
-	updateDistributionPointDisable,
-	updateDistributionPointEnable,
-} from '@/pages/distribution-point/service';
-import { PAGES_DISTRIBUTION_POINT_DETAIL_URL } from '@/pages/distribution-point/pages';
-import { transformUrlByRoutePath } from '@/utils/url';
-import { EDistributionPointEnable } from '@/constant/distribution-point';
-import { GlobalEnableTypeMap } from '@/constant/common';
 
-const DistributionPointDetail: React.FC = () => {
+import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoohoo/pro-component';
+import { useUpdate } from 'ahooks';
+import { Button, Card, Form, message, Space } from 'antd';
+
+import ContentLayout from '@/component/ContentLayout';
+import { GlobalEnableTypeMap } from '@/constant/common';
+import { CategoryLevelMap } from '@/constant/product_category';
+import { PAGES_PRODUCT_CATEGORY_DETAIL_URL } from '@/pages/product-category/pages';
+import {
+	createProductCategory,
+	getProductCategoryById,
+	updateProductCategory,
+	updateProductCategoryDisable,
+	updateProductCategoryEnable,
+} from '@/pages/product-category/service';
+import { transformUrlByRoutePath } from '@/utils/url';
+
+const Detail: React.FC = () => {
 	const params = useParams();
-	const { distributionPointId } = params as {
-		distributionPointId: string;
-	};
+	const { categoryId } = params as { categoryId: string };
 	const [form] = Form.useForm();
 	const forceUpdate = useUpdate();
 	const [detailData, setDetailData] = useState<Record<string, any>>({});
@@ -28,15 +28,16 @@ const DistributionPointDetail: React.FC = () => {
 	const [editable, setEditable] = useState(false);
 
 	const navigator = useNavigate();
-	// Fetch distribution point details
+
+	// Fetch category details
 	const fetchDetailData = async () => {
-		if (!distributionPointId) {
+		if (!categoryId) {
 			setEditable(true);
 			return;
 		}
 		setLoading(true);
 
-		const res = await getDistributionPointById(distributionPointId).finally(() => {
+		const res = await getProductCategoryById(categoryId).finally(() => {
 			setLoading(false);
 		});
 
@@ -51,88 +52,69 @@ const DistributionPointDetail: React.FC = () => {
 
 	const fields: ProFormItemsFieldType[] = [
 		{
-			label: '配送点名称',
+			label: '类别名称',
 			name: 'name',
-			placeholder: '请输入配送点名称',
+			placeholder: '请输入类别名称',
 			formItemProps: {
 				rules: [{ required: true }],
 			},
 		},
 		{
-			label: '配送点地址',
-			name: 'address',
-			placeholder: '请输入配送点地址',
+			label: '类别代码',
+			name: 'code',
+			placeholder: '请输入类别代码',
 			formItemProps: {
 				rules: [{ required: true }],
 			},
 		},
 		{
-			label: '联系电话',
-			name: 'contact_phone',
-			placeholder: '请输入联系电话',
-		},
-		{
-			label: '纬度',
-			name: 'latitude',
-			placeholder: '请输入纬度',
-			valueType: EDefaultValueType.Number,
-			render: (t: number) => t,
-			formItemProps: {
-				rules: [{ required: true }],
-			},
-		},
-		{
-			label: '经度',
-			name: 'longitude',
-			placeholder: '请输入经度',
-			valueType: EDefaultValueType.Number,
-			render: (t: number) => t,
-			formItemProps: {
-				rules: [{ required: true }],
-			},
-		},
-		{
-			label: '配送时间备注',
-			name: 'delivery_time_note',
+			label: '类别描述',
+			name: 'description',
 			valueType: EDefaultValueType.Textarea,
-			placeholder: '请输入配送时间备注',
+			placeholder: '请输入类别描述',
+		},
+		{
+			label: '类别层级',
+			name: 'level',
+			valueEnum: CategoryLevelMap,
+			placeholder: '请选择类别层级',
+			formItemProps: {
+				rules: [{ required: true }],
+			},
 		},
 	];
 
-	// Handle save distribution point data
+	// Handle save category data
 	const saveHandle = async () => {
 		await form.validateFields();
 		const val = form.getFieldsValue(true);
 		setLoading(true);
-		const fn = distributionPointId
-			? updateDistributionPoint(distributionPointId, val)
-			: createDistributionPoint(val);
+		const fn = categoryId ? updateProductCategory(categoryId, val) : createProductCategory(val);
 		const res = await fn.finally(() => {
 			setLoading(false);
 		});
 		if (res.success) {
 			message.success('保存成功');
-			if (!distributionPointId) {
-				navigator(transformUrlByRoutePath(PAGES_DISTRIBUTION_POINT_DETAIL_URL, res.data.id));
-				fetchDetailData();
+			if (!categoryId) {
+				navigator(transformUrlByRoutePath(PAGES_PRODUCT_CATEGORY_DETAIL_URL, res.data.id));
 				setEditable(false);
 				return;
 			} else {
 				setEditable(false);
-
 				fetchDetailData();
 			}
 		}
 	};
+
 	// Render extra buttons
 	const renderExtra = () => {
 		const editEl = !editable ? (
 			<>
-				{detailData.enable === EDistributionPointEnable.Disable ? (
+				{detailData.enable === 0 ? (
 					<Button
 						onClick={async () => {
 							setLoading(true);
-							const res = await updateDistributionPointEnable(distributionPointId).finally(() => {
+							const res = await updateProductCategoryEnable(categoryId).finally(() => {
 								setLoading(false);
 							});
 							if (res.success) {
@@ -147,7 +129,7 @@ const DistributionPointDetail: React.FC = () => {
 						danger
 						onClick={async () => {
 							setLoading(true);
-							const res = await updateDistributionPointDisable(distributionPointId).finally(() => {
+							const res = await updateProductCategoryDisable(categoryId).finally(() => {
 								setLoading(false);
 							});
 							if (res.success) {
@@ -181,7 +163,7 @@ const DistributionPointDetail: React.FC = () => {
 			loading={loading}
 			header={{
 				extra: renderExtra(),
-				info: distributionPointId
+				info: categoryId
 					? {
 							data: detailData,
 							leftItems: [
@@ -218,4 +200,4 @@ const DistributionPointDetail: React.FC = () => {
 	);
 };
 
-export default DistributionPointDetail;
+export default Detail;

@@ -76,7 +76,22 @@ public class QueryBuilder<T> {
 
     // 设置排序
     public QueryBuilder<T> addSort(String orderByClause) {
-        this.orderByClause = orderByClause;
+        // 按逗号分割字符串
+        var parts = orderByClause.split(",");
+
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid orderByClause format. Expected format: 'field,asc/desc'");
+        }
+
+        // 保留字段名不变，将排序关键字转为大写
+        var field = parts[0].trim();
+        var order = parts[1].trim().toUpperCase();
+
+        // 拼接成 "字段名 排序关键字"
+        var result = String.join(" ", field, order);
+
+
+        this.orderByClause = result;
         return this;
     }
 

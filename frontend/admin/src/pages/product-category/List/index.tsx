@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import http from '@/utils/http';
 import ProTable, {
 	ProTableActionType,
 	ProTableColumnType,
@@ -7,29 +6,33 @@ import ProTable, {
 import { Button, Card, message, Popconfirm, Space } from 'antd';
 import ContentLayout from '@/component/ContentLayout';
 import {
-	PAGES_DISTRIBUTION_POINT_CREATE_URL,
-	PAGES_DISTRIBUTION_POINT_DETAIL_URL,
-} from '@/pages/distribution-point/pages';
+	PAGES_PRODUCT_CATEGORY_CREATE_URL,
+	PAGES_PRODUCT_CATEGORY_DETAIL_URL,
+} from '@/pages/product-category/pages';
 import { EDefaultValueType } from '@yoohoo/pro-component';
 import { transformUrlByRoutePath } from '@/utils/url';
-import { deleteDistributionPointById } from '@/pages/distribution-point/service';
+import {
+	deleteProductCategoryById,
+	getProductCategoryPage,
+} from '@/pages/product-category/service';
 import { Link } from 'react-router-dom';
 import { QueryFormFieldType } from '@/component/pro-component/ProQueryForm';
+import { CategoryLevelMap } from '@/constant/product_category';
 import { GlobalEnableTypeMap } from '@/constant/common';
 
-const DistributionPointList: React.FC = () => {
+const List: React.FC = () => {
 	const actionRef = useRef<ProTableActionType>();
 	const [loading, setLoading] = useState(false);
 
-	const fetchDistributionPointList = async (params: any) => {
-		return await http.get('/admin/distribution-point', {
-			params: params,
-		});
+	// 修改为获取商品类别列表
+	const fetchProductCategoryList = async (params: any) => {
+		return await getProductCategoryPage(params);
 	};
 
+	// 删除类别的操作
 	const removeHandler = async (id: string) => {
 		setLoading(true);
-		const res = await deleteDistributionPointById(id).finally(() => {
+		const res = await deleteProductCategoryById(id).finally(() => {
 			setLoading(false);
 		});
 		if (res.success) {
@@ -38,6 +41,7 @@ const DistributionPointList: React.FC = () => {
 		}
 	};
 
+	// 修改查询表单字段
 	const fields: QueryFormFieldType[] = [
 		{
 			label: '名称',
@@ -45,19 +49,26 @@ const DistributionPointList: React.FC = () => {
 		},
 	];
 
+	// 修改列配置
 	const columns: ProTableColumnType[] = [
 		{
-			title: '名称',
+			title: '类别名称',
 			dataIndex: 'name',
 			width: 120,
 			fixed: 'left',
 			ellipsis: true,
 		},
 		{
-			title: '配送点地址',
-			dataIndex: 'address',
-			width: 250,
+			title: '类别代码',
+			dataIndex: 'code',
+			width: 150,
 			ellipsis: true,
+		},
+		{
+			title: '层级',
+			dataIndex: 'level',
+			width: 100,
+			valueEnum: CategoryLevelMap,
 		},
 		{
 			title: '是否开启',
@@ -65,6 +76,20 @@ const DistributionPointList: React.FC = () => {
 			width: 100,
 			valueEnum: GlobalEnableTypeMap,
 			valueType: EDefaultValueType.EnumStatusTag,
+		},
+
+		{
+			title: '父级类别',
+			dataIndex: 'parent_name',
+			width: 150,
+			ellipsis: true,
+		},
+
+		{
+			title: '类别描述',
+			dataIndex: 'description',
+			width: 250,
+			ellipsis: true,
 		},
 		{
 			title: '创建人',
@@ -92,9 +117,7 @@ const DistributionPointList: React.FC = () => {
 			render: (_t, r) => {
 				return (
 					<Space>
-						<Link to={transformUrlByRoutePath(PAGES_DISTRIBUTION_POINT_DETAIL_URL, r.id)}>
-							详情
-						</Link>
+						<Link to={transformUrlByRoutePath(PAGES_PRODUCT_CATEGORY_DETAIL_URL, r.id)}>详情</Link>
 						<Popconfirm
 							title="确认是否删除？"
 							onConfirm={() => {
@@ -116,7 +139,7 @@ const DistributionPointList: React.FC = () => {
 				}}>
 				<ProTable
 					scroll={{ x: 'max-content' }}
-					request={params => fetchDistributionPointList(params)}
+					request={params => fetchProductCategoryList(params)}
 					columns={columns}
 					loading={loading}
 					fields={fields}
@@ -125,7 +148,7 @@ const DistributionPointList: React.FC = () => {
 						<>
 							<Button
 								onClick={() => {
-									window.open(PAGES_DISTRIBUTION_POINT_CREATE_URL);
+									window.open(PAGES_PRODUCT_CATEGORY_CREATE_URL);
 								}}>
 								新建
 							</Button>
@@ -137,4 +160,4 @@ const DistributionPointList: React.FC = () => {
 	);
 };
 
-export default DistributionPointList;
+export default List;

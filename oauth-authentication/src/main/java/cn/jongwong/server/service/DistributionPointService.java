@@ -5,6 +5,7 @@ import cn.jongwong.server.common.AutoUpdatedField;
 import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.QueryBuilder;
 import cn.jongwong.server.entity.DistributionPointVO;
+import cn.jongwong.server.enums.GlobalEnableTypeEnum;
 import cn.jongwong.server.repository.DistributionPointRepository;
 import cn.jongwong.server.util.response.Page;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class DistributionPointService {
         return distributionPointRepository.findById(id)
                 .flatMap(distributionPoint -> {
                     // 更新 enable 字段
-                    distributionPoint.setEnable(1);
+                    distributionPoint.setEnable(GlobalEnableTypeEnum.ENABLE.getValue());
                     // 保存更新后的实体
                     return distributionPointRepository.save(distributionPoint);
                 });
@@ -60,7 +61,7 @@ public class DistributionPointService {
         return distributionPointRepository.findById(id)
                 .flatMap(distributionPoint -> {
                     // 更新 enable 字段
-                    distributionPoint.setEnable(0);
+                    distributionPoint.setEnable(GlobalEnableTypeEnum.DISABLE.getValue());
                     // 保存更新后的实体
                     return distributionPointRepository.save(distributionPoint);
                 });

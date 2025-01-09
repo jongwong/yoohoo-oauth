@@ -66,27 +66,8 @@ public class ProductVO {
     @Schema(description = "上架状态")
     private Integer listedStatus;
 
-    @Schema(description = "创建人ID")
-    private String createdBy;
 
 
-    @Transient
-    @Schema(description = "创建人名称")
-    private String createdByName;
-
-    @Schema(description = "更新人ID")
-    private String updatedBy;
-
-    @Schema(description = "创建时间")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Schema(description = "更新时间")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-
-    @Transient
-    @Schema(description = "更新人名称")
-    private String updatedByName;
 
     @Schema(description = "审核拒绝原因")
     private String rejectionReason;
@@ -107,5 +88,21 @@ public class ProductVO {
     @Schema(description = "商品其他图片")
     private List<ProductImageVO> otherImages;
 
+    @Schema(description = "创建人ID")
+    private String createdBy;
 
+    @Schema(description = "创建人名称")
+    private String createdByName;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createdAt;
+
+    @Schema(description = "更新人ID")
+    private String updatedBy;
+
+    @Schema(description = "更新人名称")
+    private String updatedByName;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updatedAt;
 }

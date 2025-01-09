@@ -34,11 +34,11 @@ public class UserController {
     }
 
     @GetMapping
-    public Mono<PageResponse<UserRO>> getUserList(@RequestParam(required = false) String username,
-                                                  @RequestParam(required = false) String email,
+    public Mono<PageResponse<UserRO>> getUserList(@RequestParam(required = false) String name,
+                                                  @RequestParam(required = false) String mobile,
                                                   @RequestParam(required = true) int page,
                                                   @RequestParam(required = true) int size) {
-        return PageResponse.reactivePageSuccess(userService.getUsersList(username, email, page, size));
+        return PageResponse.reactivePageSuccess(userService.getUsersList(name, mobile, page, size));
     }
 
     // 更新用户

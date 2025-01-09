@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
             userVO.setEnabled(1); // 默认启用
         }
         if (userVO.getAuthorities() == null) {
-            userVO.setAuthorities("ROLE_USER"); // 默认角色
+            userVO.setAuthorities(new String[]{"ROLE_USER"}); // 默认角色
         }
         if (userVO.getName() == null) {
             userVO.setName(""); // 默认角色
@@ -110,13 +110,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.deleteById(userId);
     }
 
-    public Mono<Page<UserRO>> getUsersList(String username, String email, int page, int size) {
+    public Mono<Page<UserRO>> getUsersList(String name, String mobile, int page, int size) {
 
 
         return new QueryBuilder<>(r2dbcEntityTemplate, UserVO.class)
-                .addLikeCondition("username", username)
-                .addEqualCondition("username", username)
-                .addEqualCondition("email", email)
+                .addLikeCondition("name", name)
+                .addEqualCondition("mobile", mobile)
                 .paginate(page, size)
                 .exec().map(userPage -> {
                     // 转换 User -> UserRes

@@ -43,12 +43,12 @@ public class UserRO implements Serializable {
 
     private LocalDateTime updatedAt;
 
-    public String[] getAuthoritiesArray() {
+    public String[] getAuthorities() {
         // 将逗号分隔的字符串转换为数组
         return authorities != null ? authorities.split(",") : new String[0];
     }
 
-    public void setAuthoritiesArray(String[] tagsArray) {
+    public void setAuthorities(String[] tagsArray) {
         // 将数组转换为逗号分隔的字符串存储
         this.authorities = String.join(",", tagsArray);
     }

@@ -42,7 +42,7 @@ public class UserDetailsService implements ReactiveUserDetailsService {
         CustomOauth2User user = new CustomOauth2User();
         user.setUserName(findUserVO.getUsername());
         user.setPassword(findUserVO.getPassword());
-        user.setRoles(Arrays.asList(findUserVO.getAuthoritiesArray()));
+        user.setRoles(Arrays.asList(findUserVO.getAuthorities()));
         user.setEnabled(1 == findUserVO.getEnabled());
         user.setAccountNonExpired(true);
         user.setCredentialsNonExpired(true);

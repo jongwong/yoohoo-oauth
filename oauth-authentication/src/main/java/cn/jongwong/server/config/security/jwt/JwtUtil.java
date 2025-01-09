@@ -27,7 +27,7 @@ public class JwtUtil {
 
     // 生成 JWT
     public String generateToken(UserRO user, boolean isFresh) {
-        List<String> authoritiesArray = List.of(user.getAuthoritiesArray());
+        List<String> authoritiesArray = List.of(user.getAuthorities());
 
         var time = isFresh ? refreshExpirationTime : expirationTime;
         return Jwts.builder()

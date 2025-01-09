@@ -56,20 +56,32 @@ public class CouponsVO {
     @Schema(description = "已领取数量")
     private Integer totalClaimed = 0; // Total claimed
 
-    @Schema(description = "创建人ID")
-    private String createdBy;
 
     @Schema(description = "优惠券状态 (0: 草稿, 1: 审核中, 2: 审核拒绝, 3: 审核通过, 4: 已过期)")
     private Integer status = 0; // Status: (0: Draft, 1: Under Review, 2: Rejected, 3: Approved, 4: Expired)
 
-    @Schema(description = "创建时间")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Schema(description = "更新时间")
-    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Schema(description = "审核拒绝原因 (仅在审核拒绝时有效)")
     private String rejectionReason; // Rejection reason (only when status is rejected)
+
+
+    @Schema(description = "创建人ID")
+    private String createdBy;
+
+    @Schema(description = "创建人名称")
+    private String createdByName;
+
+    @Schema(description = "创建时间")
+    private LocalDateTime createdAt;
+
+    @Schema(description = "更新人ID")
+    private String updatedBy;
+
+    @Schema(description = "更新人名称")
+    private String updatedByName;
+
+    @Schema(description = "更新时间")
+    private LocalDateTime updatedAt;
 
 
 }

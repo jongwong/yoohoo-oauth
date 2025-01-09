@@ -36,8 +36,6 @@ public class UserCouponsVO {
     @Schema(description = "是否已使用 (0: 未使用, 1: 已使用)")
     private Boolean isUsed;
 
-    @Schema(description = "发放时间")
-    private LocalDateTime createdAt;
 
     @Schema(description = "使用时间 (仅在已使用时有值)")
     private LocalDateTime usedAt;
@@ -53,4 +51,8 @@ public class UserCouponsVO {
 
     @Schema(description = "动态适用范围ID")
     private String dynamicScopeId;
+
+
+    @Schema(description = "发放时间")
+    private LocalDateTime createdAt;
 }

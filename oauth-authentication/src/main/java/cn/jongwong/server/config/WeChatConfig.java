@@ -12,4 +12,6 @@ public class WeChatConfig {
 
     @Value("${custom-config.wechat.secret:defaultSecret}")
     private String secret;
+
+
 }

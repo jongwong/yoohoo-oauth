@@ -35,8 +35,7 @@ public class WeChatAuthService {
     @Autowired
     private WeChatConfig weChatConfig;
 
-    @Autowired
-    private WebClient webClient;
+
 
     @Autowired
     private UserService userService;
@@ -69,10 +68,9 @@ public class WeChatAuthService {
                 .queryParam("js_code", code)
                 .queryParam("grant_type", "authorization_code")
                 .toUriString();
-
         Map<String, String> mapRe = new HashMap<>();
 
-
+        WebClient webClient = WebClient.builder().baseUrl("https://api.weixin.qq.com/").build();
         return webClient.get()
                 .uri(url)
                 .retrieve()

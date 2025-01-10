@@ -52,6 +52,8 @@ spring:
       database: ${custom-config.redis.database}
       host: ${custom-config.redis.host}
       password: ${custom-config.redis.password}
+      repositories:
+        enabled: false
 
 
 springdoc:

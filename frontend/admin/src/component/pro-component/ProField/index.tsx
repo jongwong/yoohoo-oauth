@@ -1,6 +1,6 @@
 import React from 'react';
 import { BaseFormProFieldType } from '../types';
-import { get, isNumber } from 'lodash';
+import { get, isNil, isNumber } from 'lodash';
 import { Form, FormInstance } from 'antd';
 import { getKeyList } from '../utils/not-export';
 import { formatRenderFun } from '../ProField/render/formatRenderUtil';
@@ -58,7 +58,7 @@ const InerProField: React.FC<ProFieldProps> = props => {
 			<Form.Item
 				name={formName as any}
 				hidden={!visible}
-				label={label}
+				label={isNil(props?.label) ? (props as any)?.title : label}
 				{...formItemProps}
 				getValueProps={e => {
 					const merge = formItemProps?.getValueProps?.(e) || {};

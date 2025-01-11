@@ -5,12 +5,10 @@ import { ContentLayout } from '@yoo/component';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
 import { useUpdate } from 'ahooks';
 import { Button, Card, Form, message, Space } from 'antd';
-
-import ProductSearchSelect from '@/component/business/ProductSearchSelect'; // 相对路径
 import { GlobalEnableTypeMap } from '@/constant/common';
 import { PurchaseGroupStatusMap } from '@/constant/purchase-group';
 
-import { PAGES_PURCHASE_GROUP_DETAIL_URL } from '../pages'; // 相对路径
+import { PAGES_PURCHASE_GROUP_DETAIL_URL } from '../pages';
 import {
 	createPurchaseGroup,
 	getPurchaseGroupById,
@@ -18,6 +16,7 @@ import {
 	updatePurchaseGroupDisable,
 	updatePurchaseGroupEnable,
 } from '../service';
+import ProEditTable from '@/component/pro-component/ProEditTable';
 
 const Detail: React.FC = () => {
 	const params = useParams();
@@ -30,7 +29,6 @@ const Detail: React.FC = () => {
 
 	const navigator = useNavigate();
 
-	// 获取团购详情
 	const fetchDetailData = async () => {
 		if (!groupId) {
 			setEditable(true);
@@ -49,7 +47,6 @@ const Detail: React.FC = () => {
 		return res;
 	};
 
-	// fields 配置
 	const fields: ProFormItemsFieldType[] = [
 		{
 			label: '团购名称',
@@ -57,17 +54,6 @@ const Detail: React.FC = () => {
 			placeholder: '请输入团购名称',
 			formItemProps: {
 				rules: [{ required: true }],
-			},
-		},
-		{
-			label: '商品',
-			name: 'product',
-			placeholder: '请选择团购结束时间',
-			formItemProps: {
-				initialValue: ['aac8e104-bc9a-11ef-89d7-865b24a9dfb8'],
-			},
-			renderFormItem: () => {
-				return <ProductSearchSelect mode={'multiple'} />;
 			},
 		},
 		{
@@ -94,8 +80,7 @@ const Detail: React.FC = () => {
 		{
 			label: '是否启用',
 			name: 'enable',
-			valueEnum: GlobalEnableTypeMap, // 使用已有的启用/停用状态
-
+			valueEnum: GlobalEnableTypeMap,
 			visible: !editable,
 		},
 		{
@@ -124,7 +109,6 @@ const Detail: React.FC = () => {
 		},
 	];
 
-	// 保存团购数据
 	const saveHandle = async () => {
 		await form.validateFields();
 		const val = form.getFieldsValue(true);
@@ -233,15 +217,35 @@ const Detail: React.FC = () => {
 								{
 									label: '状态',
 									name: 'status',
-									valueEnum: PurchaseGroupStatusMap, // 映射状态
+									valueEnum: PurchaseGroupStatusMap,
 								},
 							],
 					  }
 					: undefined,
 			}}>
 			<Form form={form} labelCol={{ span: 4 }} wrapperCol={{ span: 7 }}>
-				<Card>
+				<Card title={'基础信息'}>
 					<ProForm.Items fields={fields} editable={editable} />
+				</Card>
+
+				<Card title={'商品信息'}>
+					<ProEditTable
+						name={'products'}
+						editable={editable}
+						columns={[
+							{
+								title: '商品名称',
+								dataIndex: 'name',
+								formItemProps: {
+									rules: [{ required: true }],
+								},
+							},
+							{
+								title: '商品数量',
+								dataIndex: 'quantity',
+							},
+						]}
+					/>
 				</Card>
 			</Form>
 		</ContentLayout>

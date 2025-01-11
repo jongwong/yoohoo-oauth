@@ -1,0 +1,132 @@
+.yoo-pro-edit-table {
+	.row-dragging {
+		z-index: 1000;
+		display: flex;
+		justify-content: space-between;
+		//background: #f0f2f5 !important;
+		//border: 1px solid #ccc;
+		//
+		//& > td {
+		//  background-color: #f0f2f5 !important;
+		//}
+	}
+
+	.row-dragging .drag-visible {
+		visibility: visible;
+	}
+
+	.ant-table-small {
+		.yoo-pro-edit-table-cell {
+			font-size: 12px;
+		}
+
+		.ant-form-item {
+			font-size: 12px;
+		}
+	}
+
+	.ant-form-item-explain-error {
+		font-size: 12px;
+		position: absolute;
+		z-index: 100;
+		transform: scale(0.9) translateY(-10%);
+	}
+}
+
+.yoo-pro-edit-table-editable {
+	.ant-table-cell {
+		.ant-form-item-explain {
+			width: 100%;
+			font-size: 12px !important;
+		}
+	}
+
+	.ant-form-item {
+		margin-bottom: 0;
+	}
+
+	.yoo-pro-edit-table-cell-editing {
+		padding: 0;
+		border: 1px solid transparent;
+
+		& > *:hover {
+			padding: 0;
+			border: 1px solid transparent;
+		}
+	}
+
+	.yoo-pro-edit-table-cell-not-editing {
+		& > *:hover {
+			border: 1px solid #d9d9d9;
+			cursor: pointer;
+		}
+
+		.ant-form-item-control-input-content {
+			display: inline;
+			flex-grow: 0;
+			flex-shrink: 0;
+			border-bottom: 1px dashed rgba(0, 0, 0, 0.85);
+		}
+
+		&.yoo-pro-edit-table-cell-right {
+			.ant-form-item-control-input {
+				justify-content: end;
+			}
+		}
+	}
+}
+
+.yoo-pro-edit-table-editable.yoo-pro-edit-table-mode-cell {
+	.yoo-pro-edit-table-cell > * {
+		box-sizing: border-box;
+		padding: 0 11px;
+		line-height: 32px;
+		border: 1px solid transparent;
+		border-radius: 2px;
+	}
+
+	.yoo-pro-edit-table-cell-editing > * {
+		box-sizing: unset;
+		padding: unset;
+		line-height: unset;
+		border: unset;
+		border-radius: unset;
+	}
+}
+
+.yoo-pro-edit-table-hint-multiple.yoo-pro-edit-table-editable {
+	.ant-table-cell {
+		padding: 8px;
+		vertical-align: top;
+	}
+}
+
+.yoo-pro-edit-table-hint-single.yoo-pro-edit-table-editable {
+	.ant-table-cell {
+		padding-bottom: 16px !important;
+
+		.ant-form-item-control {
+			position: relative;
+		}
+
+		.ant-form-item-explain {
+			position: absolute;
+			bottom: 0;
+			width: 100%;
+			font-size: 12px !important;
+			transform: translateY(100%);
+
+			& > * {
+				display: none;
+			}
+
+			& > *:first-child {
+				display: block;
+				overflow: hidden;
+				white-space: nowrap;
+				text-align: left;
+				text-overflow: ellipsis;
+			}
+		}
+	}
+}

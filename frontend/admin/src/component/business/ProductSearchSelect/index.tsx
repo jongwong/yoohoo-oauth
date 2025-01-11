@@ -14,7 +14,6 @@ const ProductSearchSelect: React.FC<ProductSearchSelectProps> = props => {
 			}}
 			placeholder={'请输入商品名称或者编码'}
 			optionRender={e => {
-				console.log('=====e=====', e);
 				return (e?.data?.code || '--') + ':' + e.label;
 			}}
 			loadInitialOptions={async e => {

@@ -15,19 +15,19 @@ const Create = React.lazy(() => import('./Create')); // 使用相对路径
 const routes = [
 	{
 		path: PAGES_PURCHASE_GROUP_URL,
-		title: '团购列表',
+		title: '团购商品管理',
 		element: <List />,
 	},
 	{
 		path: PAGES_PURCHASE_GROUP_CREATE_URL,
 		hidden: true,
-		title: '创建团购',
+		title: '团购商品管理创建',
 		element: <Create />,
 	},
 	{
 		path: PAGES_PURCHASE_GROUP_DETAIL_URL,
 		hidden: true,
-		title: '团购详情',
+		title: '团购商品管理详情',
 		element: <Detail />,
 	},
 ];

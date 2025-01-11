@@ -1,15 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { ContentLayout } from '@yoo/component';
 import type {
 	ProTableActionType,
 	ProTableColumnType,
-	QueryFormFieldType,
+	ProTableSearchFieldType,
 } from '@yoo/pro-component';
 import { EDefaultValueType, ProTable } from '@yoo/pro-component';
 import { Button, Card, message, Popconfirm, Space } from 'antd';
 
-import { ContentLayout } from '@yoo/component';
 import { GlobalEnableTypeMap } from '@/constant/common';
 import { transformUrlByRoutePath } from '@/utils/url';
 
@@ -38,7 +38,7 @@ const List: React.FC = () => {
 	};
 
 	// 查询表单字段
-	const fields: QueryFormFieldType[] = [
+	const fields: ProTableSearchFieldType[] = [
 		{
 			label: '名称',
 			name: 'name',

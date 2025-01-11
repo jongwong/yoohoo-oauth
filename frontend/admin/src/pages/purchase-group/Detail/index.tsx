@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { ContentLayout } from '@yoo/component';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
 import { useUpdate } from 'ahooks';
 import { Button, Card, Form, message, Space } from 'antd';
 
-import ContentLayout from '@yoo/component';
+import ProductSearchSelect from '@/component/business/ProductSearchSelect'; // 相对路径
 import { GlobalEnableTypeMap } from '@/constant/common';
+import { PurchaseGroupStatusMap } from '@/constant/purchase-group';
 
 import { PAGES_PURCHASE_GROUP_DETAIL_URL } from '../pages'; // 相对路径
 import {
@@ -16,7 +18,6 @@ import {
 	updatePurchaseGroupDisable,
 	updatePurchaseGroupEnable,
 } from '../service';
-import { PurchaseGroupStatusMap } from '@/constant/purchase-group'; // 相对路径
 
 const Detail: React.FC = () => {
 	const params = useParams();
@@ -56,6 +57,17 @@ const Detail: React.FC = () => {
 			placeholder: '请输入团购名称',
 			formItemProps: {
 				rules: [{ required: true }],
+			},
+		},
+		{
+			label: '商品',
+			name: 'product',
+			placeholder: '请选择团购结束时间',
+			formItemProps: {
+				initialValue: ['aac8e104-bc9a-11ef-89d7-865b24a9dfb8'],
+			},
+			renderFormItem: () => {
+				return <ProductSearchSelect mode={'multiple'} />;
 			},
 		},
 		{

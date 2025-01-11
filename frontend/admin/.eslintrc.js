@@ -91,8 +91,8 @@ module.exports = {
 			{
 				// 禁止从 'component/base-ui' 和 'component/pro-component' 导入及其子模块
 				patterns: [
-					'component/base-ui/*', // 禁止从 component/base-ui/* 导入
-					'component/pro-component/*', // 禁止从 component/pro-component/* 导入
+					'@/component/base-ui/*', // 禁止从 component/base-ui/* 导入
+					'@/component/pro-component/*', // 禁止从 component/pro-component/* 导入
 				],
 			},
 		],

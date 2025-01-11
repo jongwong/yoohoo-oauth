@@ -1,6 +1,7 @@
 package cn.jongwong.server.controller;
 
 import cn.jongwong.server.dto.product.CommonRejectDTO;
+import cn.jongwong.server.dto.product.QueryProductBatchDTO;
 import cn.jongwong.server.entity.ProductVO;
 import cn.jongwong.server.service.ProductService;
 import cn.jongwong.server.util.response.PageResponse;
@@ -8,6 +9,8 @@ import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/product")
@@ -30,6 +33,12 @@ public class ProductController {
                                                 @RequestParam(required = true) int size) {
         return PageResponse.reactivePageSuccess(productService.search(name, archivedStatus, page, size));
     }
+
+    @PostMapping("/batch")
+    public Mono<Response<List<ProductVO>>> getProductListByIds(@RequestBody QueryProductBatchDTO data) {
+        return productService.findByIds(data.getIds()).collectList().map(Response::success);
+    }
+
 
     // 更新商品
     @PutMapping("/{id}")
@@ -80,5 +89,6 @@ public class ProductController {
         return productService.delete(id)
                 .map(Response::success);
     }
+
 
 }

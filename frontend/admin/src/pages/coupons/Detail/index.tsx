@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import http from '@/utils/http';
 import { useParams } from 'react-router-dom';
-import ContentLayout from '@yoo/component';
+import { ContentLayout } from '@yoo/component';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
 import { Button, Card, Form, message, Space } from 'antd';
 import { useUpdate } from 'ahooks';

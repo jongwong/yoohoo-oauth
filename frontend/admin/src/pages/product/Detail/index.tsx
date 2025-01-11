@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import http from '@/utils/http';
 import { useNavigate, useParams } from 'react-router-dom';
-import ContentLayout from '@yoo/component';
+import { ContentLayout, OssUploadProps } from '@yoo/component';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
 import {
 	EProductArchivedStatus,
@@ -11,7 +11,6 @@ import {
 } from '@/constant/product';
 import { Button, Card, Form, message, Space } from 'antd';
 import { useUpdate } from 'ahooks';
-import { OssUploadProps } from '@/component/OssUpload';
 import { getProductById } from '@/pages/product/service';
 import { PAGES_PRODUCT_DETAIL_URL } from '@/pages/product/pages';
 import { transformUrlByRoutePath } from '@/utils/url';

@@ -22,7 +22,7 @@ public class ProductCategoryVO {
     private String id;
 
     @Schema(description = "类别代码")
-    private String code;
+    private Integer code;
 
     @Schema(description = "类别名称")
     private String name;

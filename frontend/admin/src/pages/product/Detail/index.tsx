@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import http from '@/utils/http';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ContentLayout, OssUploadProps } from '@yoo/component';
+import { ContentLayout, OssUploadProps, ProxyWrapped } from '@yoo/component';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
 import {
 	EProductArchivedStatus,
@@ -14,6 +14,8 @@ import { useUpdate } from 'ahooks';
 import { getProductById } from '@/pages/product/service';
 import { PAGES_PRODUCT_DETAIL_URL } from '@/pages/product/pages';
 import { transformUrlByRoutePath } from '@/utils/url';
+import CategorySearchSelect from '@/component/business/CategorySelect';
+import { transformToFields } from '@/utils/transform';
 
 const ProductDetail: React.FC = () => {
 	const params = useParams();
@@ -56,6 +58,44 @@ const ProductDetail: React.FC = () => {
 			valueType: EDefaultValueType.Textarea,
 			placeholder: '请输入商品描述',
 		},
+		{
+			label: '商品描述',
+			name: 'description',
+			valueType: EDefaultValueType.Textarea,
+			placeholder: '请输入商品描述',
+		},
+
+		{
+			label: '类别',
+			name: 'category_id',
+			renderFormItem: () => {
+				return (
+					<ProxyWrapped>
+						{config => (
+							<CategorySearchSelect
+								{...(config as any)}
+								onChange={(e, op) => {
+									const ob: any = op || {};
+									const val = {
+										category_id: e,
+										category_code: ob?.code,
+										category_name: ob?.name,
+									};
+									form.setFields(transformToFields(val));
+									form.validateFields(['category_id']);
+								}}
+								triggerMode={'open'}
+							/>
+						)}
+					</ProxyWrapped>
+				);
+			},
+
+			render: (t, r) => {
+				return t ? [r.category_code, r.category_name].join('-') : undefined;
+			},
+		},
+
 		{
 			label: '商品简短描述',
 			name: 'short_description',

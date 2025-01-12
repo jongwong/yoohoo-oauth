@@ -87,17 +87,21 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
         for (var field : instance.getClass().getDeclaredFields()) {
             String fieldName = field.getName();
             String rowFieldName = camelToSnakeCase(fieldName);
+            try {
+
+
 
             if (rowMetadata.contains(rowFieldName)) {
                 Object value = row.get(rowFieldName, field.getType());
                 Method setter = findSetterMethod(instance.getClass(), field);
                 if (setter != null) {
-                    try {
+
                         setter.invoke(instance, value);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to set value for field: " + fieldName, e);
-                    }
+
                 }
+            }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to row value for field: " + rowFieldName, e);
             }
         }
     }

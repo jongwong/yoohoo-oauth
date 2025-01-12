@@ -1,6 +1,5 @@
 package cn.jongwong.server.entity;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,11 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,           // 使用类名作为类型信息
-        include = JsonTypeInfo.As.PROPERTY,  // 将类型信息包含在JSON属性中
-        property = "type"                     // 设置字段名为"type"
-)
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,6 +33,17 @@ public class ProductVO {
 
     @Schema(description = "商品描述")
     private String description;
+
+
+    @Schema(description = "类别ID")
+    private String categoryId;
+
+    @Schema(description = "类别代码")
+    private Integer categoryCode;
+
+    @Schema(description = "类别名称")
+    private String categoryName;
+
 
     @Schema(description = "商品简短描述")
     private String shortDescription;

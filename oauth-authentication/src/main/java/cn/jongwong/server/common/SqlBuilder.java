@@ -54,7 +54,7 @@ public class SqlBuilder {
     public static SqlBuilder select() {
         var sql = builder();
         sql.type = "SELECT";
-        
+
         return sql;
     }
 
@@ -96,8 +96,11 @@ public class SqlBuilder {
     // 设置 WHERE 条件
     public SqlBuilder where(Function<Criteria, Criteria> criteriaCallback) {
         Criteria criteria = Criteria.empty();
-        criteria = criteriaCallback.apply(criteria);
-        this.criteriaList.add(criteria);
+        System.out.printf("-------2-------%s%n", criteria.toString());
+        criteriaCallback.apply(criteria);
+
+        System.out.printf("-------3-------%s%n", criteria.toString());
+        System.out.printf("-------criteriaList-4------%s%n", criteriaList);
         return this;
     }
 
@@ -131,7 +134,7 @@ public class SqlBuilder {
             criteria = Criteria.where(column).is(trimmedValue);
         }
 
-        this.criteriaList.add(criteria); // Add the condition to the criteria list
+        criteriaList.add(criteria); // Add the condition to the criteria list
         return this; // Return the builder itself for chaining
     }
 
@@ -250,12 +253,17 @@ public class SqlBuilder {
 
     // 其他辅助方法（如构建 WHERE 子句，排序等）
     private String buildWhereClause() {
+        System.out.printf("-------criteriaList-------%s%n", criteriaList);
         if (criteriaList.isEmpty()) {
             return "";
         }
-        return "WHERE " + criteriaList.stream()
+        var str = criteriaList.stream()
                 .map(criteria -> addAliasToField(criteria.toString()))
                 .collect(Collectors.joining(" AND "));
+        if (str.trim().isEmpty()) {
+            return "";
+        }
+        return "WHERE " + str;
     }
 
     private String addAliasToField(String condition) {

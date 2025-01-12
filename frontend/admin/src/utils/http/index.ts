@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { deleteCookie, getCookie } from '@/utils/cookie';
 import { Modal } from 'antd';
-import { isNumber, omitBy } from 'lodash';
+import { isNil, omitBy } from 'lodash';
 import axiosRetry from 'axios-retry';
 
 const openLoginConfirm = (message: string) => {
@@ -114,7 +114,7 @@ export default {
 	request: http.request,
 	get: (url: string, config?: AxiosRequestConfig) => {
 		const params = omitBy(config?.params || {}, it => {
-			return isNumber(it) && it === -1;
+			return it === -1 || it === '' || isNil(it);
 		});
 		return http.get(url, {
 			...config,

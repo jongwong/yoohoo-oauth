@@ -1,13 +1,25 @@
 import { toValEnumMap } from '@/utils/enum';
 
-/** 团购状态（1：开团中，2：开团成功，3：已结束） */
+/** 团购状态（0: 草稿中, 10: 待开团, 20: 开团中, 30: 开团成功, 40: 已结束） */
 export enum EPurchaseGroupStatus {
-	InProgress = 1, // 开团中
-	Success = 2, // 开团成功
-	Ended = 3, // 已结束
+	Draft = 0, // 草稿中
+	Waiting = 10, // 待开团
+	InProgress = 20, // 开团中
+	Success = 30, // 开团成功
+	Ended = 40, // 已结束
 }
 
 export const PurchaseGroupStatusMap = toValEnumMap<EPurchaseGroupStatus>([
+	{
+		value: EPurchaseGroupStatus.Draft,
+		text: '草稿中',
+		status: 'default',
+	},
+	{
+		value: EPurchaseGroupStatus.Waiting,
+		text: '待开团',
+		status: 'warning',
+	},
 	{
 		value: EPurchaseGroupStatus.InProgress,
 		text: '开团中',

@@ -6,3 +6,5 @@ export type { SearchSelectProps } from './SearchSelect';
 export { default as SearchSelect } from './SearchSelect';
 export type { StatusTextProps } from './StatusText';
 export { default as StatusText } from './StatusText';
+
+export { default as ProxyWrapped } from '../pro-component/ProxyWrapped';

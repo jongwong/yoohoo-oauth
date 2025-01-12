@@ -90,4 +90,11 @@ public class ProductCategoryService {
 
     }
 
+    public Flux<ProductCategoryVO> findByIds(List<String> ids) {
+        if (ids == null) {
+            return Flux.empty();
+        }
+        return productCategoryRepository.findAllByIdIn(ids);
+    }
+
 }

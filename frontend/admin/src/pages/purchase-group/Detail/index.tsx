@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { ContentLayout } from '@yoo/component';
+import { ContentLayout, ProxyWrapped } from '@yoo/component';
 import {
 	EDefaultValueType,
 	ProEditTable,
@@ -25,6 +25,33 @@ import {
 } from '../service';
 import DistributionPointSelect from '@/component/business/DistributionPointSelect';
 import CardContainer from '@/component/base-ui/CardContainer';
+import { RangePickerProps } from 'antd/es/date-picker';
+import dayjs from 'dayjs';
+import { transformToFields } from '@/utils/transform';
+import DeliveryTimeRangePicker from '@/pages/purchase-group/component/DeliveryTimeRangePicker';
+
+const RangesTimeComponent: React.FC = () => {
+	return <div>oo</div>;
+};
+
+const generateTimeRanges = () => {
+	// 定义默认时间范围
+	const timeRanges = [
+		{ from: '08:15', to: '10:15' },
+		{ from: '11:45', to: '13:30' },
+		{ from: '17:45', to: '18:15' },
+	];
+
+	// 转换为 dayjs 对象
+	return timeRanges.map(range => ({
+		from: dayjs()
+			.hour(Number(range.from.split(':')[0]))
+			.minute(Number(range.from.split(':')[1])),
+		to: dayjs()
+			.hour(Number(range.to.split(':')[0]))
+			.minute(Number(range.to.split(':')[1])),
+	}));
+};
 
 const Detail: React.FC = () => {
 	const params = useParams();
@@ -54,6 +81,10 @@ const Detail: React.FC = () => {
 		return res;
 	};
 
+	const generateName = (addressName = '', time?: number) => {
+		// 地址名称 + 送餐时间的日期加小时
+		return addressName + dayjs(time).format('YYYYMMDDHH');
+	};
 	const fields: ProFormItemsFieldType[] = [
 		{
 			label: '团购名称',
@@ -62,10 +93,24 @@ const Detail: React.FC = () => {
 			formItemProps: {
 				rules: [{ required: true }],
 			},
+			fieldProps: {
+				disabled: true,
+			},
 		},
 		{
 			label: '配送地址',
 			name: 'distribution_point_id',
+			formItemProps: {
+				getValueFromEvent: (e, op) => {
+					form.setFields(
+						transformToFields({
+							distribution_point_name: op.name,
+							name: generateName(op.name, form.getFieldValue('time_delivery_start')),
+						})
+					);
+					return e;
+				},
+			},
 			renderFormItem: () => {
 				return <DistributionPointSelect triggerMode={'open'} />;
 			},
@@ -74,6 +119,7 @@ const Detail: React.FC = () => {
 				return r?.distribution_point_name;
 			},
 		},
+
 		{
 			label: '团购描述',
 			name: 'description',
@@ -102,14 +148,16 @@ const Detail: React.FC = () => {
 			visible: !editable,
 		},
 		{
-			label: '团购开始时间',
+			label: '团购时间',
 			name: 'time_start',
-
+			fieldProps: {
+				showTime: true,
+			} as RangePickerProps,
 			extraFieldNames: ['time_start', 'time_end'],
 			valueType: EDefaultValueType.RangePicker,
 		},
 		{
-			label: '开始配送时间',
+			label: '配送时间',
 			name: 'time_delivery_start',
 			formItemProps: {
 				normalize: e => {
@@ -118,6 +166,36 @@ const Detail: React.FC = () => {
 			},
 			extraFieldNames: ['time_delivery_start', 'time_delivery_end'],
 			valueType: EDefaultValueType.RangePicker,
+			renderFormItem: (t, r) => {
+				return (
+					<ProxyWrapped>
+						{config => {
+							const endN = form.getFieldValue('time_delivery_end');
+							const val = config.value ? dayjs(config.value) : undefined;
+							const end = endN ? dayjs(endN) : undefined;
+
+							return (
+								<DeliveryTimeRangePicker
+									generateTimeRanges={generateTimeRanges}
+									value={val && end ? [val, end] : undefined}
+									onChange={([s, e]) => {
+										form.setFields(
+											transformToFields({
+												time_delivery_start: s?.valueOf(),
+												time_delivery_end: e?.valueOf(),
+												name: generateName(
+													form.getFieldValue('distribution_point_name'),
+													s?.valueOf()
+												),
+											})
+										);
+									}}
+								/>
+							);
+						}}
+					</ProxyWrapped>
+				);
+			},
 		},
 	];
 

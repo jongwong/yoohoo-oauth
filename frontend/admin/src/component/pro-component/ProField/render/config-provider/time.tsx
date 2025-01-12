@@ -140,6 +140,7 @@ const defaultTimeValueTypeMap: CommonProConfigType['valueTypeMap'] = {
 					return (
 						// @ts-ignore
 						<RangePicker
+							{...op}
 							value={val as any}
 							onChange={e => {
 								const val1 = e?.[0]?.startOf('date')?.valueOf();

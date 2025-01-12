@@ -5,7 +5,7 @@ import type { SelectProps } from 'antd';
 import { Select, Spin } from 'antd';
 import { isNil } from 'lodash';
 
-export interface SearchSelectProps extends Omit<SelectProps<any>, 'options'> {
+export type SearchSelectProps<T = any> = Omit<SelectProps<T>, 'options'> & {
 	request: (
 		params: {
 			page: number;
@@ -17,11 +17,12 @@ export interface SearchSelectProps extends Omit<SelectProps<any>, 'options'> {
 	triggerLength?: number; // 输入多少字符后开始查询
 	triggerMode?: 'init' | 'open' | 'search';
 	searchKeyword?: string;
-}
+};
 
 const DEFAULT_PAGE_SIZE = 10;
 
-const SearchSelect: React.FC<SearchSelectProps> = props => {
+// 使用泛型的 SearchSelect 组件
+const SearchSelect: <T = any>(props: SearchSelectProps<T>) => React.JSX.Element = props => {
 	const {
 		params,
 		request,

@@ -61,9 +61,6 @@ const InerProField: React.FC<
 	};
 
 	const _curRender = () => {
-		if (label === '开始配送时间') {
-			console.log('=====editable=====', editable);
-		}
 		let idx = -1;
 		let r = form.getFieldsValue(true);
 

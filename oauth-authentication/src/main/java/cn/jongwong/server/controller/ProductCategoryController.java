@@ -1,6 +1,7 @@
 package cn.jongwong.server.controller;
 
 
+import cn.jongwong.server.dto.product.CommonBatchDTO;
 import cn.jongwong.server.entity.ProductCategoryVO;
 import cn.jongwong.server.service.product.ProductCategoryService;
 import cn.jongwong.server.util.response.PageResponse;
@@ -8,6 +9,8 @@ import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/product-category")
@@ -81,5 +84,10 @@ public class ProductCategoryController {
     public Mono<Response<Void>> delete(@PathVariable String id) {
         return productCategoryService.deleteById(id)
                 .then(Mono.just(Response.success()));  // 删除成功后返回一个空的响应
+    }
+
+    @PostMapping("/batch")
+    public Mono<Response<List<ProductCategoryVO>>> getProductListByIds(@RequestBody CommonBatchDTO data) {
+        return productCategoryService.findByIds(data.getIds()).collectList().map(Response::success);
     }
 }

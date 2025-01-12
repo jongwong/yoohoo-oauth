@@ -1,22 +1,19 @@
 package cn.jongwong.server.config.security;
 
-import cn.jongwong.server.config.security.handle.CustomAuthenticationEntryPoint;
-import cn.jongwong.server.config.security.handle.CustomAuthenticationFailureHandler;
-import cn.jongwong.server.config.security.handle.CustomAuthenticationSuccessHandler;
+import cn.jongwong.server.config.handle.CustomAuthenticationEntryPoint;
+import cn.jongwong.server.config.handle.CustomAuthenticationFailureHandler;
 import cn.jongwong.server.config.security.handle.JwtAuthenticationSuccessHandler;
 import cn.jongwong.server.config.security.jwt.JwtAuthenticationWebFilter;
 import cn.jongwong.server.config.security.sms.SmsAuthenticationWebFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
@@ -29,7 +26,6 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
-import static org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder.withJwkSetUri;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -53,9 +49,6 @@ public class WebFluxSecurityConfig {
             "/client/wechat/decrypt-phone",
             "/client/wechat/register"
     };
-    @Autowired
-    private CustomAuthenticationSuccessHandler authenticationSuccessHandler;
-
 
     @Autowired
     private CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
@@ -75,7 +68,7 @@ public class WebFluxSecurityConfig {
 
 
         // 配置 SMS 认证过滤器
-        SmsAuthenticationWebFilter smsAuthenticationWebFilter = new SmsAuthenticationWebFilter(reactiveAuthenticationManager, (ServerAuthenticationSuccessHandler) authenticationSuccessHandler, customAuthenticationFailureHandler);
+        SmsAuthenticationWebFilter smsAuthenticationWebFilter = new SmsAuthenticationWebFilter(reactiveAuthenticationManager, (ServerAuthenticationSuccessHandler) jwtAuthenticationSuccessHandler, customAuthenticationFailureHandler);
 
 
         // 配置 SMS 认证过滤器
@@ -91,9 +84,7 @@ public class WebFluxSecurityConfig {
                 .anyExchange().authenticated());   // 其他路径需要认证
         // @formatter:off
         http.httpBasic(ServerHttpSecurity.HttpBasicSpec::disable);
-        http.formLogin((form) -> form
-                .loginPage("/login")
-        );
+        http.formLogin(ServerHttpSecurity.FormLoginSpec::disable);
 
 
 
@@ -116,12 +107,12 @@ public class WebFluxSecurityConfig {
     }
 
 
-    @Bean
-    @Primary
-    public ReactiveJwtDecoder jwtDecoder() {
-        String jwkSetUri = "http://101.34.152.79:4546/realms/dev1/protocol/openid-connect/certs";
-        return withJwkSetUri(jwkSetUri).build();
-    }
+//    @Bean
+//    @Primary
+//    public ReactiveJwtDecoder jwtDecoder() {
+//        String jwkSetUri = "http://101.34.152.79:4546/realms/dev1/protocol/openid-connect/certs";
+//        return withJwkSetUri(jwkSetUri).build();
+//    }
 
 
     @Bean

@@ -1,5 +1,6 @@
 package cn.jongwong.server.entity;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,           // 使用类名作为类型信息
+        include = JsonTypeInfo.As.PROPERTY,  // 将类型信息包含在JSON属性中
+        property = "type"                     // 设置字段名为"type"
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -49,8 +55,6 @@ public class ProductVO {
     @Schema(description = "商品状态")
     private Integer status;
 
-
-
     @Schema(description = "SEO优化的标题")
     private String metaTitle;
 
@@ -65,9 +69,6 @@ public class ProductVO {
 
     @Schema(description = "上架状态")
     private Integer listedStatus;
-
-
-
 
     @Schema(description = "审核拒绝原因")
     private String rejectionReason;

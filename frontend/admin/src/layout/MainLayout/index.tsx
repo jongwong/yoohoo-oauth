@@ -1,16 +1,38 @@
 import React, { Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom'; // 使用 Routes 来包裹路由
-import { App, ConfigProvider, Layout } from 'antd';
-import zhCN from 'antd/es/locale/zh_CN';
+import { App, ConfigProvider, DatePicker, Layout } from 'antd';
 
 import MenuComponent from '@/layout/Menu';
 import Login from '@/pages/Login';
 import routes from '@/routes'; // 引入路由配置
 import LogoSvg from './logo.svg';
-import { CaretRightFilled } from '@ant-design/icons';
 import { useLocalStorageState } from 'ahooks';
+import dayjs from 'dayjs';
+import locale from 'antd/locale/zh_CN';
+
+import 'dayjs/locale/zh-cn';
+import { CaretRightFilled } from '@ant-design/icons';
+
+dayjs.locale('zh-cn');
 
 const { Header, Sider } = Layout;
+
+const ranges = {
+	明天: [dayjs().add(1, 'day').startOf('day'), dayjs().add(1, 'day').endOf('day')],
+	下一周: [dayjs().startOf('day'), dayjs().add(7, 'day').endOf('day')],
+	下个月: [dayjs().add(1, 'month').startOf('month'), dayjs().add(1, 'month').endOf('month')],
+	昨天: [dayjs().subtract(1, 'day').startOf('day'), dayjs().subtract(1, 'day').endOf('day')],
+	最近7天: [dayjs().subtract(6, 'day').startOf('day'), dayjs().endOf('day')],
+	最近30天: [dayjs().subtract(29, 'day').startOf('day'), dayjs().endOf('day')],
+	今天: [dayjs().startOf('day'), dayjs().endOf('day')],
+	本周: [dayjs().startOf('week'), dayjs().endOf('day')],
+	本月: [dayjs().startOf('month'), dayjs().endOf('day')],
+};
+
+// 全局配置默认 props
+DatePicker.RangePicker.defaultProps = {
+	ranges,
+} as any;
 
 const MainLayout: React.FC = () => {
 	const renderRoutes = (routeList: any[]) => {
@@ -29,14 +51,14 @@ const MainLayout: React.FC = () => {
 
 	return (
 		<ConfigProvider
-			locale={zhCN}
+			locale={locale}
 			theme={{
 				token: {
 					// Seed Token，影响范围大
 					colorPrimary: '#446fef',
 				},
 			}}>
-			<App>
+			<App className={'h-1-1 w-1-1'}>
 				<Routes>
 					{/* 登录路由 */}
 					<Route path="/login" element={<Login />} />
@@ -46,11 +68,73 @@ const MainLayout: React.FC = () => {
 						path="/*"
 						element={
 							<Layout style={{ minHeight: '100vh' }}>
+								<div
+									style={{
+										position: 'relative',
+										height: '100vh',
+										width: menuVisible ? 200 : 0,
+									}}></div>
 								{/* 侧边栏 */}
+								<div
+									style={{
+										border: '1px solid #eee',
+										zIndex: 1,
+										position: 'fixed',
+										height: '100vh',
+										left: 0,
+										top: 0,
+
+										width: menuVisible ? 200 : 0,
+									}}>
+									<div
+										onClick={() => {
+											setMenuVisible(!menuVisible);
+										}}
+										style={{
+											position: 'absolute',
+											width: 12,
+											height: 56,
+											top: '50%',
+											right: -12,
+											cursor: 'pointer',
+											boxShadow: '0x 2px 4px rgba(0, 0, 0, 0.05)',
+											zIndex: 1000, // 确保主内容在伪元素之上
+										}}>
+										<div
+											style={{
+												background: '#fff',
+												width: '100%',
+												height: '100%',
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'end',
+
+												clipPath: 'polygon(0 0, 100% 10%, 100% 90%, 0 100%)', // 对称梯形
+											}}>
+											{/* 图标内容 */}
+											<CaretRightFilled
+												rotate={menuVisible ? 180 : 0}
+												style={{
+													position: 'absolute',
+													left: -3,
+													color: '#666',
+												}}
+											/>
+										</div>
+									</div>
+								</div>
 								<Sider
 									width={menuVisible ? 200 : 0}
 									theme="light"
-									style={{ border: '1px solid #eee', zIndex: 100 }}>
+									style={{
+										border: '1px solid #eee',
+										zIndex: 1,
+										position: 'fixed',
+										height: '100vh',
+										left: 0,
+										top: 0,
+										overflowY: 'auto',
+									}}>
 									<div
 										style={{
 											color: '#4d6af1',
@@ -61,49 +145,9 @@ const MainLayout: React.FC = () => {
 										<LogoSvg style={{ height: 22 }} />
 									</div>
 									<MenuComponent routes={routes} /> {/* 动态生成菜单 */}
-									<div
-										onClick={() => {
-											setMenuVisible(!menuVisible);
-										}}
-										style={{
-											position: 'absolute',
-											background: '#fff',
-											width: 12,
-											height: 56,
-											right: -12,
-											display: 'flex',
-											alignItems: 'center',
-											justifyContent: 'end',
-											cursor: 'pointer',
-											boxShadow: '2px 2px 4px rgba(0, 0, 0, 1)',
-											clipPath: 'polygon(0 0, 100% 10%, 100% 90%, 0 100%)', // 对称梯形
-											zIndex: 10, // 确保主内容在伪元素之上
-										}}>
-										{/* 图标内容 */}
-										<CaretRightFilled
-											rotate={menuVisible ? 180 : 0}
-											style={{
-												position: 'absolute',
-												left: -3,
-												color: '#666',
-											}}
-										/>
-									</div>
 								</Sider>
 
 								<Layout>
-									{/* 顶部导航 */}
-									{/*<Header*/}
-									{/*	style={{*/}
-									{/*		background: '#fff',*/}
-									{/*		padding: 0,*/}
-									{/*		boxShadow: '0px 1px 4px rgba(0, 21, 41, .118)',*/}
-									{/*		zIndex: 10,*/}
-									{/*	}}>*/}
-									{/*	<div style={{ padding: '0 16px' }}>*/}
-									{/*		<h2 style={{ margin: 0 }}>333管理系统</h2>*/}
-									{/*	</div>*/}
-									{/*</Header>*/}
 									<Suspense fallback={<div>Loading...</div>}>
 										<Routes>{renderRoutes(routes)}</Routes>
 									</Suspense>

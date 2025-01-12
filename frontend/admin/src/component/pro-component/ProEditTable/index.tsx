@@ -1,30 +1,53 @@
-import React from 'react';
-import { Button, Form, Table, TableProps } from 'antd';
-import ProForm from '../ProForm';
+import React, { useRef } from 'react';
+import { Button, Form, Table } from 'antd';
 import uuid from 'uuid';
 import classNames from 'classnames';
 
+import { ProEditTableProps } from './types';
+import { getKeyList } from '../utils/not-export';
+
+import ProField from '../ProField';
+
 import './index.less';
 
-type ProEditTableProps = {
-	name: string;
-	columns: any[];
-	editable?: boolean;
-	onInitRowData?: (newIdx: number) => Promise<any>;
-} & Omit<TableProps<any>, 'dataSource' | 'columns'>;
 const ProEditTable: React.FC<ProEditTableProps> = props => {
 	const { name, editable = false, onInitRowData, columns, ...rest } = props;
 
 	const form = Form.useFormInstance();
-
-	const formatColumns = columns.map(column => {
-		return {
-			...column,
-			render: (text: any, record: any, index: number) => {
-				return <ProForm.Item {...column} name={[index, column.dataIndex]} allEditable={editable} />;
-			},
-		};
-	});
+	const operationsRef = useRef<any>();
+	const formatColumns = columns
+		.map(column => {
+			return {
+				...column,
+				render: (t, r, idx) => {
+					const li = getKeyList(column?.dataIndex);
+					const itemName = [idx, ...li];
+					const fieldName = [...getKeyList(name), ...itemName];
+					return (
+						<ProField
+							label={undefined}
+							{...column}
+							name={itemName}
+							allEditable={editable}
+							getRecord={() => r}
+							getArgs={e => {
+								const operations = {
+									remove: () => {
+										operationsRef.current?.remove?.(idx);
+									},
+								};
+								if (e) {
+									return [t, r, idx, { index: idx, fieldName: fieldName, operations }];
+								} else {
+									return [t, r, idx, { index: idx, fieldName: fieldName, operations }];
+								}
+							}}
+						/>
+					);
+				},
+			};
+		})
+		.filter(e => e.visible !== false);
 
 	const renderFooter = (add: any, newIdx: number) => {
 		return editable ? (
@@ -39,6 +62,7 @@ const ProEditTable: React.FC<ProEditTableProps> = props => {
 			</Button>
 		) : null;
 	};
+
 	return (
 		<div
 			className={classNames(
@@ -51,7 +75,9 @@ const ProEditTable: React.FC<ProEditTableProps> = props => {
 				// 	: 'brick-pro-edit-table-hint-single'
 			)}>
 			<Form.List name={name}>
-				{(fields, { add, remove }) => {
+				{(fields, operations) => {
+					operationsRef.current = operations;
+					const { add, remove } = operations;
 					const dataSource = fields.map((field, index) => {
 						return form.getFieldValue(name)[index] || {};
 					});

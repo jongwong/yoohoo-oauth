@@ -2,15 +2,18 @@
  * 通用时间处理渲染函数
  * */
 import React from 'react';
-import dayjs from 'dayjs';
-import { isNumber } from 'lodash';
 
 import { DatePicker, DatePickerProps } from 'antd';
-import { getDefaultPlaceHolder, PlaceHolderType } from '../../render/formatRenderUtil';
-import ProxyWrapped from '../../../ProxyWrapped';
-import { CommonProConfigType } from '../../../ProField/render';
+import dayjs from 'dayjs';
+import { get, isNil, isNumber } from 'lodash';
+
+import { getErrorMessageName } from '../../../utils/not-export';
+
 import { EMPTY_TEXT } from '../../../constant';
+import { CommonProConfigType } from '../../../ProField/render';
+import ProxyWrapped from '../../../ProxyWrapped';
 import { ElementOf } from '../../../types';
+import { getDefaultPlaceHolder, PlaceHolderType } from '../../render/formatRenderUtil';
 
 const { RangePicker } = DatePicker;
 
@@ -89,11 +92,19 @@ const defaultTimeValueTypeMap: CommonProConfigType['valueTypeMap'] = {
 		renderFormItem: (v, r, opts: Record<string, any>) => renderTime({}, opts, 'start'),
 	},
 	[DefaultTimeValueTypeEnum.RangePicker]: {
-		render: val => {
-			let newVal = val;
-			if (Array.isArray(val)) {
+		render: (t, r, _idx, { field }) => {
+			const [startDataIndex, endDataIndex] = field?.extraFieldNames || [];
+			if (isNil(startDataIndex) || isNil(endDataIndex)) {
+				const name = getErrorMessageName(field);
+				throw Error(
+					`Error in  ${name}.  missing attributes extraFieldNames, such as {extraFieldNames:[startDataIndex,endDataIndex]} `
+				);
+			}
+
+			if (get(r, startDataIndex) && get(r, endDataIndex)) {
 				// eslint-disable-next-line array-callback-return
-				newVal = val.map(it => {
+				const newVal = [get(r, startDataIndex), get(r, endDataIndex)].map(it => {
+					// @ts-ignore
 					if (it) {
 						return dayjs(it)?.format('YYYY-MM-DD');
 					}
@@ -103,32 +114,55 @@ const defaultTimeValueTypeMap: CommonProConfigType['valueTypeMap'] = {
 			}
 			return EMPTY_TEXT;
 		},
-		renderFormItem: (t, r: Record<string, any>, opt) => (
+		renderFormItem: (
+			t,
+			r: Record<string, any>,
+			{ field, form, fieldName = [], index }: Record<string, any>
+		) => (
 			<ProxyWrapped>
-				{op => {
-					const val = Array.isArray(op?.value)
-						? op?.value.map(it => (it ? dayjs(it) : it))
-						: undefined;
+				{(op: any = {}) => {
+					const [startDataIndex, endDataIndex] = field?.extraFieldNames || [];
+					if (isNil(startDataIndex) || isNil(endDataIndex)) {
+						const name = getErrorMessageName(field);
+						throw Error(
+							`Error in  ${name}.  missing attributes extraFieldNames, such as {extraFieldNames:[startDataIndex,endDataIndex]} `
+						);
+					}
+
+					const start = [...fieldName];
+					const end = [...fieldName];
+					start[start.length - 1] = startDataIndex;
+					end[end.length - 1] = endDataIndex;
+
+					const val = [form.getFieldValue(start), form.getFieldValue(end)].map(it =>
+						it ? dayjs(it) : undefined
+					);
 					return (
+						// @ts-ignore
 						<RangePicker
-							{...op}
 							value={val as any}
 							onChange={e => {
-								const newVal = Array.isArray(e)
-									? e.map((it, idx) => {
-											if (!it) {
-												return it;
-											}
-											if (idx === 0) {
-												return it?.startOf('date').valueOf();
-											}
-											if (idx === e?.length - 1) {
-												return it?.endOf('date').valueOf();
-											}
-											return it?.valueOf();
-									  })
-									: undefined;
-								op?.onChange?.(newVal);
+								const val1 = e?.[0]?.startOf('date')?.valueOf();
+								const val2 = e?.[1]?.endOf('date')?.valueOf();
+								const ob = {
+									[startDataIndex]: val1,
+									[endDataIndex]: val2,
+								};
+								if (field?._useType === 'useFormatColumns') {
+									op?.onChange?.(ob);
+								} else {
+									form?.setFields?.([
+										{
+											name: start,
+											value: val1,
+										},
+										{
+											name: end,
+											value: val2,
+										},
+									]);
+									form.validateFields([start, end]);
+								}
 							}}
 						/>
 					);

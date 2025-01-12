@@ -137,7 +137,6 @@ public class UserServiceImpl implements UserService {
     /**
      * 获取当前用户的 ID。
      *
-     * @deprecated
      * @return 当前用户的 ID，如果没有认证的用户则返回 "系统用户"
      */
     public Mono<String> getCurrentUserId() {

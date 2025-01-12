@@ -1,7 +1,8 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { deleteCookie, getCookie } from '@/utils/cookie';
 import { Modal } from 'antd';
-import { isNumber, omitBy } from 'lodash'; // 确保正确引入 Modal
+import { isNumber, omitBy } from 'lodash';
+import axiosRetry from 'axios-retry';
 
 const openLoginConfirm = (message: string) => {
 	Modal.confirm({
@@ -15,12 +16,50 @@ const openLoginConfirm = (message: string) => {
 		},
 	});
 };
+
+const tryConfirm = (error: AxiosError): Promise<boolean> => {
+	return new Promise(resolve => {
+		const data = error?.response?.data || {
+			code: -1,
+			success: false,
+			message: '',
+		};
+		if (error?.status === 401 || data?.code === 401) {
+			deleteCookie('access_token');
+			openLoginConfirm(data?.message);
+			return Promise.resolve(data);
+		}
+		Modal.confirm({
+			title: '请求超时，请重试',
+			content: error.data?.message,
+			onOk: async () => {
+				// 实现重试逻辑
+				return resolve(true);
+			},
+			onCancel: async () => {
+				// 实现重试逻辑
+				return resolve(false);
+			},
+		});
+	});
+};
+
 // 创建 Axios 实例
 const http = axios.create({
 	baseURL: 'http://localhost:8080', // 后端 API 基础地址
 	timeout: 10000, // 请求超时时间
 	headers: {
 		'Content-Type': 'application/json', // 默认请求头
+	},
+});
+
+// 配置 axios-retry：对于失败的请求进行重试
+axiosRetry(http, {
+	retries: 10, // 重试次数
+	retryDelay: axiosRetry.exponentialDelay, // 使用指数回退延迟
+	retryCondition: error => {
+		// 在这里可以根据错误的类型来决定是否重试
+		return tryConfirm(error);
 	},
 });
 
@@ -43,27 +82,19 @@ http.interceptors.request.use(
 http.interceptors.response.use(
 	response => {
 		const ob = response?.data || {};
+
 		return { ...ob, success: ob?.code === 0 };
 	},
-	error => {
+	async error => {
 		const data = error?.response?.data || {
 			code: -1,
 			success: false,
 			message: '',
 		};
+
 		if (error?.status === 401 || data?.code === 401) {
 			deleteCookie('access_token');
 			openLoginConfirm(data?.message);
-			return Promise.resolve(data);
-		}
-		if (!error?.response && error?.name && error?.code) {
-			Modal.confirm({
-				title: '请求超时，请重试',
-				content: data?.message,
-				onOk: () => {
-					window.location.reload(); // 跳转到登录页
-				},
-			});
 			return Promise.resolve(data);
 		}
 

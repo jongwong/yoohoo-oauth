@@ -37,6 +37,7 @@ specifiers:
   ali-oss: ^6.22.0
   antd: ^5.22.5
   axios: ^1.4.0
+  axios-retry: ^4.5.0
   babel-loader: ^8.2.5
   babel-plugin-import: ^1.13.3
   babel-plugin-transform-runtime: ^6.23.0
@@ -117,6 +118,7 @@ dependencies:
   ali-oss: 6.22.0
   antd: 5.22.5_nnrd3gsncyragczmpvfhocinkq
   axios: 1.7.9
+  axios-retry: 4.5.0_axios@1.7.9
   classnames: 2.5.1
   dayjs: 1.11.13
   jotai: 2.10.3_etakp3t3jkcarp55ny7sncr7iy
@@ -5654,6 +5656,15 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
+  /axios-retry/4.5.0_axios@1.7.9:
+    resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
+    peerDependencies:
+      axios: 0.x || 1.x
+    dependencies:
+      axios: 1.7.9
+      is-retry-allowed: 2.2.0
+    dev: false
+
   /axios/1.7.9:
     resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
     dependencies:
@@ -10253,6 +10264,11 @@ packages:
     resolution: {integrity: sha512-OZ4IlER3zmRIoB9AqNhEggVxqIH4ofDns5nRrPS6yQxXE1TPCUpFznBfRQmQa8uC+pXqjMnukiJBxCisIxiLGA==}
     engines: {node: '>=6'}
     dev: true
+
+  /is-retry-allowed/2.2.0:
+    resolution: {integrity: sha512-XVm7LOeLpTW4jV19QSH38vkswxoLud8sQ57YwJVTPWdiaI9I8keEhGFpBlslyVsgdQy4Opg8QOLb8YRgsyZiQg==}
+    engines: {node: '>=10'}
+    dev: false
 
   /is-root/2.1.0:
     resolution: {integrity: sha512-AGOriNp96vNBd3HtU+RzFEc75FfR5ymiYv8E553I71SCeXBiMsVDUtdio1OEFvrPyLIQ9tVR5RxXIFe5PUFjMg==}

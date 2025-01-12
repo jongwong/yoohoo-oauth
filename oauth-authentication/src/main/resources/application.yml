@@ -8,6 +8,9 @@ server:
 spring:
   profiles:
     active: local
+  security:
+    user:
+      enabled: false
   webflux:
     static-path-pattern: /static/**
   session:

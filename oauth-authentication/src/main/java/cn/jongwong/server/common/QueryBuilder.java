@@ -1,11 +1,11 @@
 package cn.jongwong.server.common;
 
+import cn.jongwong.server.util.response.EntityUtils;
 import cn.jongwong.server.util.response.Page;
 import io.r2dbc.spi.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
-import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
@@ -189,19 +189,8 @@ public class QueryBuilder<T> {
             return this.tableName;
         }
 
-        Table tableAnnotation = entityType.getAnnotation(Table.class);
-        if (tableAnnotation != null) {
-            String name = tableAnnotation.name();
-            if (name.isEmpty()) {
-                name = tableAnnotation.value();
-            }
-            if (name.isEmpty()) {
-                throw new IllegalStateException("Table name must be defined via @Table annotation on entity class.");
-            }
-            return name;
-        } else {
-            throw new IllegalStateException("Table name must be defined via @Table annotation on entity class.");
-        }
+
+        return EntityUtils.getTableNameFromEntityClass((Class<Object>) entityType);
     }
 
     public interface FieldMappingCallback<T> {

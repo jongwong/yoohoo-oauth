@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -96,5 +97,12 @@ public class DistributionPointService {
                 });
 
 
+    }
+
+    public Flux<DistributionPointVO> findByIds(List<String> ids) {
+        if (ids == null) {
+            return Flux.empty();
+        }
+        return distributionPointRepository.findAllByIdIn(ids);
     }
 }

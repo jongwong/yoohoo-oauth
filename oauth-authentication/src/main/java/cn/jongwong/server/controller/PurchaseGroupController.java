@@ -1,7 +1,8 @@
 package cn.jongwong.server.controller;
 
 import cn.jongwong.server.entity.PurchaseGroupVO;
-import cn.jongwong.server.service.product.PurchaseGroupService;
+import cn.jongwong.server.service.PurchaseGroupService;
+import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,16 @@ public class PurchaseGroupController {
 
     @Autowired
     private PurchaseGroupService purchaseGroupService;
+
+
+    @GetMapping
+    public Mono<PageResponse<PurchaseGroupVO>> search(@RequestParam(required = false) String name,
+                                                      @RequestParam(required = false) Integer enable,
+                                                      @RequestParam(required = true) int page,
+                                                      @RequestParam(required = true) int size) {
+        return PageResponse.reactivePageSuccess(purchaseGroupService.search(name, enable, page, size));
+    }
+
 
     @GetMapping("/{id}")
     public Mono<Response<PurchaseGroupVO>> findById(@PathVariable String id) {
@@ -28,9 +39,10 @@ public class PurchaseGroupController {
     }
 
     @PutMapping("/{id}")
-    public Mono<Response<PurchaseGroupVO>> update(@PathVariable String id, @RequestBody PurchaseGroupVO purchaseGroupVO) {
-        purchaseGroupVO.setId(id);
-        return purchaseGroupService.update(purchaseGroupVO)
+    public Mono<Response<PurchaseGroupVO>> update(@PathVariable String id, @RequestBody PurchaseGroupVO data) {
+
+        data.setId(id);
+        return purchaseGroupService.update(data)
                 .map(Response::ok)
                 .defaultIfEmpty(Response.notFound());
     }

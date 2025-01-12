@@ -1,12 +1,12 @@
 package cn.jongwong.server.config.security.jwt;
 
+import cn.jongwong.server.config.handle.InvalidBearerTokenException;
 import cn.jongwong.server.dto.JwtUser;
 import cn.jongwong.server.dto.user.CurrentAuthenticationUserRO;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 

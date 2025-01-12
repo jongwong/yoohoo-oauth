@@ -12,14 +12,18 @@ export interface SearchSelectProps extends Omit<SelectProps<any>, 'options'> {
 			size: number;
 		} & Record<string, any>
 	) => Promise<{ data: any[]; total: number }>;
+	params?: Record<string, any>;
 	loadInitialOptions?: (keys: string[]) => Promise<any[]>;
 	triggerLength?: number; // 输入多少字符后开始查询
-	initFetchType?: 'init' | 'open' | 'search';
+	triggerMode?: 'init' | 'open' | 'search';
 	searchKeyword?: string;
 }
 
+const DEFAULT_PAGE_SIZE = 10;
+
 const SearchSelect: React.FC<SearchSelectProps> = props => {
 	const {
+		params,
 		request,
 		labelInValue,
 		onDropdownVisibleChange,
@@ -27,33 +31,52 @@ const SearchSelect: React.FC<SearchSelectProps> = props => {
 		triggerLength = 2,
 		fieldNames = { label: 'label', value: 'value', key: 'key' },
 		value,
-		initFetchType = 'search',
+		triggerMode = 'search',
 		searchKeyword = 'name',
 		onChange,
 		...restProps
 	} = props;
-	const [options, setOptions] = useState<any[]>([]);
+	const [options, setOptions, getOptions] = useGetState<any[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [searchString, setSearchString, getSearchString] = useGetState('');
 	const [page, setPage, getPage] = useGetState(1);
-	const [total, setTotal] = useState(0);
+	const [total, setTotal] = useState(-1);
 	const initFetchRef = useRef(false);
 	const [optionLoadInit, setOptionLoadInit, getOptionLoadInit] = useGetState(false);
 	const fetchData = async (reset = false) => {
 		if (loading) return;
-		setLoading(true);
+
+		let _page = getPage();
 		if (reset) {
-			setPage(1);
+			_page = 1;
+		} else {
+			_page = getPage() + 1;
 		}
+		if (_page * DEFAULT_PAGE_SIZE >= total && total >= 0) {
+			return;
+		}
+
+		setLoading(true);
 		try {
 			const _page = getPage();
-			const response = await request({ page: _page, size: 20, [searchKeyword]: searchString });
+			const response = await request({
+				...params,
+				page: _page,
+				size: DEFAULT_PAGE_SIZE,
+				[searchKeyword]: searchString,
+			});
 			const { data, total } = response;
 			if (total) {
 				setOptions(prev => (reset ? data : [...prev, ...data]));
-				setTotal(total);
-				setPage(prev => prev + 1);
+
+				data?.forEach(it => {
+					const _name = fieldNames.value;
+					const _key = it[_name!];
+					openHasInitMapRef.current[_key] = true;
+				});
+				setPage(_page);
 			}
+			setTotal(total || 0);
 		} finally {
 			setLoading(false);
 		}
@@ -68,9 +91,12 @@ const SearchSelect: React.FC<SearchSelectProps> = props => {
 	};
 
 	const handleDropdownVisibleChange = (e: boolean) => {
-		if (!initFetchRef.current && e && initFetchType === 'open') {
+		setOptionLoadInit(true);
+
+		if (!initFetchRef.current && e && triggerMode === 'open') {
 			fetchData(true);
 		}
+
 		onDropdownVisibleChange?.(e);
 	};
 
@@ -89,10 +115,10 @@ const SearchSelect: React.FC<SearchSelectProps> = props => {
 				}
 			});
 		}
-
-		if (!keys.length || getOptionLoadInit()) {
+		if (!keys.length) {
 			return;
 		}
+		setOptionLoadInit(true);
 		loadInitialOptions?.(keys).then(e => {
 			e.forEach(it => {
 				if (!openHasInitMapRef.current[e]) {
@@ -110,7 +136,8 @@ const SearchSelect: React.FC<SearchSelectProps> = props => {
 
 	const handleScroll = (event: React.UIEvent<HTMLDivElement, UIEvent>) => {
 		const target = event.target as HTMLElement;
-		if (target.scrollTop + target.offsetHeight >= target.scrollHeight && options.length < total) {
+		const threshold = 50; // 距离底部的像素值
+		if (target.scrollTop + target.offsetHeight >= target.scrollHeight - threshold) {
 			fetchData();
 		}
 	};
@@ -119,6 +146,7 @@ const SearchSelect: React.FC<SearchSelectProps> = props => {
 		const labelKey = fieldNames?.label;
 		const valueKey = fieldNames?.value;
 		const keyName = (fieldNames as any)?.key;
+
 		return options.map(item => ({
 			...item,
 			label: item[labelKey!],
@@ -127,7 +155,7 @@ const SearchSelect: React.FC<SearchSelectProps> = props => {
 		}));
 	}, [options]);
 	useEffect(() => {
-		if (initFetchType === 'init') {
+		if (triggerMode === 'init') {
 			fetchData(true);
 		}
 	}, []);
@@ -147,6 +175,7 @@ const SearchSelect: React.FC<SearchSelectProps> = props => {
 					)}
 				</div>
 			)}
+			notFoundContent={loading ? '请求中...' : '暂无数据'}
 			options={formatOptions}
 			value={!isNil(value) && formatOptions?.length ? value : undefined}
 			onChange={onChange}

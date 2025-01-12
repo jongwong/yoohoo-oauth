@@ -28,6 +28,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq</artifactId>
+                <version>3.19.17</version>
+            </dependency>
+            <dependency>
                 <groupId>com.aliyun.oss</groupId>
                 <artifactId>aliyun-sdk-oss</artifactId>
                 <version>3.18.1</version>
@@ -62,7 +67,7 @@
             <dependency>
                 <groupId>org.springframework.session</groupId>
                 <artifactId>spring-session-data-redis</artifactId>
-                <version>${spring.security.version}</version>
+                <version>${spring.boot.version}</version>
             </dependency>
    
             <dependency>

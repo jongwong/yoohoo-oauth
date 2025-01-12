@@ -1,14 +1,24 @@
 import { FormInstance } from 'antd';
 import { Key } from 'react';
+import { BaseProFieldType } from '@/component/pro-component/types';
 
-export type ProFieldType<T = any> = {};
+export type ProFieldType<T = any> = BaseProFieldType<T>;
 
 export type BaseFormItemOptionType<T = any> = {
 	field: ProFieldType<T>;
 	form: FormInstance<T>;
-	formName: Key[];
+	fieldName: Key[];
 	index?: number;
 };
+
+export type BaseTableOptionType<T = any> = {
+	field: ProFieldType<T>;
+	form: FormInstance<T>;
+	fieldName: Key[];
+	index: number;
+	operations: { remove: () => void };
+};
+
 export type GetColumnPropsFnType<T = any, P = any, K = any> = (
 	// 所有的getColumnProps 参数要统一
 	t: any,

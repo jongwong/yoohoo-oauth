@@ -2,9 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { ContentLayout } from '@yoo/component';
-import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
+import {
+	EDefaultValueType,
+	ProEditTable,
+	ProForm,
+	ProFormItemsFieldType,
+} from '@yoo/pro-component';
 import { useUpdate } from 'ahooks';
-import { Button, Card, Form, message, Space } from 'antd';
+import { Button, Card, Form, message, Space, Typography } from 'antd';
+
+import ProductSearchSelect from '@/component/business/ProductSearchSelect';
 import { GlobalEnableTypeMap } from '@/constant/common';
 import { PurchaseGroupStatusMap } from '@/constant/purchase-group';
 
@@ -16,7 +23,8 @@ import {
 	updatePurchaseGroupDisable,
 	updatePurchaseGroupEnable,
 } from '../service';
-import ProEditTable from '@/component/pro-component/ProEditTable';
+import DistributionPointSelect from '@/component/business/DistributionPointSelect';
+import CardContainer from '@/component/base-ui/CardContainer';
 
 const Detail: React.FC = () => {
 	const params = useParams();
@@ -39,7 +47,6 @@ const Detail: React.FC = () => {
 		const res = await getPurchaseGroupById(groupId).finally(() => {
 			setLoading(false);
 		});
-
 		form.setFieldsValue({ ...res?.data });
 		setDetailData({ ...res?.data });
 		setEditable(false);
@@ -54,6 +61,17 @@ const Detail: React.FC = () => {
 			placeholder: '请输入团购名称',
 			formItemProps: {
 				rules: [{ required: true }],
+			},
+		},
+		{
+			label: '配送地址',
+			name: 'distribution_point_id',
+			renderFormItem: () => {
+				return <DistributionPointSelect triggerMode={'open'} />;
+			},
+
+			render: (t, r) => {
+				return r?.distribution_point_name;
 			},
 		},
 		{
@@ -84,28 +102,22 @@ const Detail: React.FC = () => {
 			visible: !editable,
 		},
 		{
-			label: '开始配送时间',
-			name: 'time_delivery_start',
-			valueType: EDefaultValueType.DateTime,
-			placeholder: '请选择开始配送时间',
-		},
-		{
-			label: '配送截止时间',
-			name: 'time_delivery_end',
-			valueType: EDefaultValueType.DateTime,
-			placeholder: '请选择配送截止时间',
-		},
-		{
 			label: '团购开始时间',
 			name: 'time_start',
-			valueType: EDefaultValueType.DateTime,
-			placeholder: '请选择团购开始时间',
+
+			extraFieldNames: ['time_start', 'time_end'],
+			valueType: EDefaultValueType.RangePicker,
 		},
 		{
-			label: '团购结束时间',
-			name: 'time_end',
-			valueType: EDefaultValueType.DateTime,
-			placeholder: '请选择团购结束时间',
+			label: '开始配送时间',
+			name: 'time_delivery_start',
+			formItemProps: {
+				normalize: e => {
+					return e;
+				},
+			},
+			extraFieldNames: ['time_delivery_start', 'time_delivery_end'],
+			valueType: EDefaultValueType.RangePicker,
 		},
 	];
 
@@ -224,29 +236,59 @@ const Detail: React.FC = () => {
 					: undefined,
 			}}>
 			<Form form={form} labelCol={{ span: 4 }} wrapperCol={{ span: 7 }}>
-				<Card title={'基础信息'}>
-					<ProForm.Items fields={fields} editable={editable} />
-				</Card>
+				<CardContainer>
+					<Card title={'基础信息'}>
+						<ProForm.Items fields={fields} editable={editable} />
+					</Card>
 
-				<Card title={'商品信息'}>
-					<ProEditTable
-						name={'products'}
-						editable={editable}
-						columns={[
-							{
-								title: '商品名称',
-								dataIndex: 'name',
-								formItemProps: {
-									rules: [{ required: true }],
+					<Card title={'商品信息'}>
+						<ProEditTable
+							name={'products'}
+							editable={editable}
+							columns={[
+								{
+									title: '商品名称',
+									dataIndex: 'product_id',
+									formItemProps: {
+										rules: [{ required: true }],
+									},
+									renderFormItem: (t, r) => {
+										return <ProductSearchSelect />;
+									},
+									render: (t, r) => {
+										return [r.product_code, r.product_name].join(':');
+									},
+									width: '50%',
 								},
-							},
-							{
-								title: '商品数量',
-								dataIndex: 'quantity',
-							},
-						]}
-					/>
-				</Card>
+								{
+									title: '最大库存',
+									dataIndex: 'max_stock',
+									valueType: EDefaultValueType.PositiveInteger,
+								},
+
+								{
+									title: '操作',
+									dataIndex: '_action',
+									editable: false,
+									visible: editable,
+									width: 120,
+									render: (t, r, idx, { operations }) => {
+										return (
+											<Space>
+												<Typography.Link
+													onClick={() => {
+														operations.remove?.();
+													}}>
+													删除
+												</Typography.Link>
+											</Space>
+										);
+									},
+								},
+							]}
+						/>
+					</Card>
+				</CardContainer>
 			</Form>
 		</ContentLayout>
 	);

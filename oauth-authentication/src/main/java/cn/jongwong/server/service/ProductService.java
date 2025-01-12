@@ -271,8 +271,8 @@ public class ProductService {
                 .flatMap(productRepository::deleteById).then(Mono.fromCallable(() -> id));
     }
 
-    public Flux<ProductVO> findByIds(String[] ids) {
-        if (ids == null || ids.length == 0) {
+    public Flux<ProductVO> findByIds(List<String> ids) {
+        if (ids == null) {
             return Flux.empty();
         }
         return productRepository.findAllByIdIn(ids);

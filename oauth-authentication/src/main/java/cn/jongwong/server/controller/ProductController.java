@@ -1,7 +1,7 @@
 package cn.jongwong.server.controller;
 
+import cn.jongwong.server.dto.product.CommonBatchDTO;
 import cn.jongwong.server.dto.product.CommonRejectDTO;
-import cn.jongwong.server.dto.product.QueryProductBatchDTO;
 import cn.jongwong.server.entity.ProductVO;
 import cn.jongwong.server.service.ProductService;
 import cn.jongwong.server.util.response.PageResponse;
@@ -35,7 +35,7 @@ public class ProductController {
     }
 
     @PostMapping("/batch")
-    public Mono<Response<List<ProductVO>>> getProductListByIds(@RequestBody QueryProductBatchDTO data) {
+    public Mono<Response<List<ProductVO>>> getProductListByIds(@RequestBody CommonBatchDTO data) {
         return productService.findByIds(data.getIds()).collectList().map(Response::success);
     }
 

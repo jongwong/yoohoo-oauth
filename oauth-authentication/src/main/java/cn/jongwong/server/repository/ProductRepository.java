@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Repository
 public interface ProductRepository extends GenericReactiveRepository<ProductVO, String> {
 
@@ -14,5 +16,5 @@ public interface ProductRepository extends GenericReactiveRepository<ProductVO, 
     @Query("SELECT * FROM tb_product ORDER BY code DESC LIMIT 1")
     Mono<ProductVO> findProductWithMaxCode();
 
-    Flux<ProductVO> findAllByIdIn(String[] ids);
+    Flux<ProductVO> findAllByIdIn(List<String> ids);
 }

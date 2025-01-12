@@ -6,9 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,20 +21,22 @@ import java.time.LocalDateTime;
 public class PurchaseGroupVO {
 
     @Schema(description = "团购主键ID")
+    @Id
     private String id;
 
     @Schema(description = "团购名称")
     @NotNull(message = "名称不能为空")
     private String name;
 
-
-    @Schema(description = "商品ID")
-    @NotNull(message = "商品不能为空")
-    private String productId;
-
     @Schema(description = "配送点ID")
     @NotNull(message = "配送不能为空")
     private String distributionPointId;
+
+
+    @Schema(description = "配送点名称")
+    @Transient
+    private String distributionPointName;
+
 
     @Schema(description = "最大参与人数")
     private Integer maxParticipants;
@@ -84,4 +89,8 @@ public class PurchaseGroupVO {
 
     @Schema(description = "商品类别ID")
     private String categoryId;
+
+    @Transient
+    @Schema(description = "团购商品信息")
+    private List<PurchaseGroupProductVO> products;
 }

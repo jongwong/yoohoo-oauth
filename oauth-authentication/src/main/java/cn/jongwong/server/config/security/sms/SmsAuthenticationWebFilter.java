@@ -1,6 +1,6 @@
 package cn.jongwong.server.config.security.sms;
 
-import cn.jongwong.server.config.security.handle.CustomAuthenticationFailureHandler;
+import cn.jongwong.server.config.handle.CustomAuthenticationFailureHandler;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;

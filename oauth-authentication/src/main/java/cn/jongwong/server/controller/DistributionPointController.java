@@ -1,5 +1,6 @@
 package cn.jongwong.server.controller;
 
+import cn.jongwong.server.dto.product.CommonBatchDTO;
 import cn.jongwong.server.entity.DistributionPointVO;
 import cn.jongwong.server.service.DistributionPointService;
 import cn.jongwong.server.util.response.PageResponse;
@@ -7,6 +8,8 @@ import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/distribution-point")
@@ -72,4 +75,11 @@ public class DistributionPointController {
         return distributionPointService.delete(id)
                 .then(Mono.just(Response.success()));  // 删除成功后返回一个空的响应
     }
+
+
+    @PostMapping("/batch")
+    public Mono<Response<List<DistributionPointVO>>> getProductListByIds(@RequestBody CommonBatchDTO data) {
+        return distributionPointService.findByIds(data.getIds()).collectList().map(Response::success);
+    }
+
 }

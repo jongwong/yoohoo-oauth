@@ -1,4 +1,4 @@
-package cn.jongwong.server.config.security.handle;
+package cn.jongwong.server.config.handle;
 
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.web.server.context.ServerSecurityContextRepository;

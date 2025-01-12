@@ -1,4 +1,4 @@
-package cn.jongwong.server.config.security.handle;
+package cn.jongwong.server.config.handle;
 
 import cn.jongwong.server.util.response.Response;
 import cn.jongwong.server.util.response.ResponseErrorCodeEnum;
@@ -8,7 +8,6 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -36,8 +35,6 @@ public class CustomAuthenticationFailureHandler implements ServerAuthenticationF
         // 根据不同的异常类型，返回不同的错误消息
         if (exception instanceof BadCredentialsException) {
             result = Response.error(ResponseErrorCodeEnum.UNAUTHORIZED.getCode(), "Invalid credentials");
-        } else if (exception instanceof InvalidBearerTokenException) {
-            result = Response.error(ResponseErrorCodeEnum.UNAUTHORIZED.getCode(), "Token invalid");
         } else if (exception instanceof InternalAuthenticationServiceException) {
             result = Response.error("Authentication service error");
         } else {

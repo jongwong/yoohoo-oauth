@@ -47,11 +47,14 @@ spring:
     username: ${custom-config.mysql.username}
     password: ${custom-config.mysql.password}
     pool:
-      max-size: 20                  # 最大连接数
-      initial-size: 10              # 初始连接数
-      max-idle-time: 30m            # 连接最大空闲时间
-      validation-query: SELECT 1    # 连接验证查询
-      validation-interval: 5000     # 验证间隔（单位毫秒）
+      initial-size: 5
+      max-size: 20
+      max-lifetime: 30m   # 最大生命周期
+      connection-timeout: 5000 # 连接超时时间
+      idle-timeout: 60000 # 空闲超时
+      validation-query: "SELECT 1"  # 连接验证
+      validate-on-borrow: true
+      leak-detection-threshold: 10000 # 连接泄漏检测阈值
   data:
     redis:
       port: ${custom-config.redis.port}

@@ -17,6 +17,7 @@ const ProFormItem: React.FC<
 		<>
 			<ProField
 				key={props?.name || (props as any)?.key}
+				_needLayout
 				allEditable={props?.allEditable}
 				{...(props as any)}
 				fieldFunc={isFunction(props) ? props : undefined}

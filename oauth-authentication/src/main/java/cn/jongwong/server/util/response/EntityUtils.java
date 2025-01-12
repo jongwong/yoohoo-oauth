@@ -94,7 +94,6 @@ public class EntityUtils {
 
     // 获取表名
     public static <T> String getTableNameFromEntityClass(Class<T> entityType) {
-        System.out.printf("-------entityType-------%s%n", entityType);
 
         Table tableAnnotation = entityType.getAnnotation(Table.class);
         if (tableAnnotation != null) {

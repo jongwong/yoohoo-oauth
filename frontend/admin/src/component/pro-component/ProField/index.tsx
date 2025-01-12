@@ -18,6 +18,7 @@ const InerProField: React.FC<
 		_allEditable?: boolean;
 		getArgs?: (e: boolean) => any;
 		getValue?: () => any;
+		_needLayout?: boolean;
 	}
 > = props => {
 	const {
@@ -31,6 +32,7 @@ const InerProField: React.FC<
 		_allEditable,
 		formItemProps = {},
 		getValue,
+		_needLayout,
 		...rest
 	} = props;
 	const form = Form.useFormInstance();
@@ -105,16 +107,20 @@ const InerProField: React.FC<
 			</Form.Item>
 		);
 	}
-	return (
-		<Form.Item
-			shouldUpdate={!editable ? true : undefined}
-			name={editable || _allEditable ? fieldName : undefined}
-			label={label}
-			hidden={!visible}
-			{...formItemProps}>
-			{formatRender()}
-		</Form.Item>
-	);
+	if (_needLayout) {
+		return (
+			<Form.Item
+				shouldUpdate={!editable ? true : undefined}
+				name={editable || _allEditable ? fieldName : undefined}
+				label={label}
+				hidden={!visible}
+				{...formItemProps}>
+				{formatRender()}
+			</Form.Item>
+		);
+	}
+
+	return formatRender();
 };
 
 const ProField: React.FC<
@@ -124,6 +130,7 @@ const ProField: React.FC<
 			getRecord?: () => any;
 			getArgs?: (e: boolean) => any;
 			allEditable?: boolean;
+			_needLayout?: boolean;
 	  }
 > = props => {
 	const _props = props as any;

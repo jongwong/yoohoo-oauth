@@ -96,11 +96,8 @@ public class SqlBuilder {
     // 设置 WHERE 条件
     public SqlBuilder where(Function<Criteria, Criteria> criteriaCallback) {
         Criteria criteria = Criteria.empty();
-        System.out.printf("-------2-------%s%n", criteria.toString());
         criteriaCallback.apply(criteria);
 
-        System.out.printf("-------3-------%s%n", criteria.toString());
-        System.out.printf("-------criteriaList-4------%s%n", criteriaList);
         return this;
     }
 
@@ -253,7 +250,6 @@ public class SqlBuilder {
 
     // 其他辅助方法（如构建 WHERE 子句，排序等）
     private String buildWhereClause() {
-        System.out.printf("-------criteriaList-------%s%n", criteriaList);
         if (criteriaList.isEmpty()) {
             return "";
         }

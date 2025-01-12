@@ -24,6 +24,7 @@ public class SqlBuilder {
     private Integer limit;
     private Integer offset;
     private Map<String, Object> parameters = new HashMap<>();
+    private String type;
 
     public static SqlBuilder builder() {
         SqlBuilder re = new SqlBuilder();
@@ -44,14 +45,17 @@ public class SqlBuilder {
         cloned.isCountQuery = this.isCountQuery;
         cloned.limit = this.limit;
         cloned.offset = this.offset;
+        cloned.type = this.type;
+
         return cloned;
     }
 
     // 选择查询字段
-    public SqlBuilder select(String fields) {
-        this.selectFields.clear();
-        this.selectFields.add(fields);
-        return this;
+    public static SqlBuilder select() {
+        var sql = builder();
+        sql.type = "SELECT";
+        
+        return sql;
     }
 
     // 添加字段
@@ -205,7 +209,7 @@ public class SqlBuilder {
         if (isCountQuery) {
             sqlBuilder.append("SELECT COUNT(*)");
         } else {
-            sqlBuilder.append("SELECT ");
+            sqlBuilder.append(this.type).append(" ");
             sqlBuilder.append(addAliasToFields(selectFields));
         }
 

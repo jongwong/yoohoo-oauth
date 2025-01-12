@@ -131,7 +131,7 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
     public <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
 
         var tableName = this.entity.getTableName().toString();
-        var sqlBuilder = SqlBuilder.builder().from(tableName);
+        var sqlBuilder = SqlBuilder.select().from(tableName);
         sqlBuilder.eq("id", id);
 
         // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
@@ -154,7 +154,7 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
     public <S extends T> Mono<Page<T>> findPageByDSL(Integer page, Integer size, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
 
         var tableName = this.entity.getTableName().toString();
-        var sqlBuilder = SqlBuilder.builder().from(tableName);
+        var sqlBuilder = SqlBuilder.select().from(tableName);
 
         // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
         sqlBuilderFunction.apply(sqlBuilder);

@@ -21,6 +21,7 @@ const useCheckLogin = () => {
           console.error("登录失败：", res.errMsg);
           return;
         }
+
         // 请求后端获取 openid 和 session_key
         const openidRes = await request
           .post(
@@ -41,6 +42,7 @@ const useCheckLogin = () => {
           .finally(() => {
             setLoading(false);
           });
+        setLoading(false);
 
         if (!openidRes?.success) {
           wx.showToast({

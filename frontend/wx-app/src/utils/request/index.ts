@@ -42,6 +42,20 @@ const request = <T = any, U = any>(
         });
       },
       success: (result) => {
+        if (result?.data?.code === 401) {
+          if (
+            result?.data?.message.startsWith("Token Invalid: JWT expired at")
+          ) {
+            wx.removeStorageSync("access_token");
+            wx.removeStorageSync("refresh_token");
+            console.log("=====222=====", 222);
+          }
+
+          wx.navigateTo({
+            url: "/pages/login/index",
+          });
+        }
+
         const _data = {
           ...result?.data,
           success: result?.data?.code === 0,

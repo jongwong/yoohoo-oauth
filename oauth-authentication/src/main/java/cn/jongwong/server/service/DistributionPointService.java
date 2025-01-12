@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -96,6 +97,21 @@ public class DistributionPointService {
                     );
                 });
 
+
+    }
+
+    public Mono<Page<DistributionPointVO>> searchSortByLocation(String name, BigDecimal latitude, BigDecimal longitude, int page, int size) {
+
+        // 使用 SQL 或者自定义的查询 DSL 来获取离输入点最近的记录
+        return distributionPointRepository.findPageByDSL(page, size, qsl -> {
+            qsl.like("name", name);
+            qsl.sort("distance,asc");  // 假设你想按距离排序，可以通过计算距离来排序
+            qsl.column("6371 * ACOS(COS(RADIANS(:latitude)) * COS(RADIANS(latitude)) * COS(RADIANS(longitude) - RADIANS(:longitude)) + SIN(RADIANS(:latitude)) * SIN(RADIANS(latitude))) AS distance")
+                    .bind("latitude", latitude)
+                    .bind("longitude", longitude);
+            // 计算距离：Haversine公式
+            return qsl;
+        });
 
     }
 

@@ -8,7 +8,12 @@ export default defineAppConfig({
     "pages/registration/index",
     "pages/login/index",
   ],
-  permission: {},
+  permission: {
+    "scope.userLocation": {
+      desc: "需要获取您的位置信息",
+    },
+  },
+  requiredPrivateInfos: ["getLocation"],
   debug: true,
   window: {
     backgroundTextStyle: "light",

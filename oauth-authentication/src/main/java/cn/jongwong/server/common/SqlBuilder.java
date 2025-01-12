@@ -173,9 +173,25 @@ public class SqlBuilder {
         return this.withJoin(join -> join.right());
     }
 
+
     // 设置排序
     public SqlBuilder sort(String orderByClause) {
-        this.orderByClause = orderByClause;
+        // 按逗号分割字符串
+        var parts = orderByClause.split(",");
+
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid orderByClause format. Expected format: 'field,asc/desc'");
+        }
+
+        // 保留字段名不变，将排序关键字转为大写
+        var field = parts[0].trim();
+        var order = parts[1].trim().toUpperCase();
+
+        // 拼接成 "字段名 排序关键字"
+        var result = String.join(" ", field, order);
+
+
+        this.orderByClause = result;
         return this;
     }
 
@@ -210,33 +226,43 @@ public class SqlBuilder {
             sqlBuilder.append("SELECT COUNT(*)");
         } else {
             sqlBuilder.append(this.type).append(" ");
-            sqlBuilder.append(addAliasToFields(selectFields));
+            var str = addAliasToFields(selectFields);
+            // 如果str trim 后 第一个且最后一个是括号去掉括号
+            if (str.trim().startsWith("(") && str.trim().endsWith(")")) {
+                str = str.trim().substring(1, str.trim().length() - 1);
+            }
+            sqlBuilder.append(str);
         }
 
         sqlBuilder.append(" FROM ").append(getTableNameFromEntity());
+        if (!isCountQuery) {
+            for (Join join : joinClauseList) {
+                sqlBuilder.append(" ").append(join.getJoinType())
+                        .append(" ").append(join.getTable())
+                        .append(" ON ").append(join.getOnCondition());
+            }
 
-        for (Join join : joinClauseList) {
-            sqlBuilder.append(" ").append(join.getJoinType())
-                    .append(" ").append(join.getTable())
-                    .append(" ON ").append(join.getOnCondition());
         }
+
 
         String whereClause = buildWhereClause();
         if (!whereClause.isEmpty()) {
             sqlBuilder.append(" ").append(whereClause);
         }
 
-        String orderBy = buildOrderByClause();
-        if (!orderBy.isEmpty()) {
-            sqlBuilder.append(" ").append(orderBy);
+        if (!isCountQuery) {
+            String orderBy = buildOrderByClause();
+            if (!orderBy.isEmpty()) {
+                sqlBuilder.append(" ").append(orderBy);
+            }
+            if (limit != null) {
+                sqlBuilder.append(" LIMIT ").append(limit);
+            }
+            if (offset != null) {
+                sqlBuilder.append(" OFFSET ").append(offset);
+            }
         }
 
-        if (limit != null) {
-            sqlBuilder.append(" LIMIT ").append(limit);
-        }
-        if (offset != null) {
-            sqlBuilder.append(" OFFSET ").append(offset);
-        }
 
         String sql = sqlBuilder.toString();
 
@@ -267,8 +293,7 @@ public class SqlBuilder {
             condition = tableAlias + "." + condition;
         }
 
-        condition = condition.replaceAll("\\(\\s*([^\\)]+)\\s*\\)", "$1");
-
+        // 不去掉括号，原来的正则表达式会保留括号
         return condition;
     }
 

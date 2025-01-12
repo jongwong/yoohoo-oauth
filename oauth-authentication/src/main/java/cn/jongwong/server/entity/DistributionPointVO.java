@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -25,9 +26,9 @@ public class DistributionPointVO {
 
     private String contactPhone; // 联系电话
 
-    private Double latitude; // 纬度
+    private BigDecimal latitude; // 纬度
 
-    private Double longitude; // 经度
+    private BigDecimal longitude; // 经度
 
     private String deliveryTimeNote; // 配送时间备注
 

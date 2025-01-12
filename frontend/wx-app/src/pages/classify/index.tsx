@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ScrollView, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import ProductCardItem from "./component/ProductCardItem";
@@ -6,6 +6,8 @@ import Taro from "@tarojs/taro";
 import classNames from "classnames";
 import { Space } from "@nutui/nutui-react-taro";
 import { Location, Star } from "@nutui/icons-react-taro";
+import request from "@/utils/request";
+import { useRequest } from "ahooks";
 
 const state = {
   src: "//img10.360buyimg.com/n2/s240x240_jfs/t1/210890/22/4728/163829/6163a590Eb7c6f4b5/6390526d49791cb9.jpg!q70.jpg",
@@ -28,6 +30,28 @@ const Index: React.FC = () => {
   const [scrollToId, setScrollToId] = useState<string>(""); // 滚动到的目标
   const isScrollingByClick = useRef(false); // 是否为点击触发滚动
   const scrollTimer = useRef<NodeJS.Timeout | null>(null); // 定时器用于清理滚动状态
+  const [areaList, setAreaList] = useState();
+
+  const [currentArea, setCurrentArea] = useState();
+
+  useRequest(
+    () => {
+      return request.get("/client/product", {
+        params: {
+          page: 1,
+          size: 400,
+        },
+      });
+    },
+    {
+      refreshDeps: [currentArea?.id],
+      ready: currentArea?.id,
+      onSuccess: (res) => {
+        setAreaList(res.data || []);
+        setCurrentArea(res?.data?.[0]);
+      },
+    }
+  );
 
   // 点击菜单触发滚动
   const handleMenuClick = (index: number) => {
@@ -67,19 +91,60 @@ const Index: React.FC = () => {
       })
       .exec();
   };
+
+  const getWxLocation = () => {
+    wx.getLocation({
+      type: "wgs84",
+      success(res) {
+        wx.setStorageSync("locationInfo", res);
+        fetchLocationList({
+          page: 1,
+          size: 10,
+          latitude: res?.latitude,
+          longitude: res?.longitude,
+        });
+      },
+      fail(error) {
+        console.error("获取位置失败", error);
+        wx.showToast({
+          title: "获取位置失败",
+        });
+      },
+    });
+  };
+
+  const fetchLocationList = async (params: {
+    latitude: number;
+    longitude: number;
+    name?: string;
+    page: number;
+    size: number;
+  }) => {
+    const res = await request.get("/client/store/area/distance", { params });
+    if (res.success) {
+      setAreaList(res.data || []);
+      setCurrentArea(res?.data?.[0]);
+    }
+  };
+  useEffect(() => {
+    getWxLocation();
+  }, []);
   return (
     <View className={styles.container}>
       <View className={styles.header}>
         {/* 第一行：收藏图标 + 红星商务大厦 */}
         <View className={styles["store-title"]}>
           <Star size={14} className={styles.icon} />
-          <View>红星商务大厦{" >"}</View>
+          <View>
+            {currentArea?.name || ""}
+            {" >"}
+          </View>
         </View>
 
         {/* 第二行：定位图标 + 具体地址 */}
         <View className={styles["store-location"]}>
           <Location size={12} className={styles.icon} />
-          <View className={styles.text}>福建省福州市台江区万达广场</View>
+          <View className={styles.text}>{currentArea?.address || ""}</View>
         </View>
       </View>
       <View className={styles.menuContainer}>

@@ -21,34 +21,46 @@ public class SqlBuilder {
     private List<Join> joinClauseList = new ArrayList<>();
     private String orderByClause = "";
     private boolean isCountQuery = false;
-    private boolean whereQuery = false;
     private Integer limit;
     private Integer offset;
-
-    // 存储绑定的参数
     private Map<String, Object> parameters = new HashMap<>();
 
     public static SqlBuilder builder() {
-        var re = new SqlBuilder();
+        SqlBuilder re = new SqlBuilder();
         re.selectFields.add("*");
         return re;
     }
 
+    // 克隆方法，防止串改
+    protected SqlBuilder clone() {
+        SqlBuilder cloned = new SqlBuilder();
+        cloned.criteriaList = new ArrayList<>(this.criteriaList);
+        cloned.selectFields = new ArrayList<>(this.selectFields);
+        cloned.joinClauseList = new ArrayList<>(this.joinClauseList);
+        cloned.parameters = new HashMap<>(this.parameters);
+        cloned.tableName = this.tableName;
+        cloned.tableAlias = this.tableAlias;
+        cloned.orderByClause = this.orderByClause;
+        cloned.isCountQuery = this.isCountQuery;
+        cloned.limit = this.limit;
+        cloned.offset = this.offset;
+        return cloned;
+    }
+
+    // 选择查询字段
     public SqlBuilder select(String fields) {
         this.selectFields.clear();
         this.selectFields.add(fields);
         return this;
     }
 
+    // 添加字段
     public SqlBuilder column(String column) {
-        if (selectFields.isEmpty()) {
-            this.selectFields.add(column);
-        } else {
-            this.selectFields.add(column);
-        }
+        this.selectFields.add(column);
         return this;
     }
 
+    // 拼接字段
     public SqlBuilder appendColumn(String columns) {
         if (!columns.isEmpty()) {
             String[] columnArray = columns.split(",");
@@ -59,39 +71,82 @@ public class SqlBuilder {
         return this;
     }
 
+    // 设置表名
     public SqlBuilder from(String tableName) {
         this.tableName = tableName;
         return this;
     }
 
+    // 设置别名
     public SqlBuilder as(String alias) {
         this.tableAlias = alias;
         return this;
     }
 
-    // bind方法用于绑定参数
+    // 绑定参数
     public SqlBuilder bind(String paramName, Object value) {
         this.parameters.put(":" + paramName, value);
         return this;
     }
 
-    // 修改where方法，让条件支持占位符
+    // 设置 WHERE 条件
     public SqlBuilder where(Function<Criteria, Criteria> criteriaCallback) {
         Criteria criteria = Criteria.empty();
         criteria = criteriaCallback.apply(criteria);
-        criteriaList.add(criteria);
+        this.criteriaList.add(criteria);
         return this;
     }
 
-    public SqlBuilder addEqualCondition(String column, Object value) {
-        // 创建一个等式条件
-        Criteria criteria = Criteria.where(column).is(value);
+    // Common method to handle eq, like, and leftLike conditions
+    private SqlBuilder addInnerCondition(String column, Object value, String operator, boolean isLeftLike) {
+        String trimmedValue = value != null ? value.toString().trim() : ""; // Trim the value
 
-        criteriaList.add(criteria);
+        if (value == null || trimmedValue.isEmpty()) {
+            return this;
 
-        return this;
+        }
+        // If the value does not start with a colon, add the column name prefixed with ":"
+        if (!trimmedValue.startsWith(":")) {
+            var name = column.trim();
+            trimmedValue = ":" + name;
+            this.bind(name, value); // Bind the value to the parameter
+        }
+
+        // Adjust the condition based on whether it's a left match (for LIKE)
+        if (isLeftLike) {
+            trimmedValue = "%" + trimmedValue; // Left match means value starts with % (e.g., "%value")
+        } else if ("like".equals(operator)) {
+            trimmedValue = trimmedValue + "%"; // Regular LIKE means value ends with % (e.g., "value%")
+        }
+
+        // Create the condition (eq, like, or leftLike) based on the operator
+        Criteria criteria;
+        if ("like".equals(operator)) {
+            criteria = Criteria.where(column).like(trimmedValue);
+        } else {
+            criteria = Criteria.where(column).is(trimmedValue);
+        }
+
+        this.criteriaList.add(criteria); // Add the condition to the criteria list
+        return this; // Return the builder itself for chaining
     }
 
+    // eq condition (equals)
+    public SqlBuilder eq(String column, Object value) {
+        return addInnerCondition(column, value, "eq", false); // Regular equality check
+    }
+
+    // like condition (matches right side)
+    public SqlBuilder like(String column, Object value) {
+        return addInnerCondition(column, value, "like", false); // Right match (value%)
+    }
+
+    // leftLike condition (matches left side)
+    public SqlBuilder leftLike(String column, Object value) {
+        return addInnerCondition(column, value, "like", true); // Left match (%value)
+    }
+
+    // 设置 JOIN 子句
     public SqlBuilder withJoin(Function<Join, Join> joinCallback) {
         Join join = new Join();
         join = joinCallback.apply(join);
@@ -99,48 +154,54 @@ public class SqlBuilder {
         return this;
     }
 
+    // 设置 LEFT JOIN
     public SqlBuilder left() {
         return this.withJoin(join -> join.left());
     }
 
+    // 设置 INNER JOIN
     public SqlBuilder inner() {
         return this.withJoin(join -> join.inner());
     }
 
+    // 设置 RIGHT JOIN
     public SqlBuilder right() {
         return this.withJoin(join -> join.right());
     }
 
+    // 设置排序
     public SqlBuilder sort(String orderByClause) {
         this.orderByClause = orderByClause;
         return this;
     }
 
+    // 设置查询计数
     public SqlBuilder count() {
         this.isCountQuery = true;
         return this;
     }
 
+    // 设置 LIMIT
     public SqlBuilder limit(int limit) {
         this.limit = limit;
         return this;
     }
 
+    // 设置 OFFSET
     public SqlBuilder offset(int offset) {
         this.offset = offset;
         return this;
     }
 
+    // 生成单个查询（LIMIT 1）
     public SqlBuilder findOne() {
-        this.isCountQuery = false;
         return this.limit(1).offset(0);
     }
 
-    // 构建最终的 SQL 字符串，并替换占位符
+    // 生成 SQL 字符串
     public String toString() {
         StringBuilder sqlBuilder = new StringBuilder();
 
-        // 构建 SELECT 子句
         if (isCountQuery) {
             sqlBuilder.append("SELECT COUNT(*)");
         } else {
@@ -148,29 +209,24 @@ public class SqlBuilder {
             sqlBuilder.append(addAliasToFields(selectFields));
         }
 
-        // 构建 FROM 子句
         sqlBuilder.append(" FROM ").append(getTableNameFromEntity());
 
-        // 拼接 JOIN 子句
         for (Join join : joinClauseList) {
             sqlBuilder.append(" ").append(join.getJoinType())
                     .append(" ").append(join.getTable())
                     .append(" ON ").append(join.getOnCondition());
         }
 
-        // 构建 WHERE 子句
         String whereClause = buildWhereClause();
         if (!whereClause.isEmpty()) {
             sqlBuilder.append(" ").append(whereClause);
         }
 
-        // 构建 ORDER BY 子句
         String orderBy = buildOrderByClause();
         if (!orderBy.isEmpty()) {
             sqlBuilder.append(" ").append(orderBy);
         }
 
-        // 构建 LIMIT 和 OFFSET
         if (limit != null) {
             sqlBuilder.append(" LIMIT ").append(limit);
         }
@@ -178,7 +234,6 @@ public class SqlBuilder {
             sqlBuilder.append(" OFFSET ").append(offset);
         }
 
-        // 替换占位符
         String sql = sqlBuilder.toString();
 
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
@@ -186,10 +241,10 @@ public class SqlBuilder {
         }
         log.debug("Generated SQL: " + sql);
 
-
         return sql;
     }
 
+    // 其他辅助方法（如构建 WHERE 子句，排序等）
     private String buildWhereClause() {
         if (criteriaList.isEmpty()) {
             return "";

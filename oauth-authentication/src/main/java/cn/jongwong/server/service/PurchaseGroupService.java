@@ -1,8 +1,6 @@
 package cn.jongwong.server.service;
 
 import cn.jongwong.server.common.AutoCreatedField;
-import cn.jongwong.server.common.MapperUtil;
-import cn.jongwong.server.common.QueryBuilder;
 import cn.jongwong.server.entity.PurchaseGroupProductVO;
 import cn.jongwong.server.entity.PurchaseGroupVO;
 import cn.jongwong.server.repository.ProductRepository;
@@ -16,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,8 +59,24 @@ public class PurchaseGroupService {
     }
 
     public Mono<PurchaseGroupVO> create(@AutoCreatedField PurchaseGroupVO data) {
-        data.setId(UUID.randomUUID().toString());
-        return purchaseGroupRepository.insert(data);
+
+        // 显式事务控制
+        return transactionalOperator.transactional(
+                purchaseGroupRepository.insert(data)  // 保存团购信息
+                        .flatMap(updatedGroup -> {
+
+                            // 设置purchaseGroupId
+                            var products = data.getProducts();
+                            products.forEach(product -> {
+                                product.setPurchaseGroupId(data.getId());
+                            });
+
+
+                            return purchaseGroupProductRepository.saveRefAll(products)  // 保存商品信息
+                                    .collectList()
+                                    .then(Mono.just(updatedGroup)); // 返回更新后的团购信息
+                        })
+        );
     }
     public Mono<PurchaseGroupVO> findById(String id) {
         // 合并purchaseGroupRepository  purchaseGroupProductRepository
@@ -118,23 +130,14 @@ public class PurchaseGroupService {
 
     public Mono<Page<PurchaseGroupVO>> search(String name, Integer enable, Integer page, Integer size) {
 
-
-        return new QueryBuilder<>(r2dbcEntityTemplate, PurchaseGroupVO.class)
-                .addLikeCondition("name", name)
-                .addEqualCondition("enable", enable)
-                .paginate(page, size)
-                .exec().map(pageData -> {
-                    List<PurchaseGroupVO> userResList = pageData.getData().stream()
-                            .map(user -> MapperUtil.mapFields(user, PurchaseGroupVO.class))
-                            .toList();
-
-                    return new Page<>(
-                            userResList,
-                            pageData.getTotal(),
-                            pageData.getPage(),
-                            pageData.getSize()
-                    );
-                });
+        return purchaseGroupRepository.findPageByDSL(page, size, sql ->
+                sql.as("p")
+                        .appendColumn("d.name as distribution_point_name")
+                        .appendColumn("d.address as distribution_point_address")
+                        .eq("enable", enable).like("name", name)
+                        .withJoin(t -> t.left()
+                                .table("tb_distribution_points d")
+                                .on("p.distribution_point_id = d.id")));
 
 
     }

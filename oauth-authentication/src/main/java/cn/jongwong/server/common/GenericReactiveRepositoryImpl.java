@@ -1,6 +1,7 @@
 package cn.jongwong.server.common;
 
 import cn.jongwong.server.util.response.EntityUtils;
+import cn.jongwong.server.util.response.Page;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<T, ID> implements GenericReactiveRepository<T, ID> {
 
@@ -70,30 +72,6 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
                         return insert(entity);
                     }
                 });
-    }
-
-    // 自定义方法：传入 ID 和 dslFn 方法来构建查询
-    public <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
-
-        var tableName = this.entity.getTableName().toString();
-        var sqlBuilder = SqlBuilder.builder().from(tableName);
-        sqlBuilder.addEqualCondition("id", ":id");
-
-        // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
-        sqlBuilderFunction.apply(sqlBuilder);
-
-
-        sqlBuilder
-                .bind("id", id)
-                .findOne();
-
-        return databaseClient.sql(sqlBuilder.toString())
-                .map((row, metadata) -> {
-                    T instance = instantiateEntity();
-                    populateEntityFromRow(row, metadata, instance);
-                    return instance;
-                })
-                .one();
     }
 
     private T instantiateEntity() {
@@ -147,4 +125,58 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
         }
         return snakeCase.toString();
     }
+
+
+    // 自定义方法：传入 ID 和 dslFn 方法来构建查询
+    public <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
+
+        var tableName = this.entity.getTableName().toString();
+        var sqlBuilder = SqlBuilder.builder().from(tableName);
+        sqlBuilder.eq("id", id);
+
+        // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
+        sqlBuilderFunction.apply(sqlBuilder);
+
+
+        sqlBuilder
+                .findOne();
+
+        return databaseClient.sql(sqlBuilder.toString())
+                .map((row, metadata) -> {
+                    T instance = instantiateEntity();
+                    populateEntityFromRow(row, metadata, instance);
+                    return instance;
+                })
+                .one();
+    }
+
+
+    public <S extends T> Mono<Page<T>> findPageByDSL(Integer page, Integer size, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
+
+        var tableName = this.entity.getTableName().toString();
+        var sqlBuilder = SqlBuilder.builder().from(tableName);
+
+        // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
+        sqlBuilderFunction.apply(sqlBuilder);
+
+
+        var listSql = sqlBuilder.clone().limit(size).offset((page - 1) * size).toString();
+        var countSql = sqlBuilder.clone().count().toString();
+
+        Mono<List<T>> dataMono = databaseClient.sql(listSql)
+                .map((row, metadata) -> {
+                    T instance = instantiateEntity();
+                    populateEntityFromRow(row, metadata, instance);
+                    return instance;
+                }).all()
+                .collectList();
+        Mono<Long> countMono = databaseClient.sql(countSql)
+                .map((row, metadata) -> row.get(0, Long.class))
+                .one();
+
+        // 组合数据和总数，返回分页对象
+        return Mono.zip(dataMono, countMono)
+                .map(tuple -> new Page<>(tuple.getT1(), tuple.getT2(), page, size));
+    }
+
 }

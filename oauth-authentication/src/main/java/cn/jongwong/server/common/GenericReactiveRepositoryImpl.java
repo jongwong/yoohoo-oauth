@@ -1,100 +1,150 @@
 package cn.jongwong.server.common;
 
 import cn.jongwong.server.util.response.EntityUtils;
+import io.r2dbc.spi.Row;
+import io.r2dbc.spi.RowMetadata;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
 import org.springframework.data.r2dbc.repository.support.SimpleR2dbcRepository;
+import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
+import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.repository.query.RelationalEntityInformation;
+import org.springframework.data.relational.repository.query.RelationalExampleMapper;
+import org.springframework.data.util.Lazy;
 import org.springframework.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<T, ID> implements GenericReactiveRepository<T, ID> {
 
-
-    private final R2dbcEntityOperations template;
-    private final RelationalEntityInformation<T, ID> entityInformation;
-
+    private final RelationalEntityInformation<T, ID> entity;
+    private final R2dbcEntityOperations entityOperations;
+    private final Lazy<RelationalPersistentProperty> idProperty;
+    private final RelationalExampleMapper exampleMapper;
+    private final DatabaseClient databaseClient;
 
     public GenericReactiveRepositoryImpl(RelationalEntityInformation<T, ID> entity, R2dbcEntityOperations entityOperations, R2dbcConverter converter) {
         super(entity, entityOperations, converter);
-        this.template = entityOperations;
-        this.entityInformation = entity;
+        this.entity = entity;
+        this.entityOperations = entityOperations;
+        this.idProperty = Lazy.of(() -> {
+            return (RelationalPersistentProperty) ((RelationalPersistentEntity) converter.getMappingContext().getRequiredPersistentEntity(this.entity.getJavaType())).getRequiredIdProperty();
+        });
+        this.exampleMapper = new RelationalExampleMapper(converter.getMappingContext());
+        this.databaseClient = entityOperations.getDatabaseClient();
     }
 
     public GenericReactiveRepositoryImpl(RelationalEntityInformation<T, ID> entity, DatabaseClient databaseClient, R2dbcConverter converter, ReactiveDataAccessStrategy accessStrategy) {
         super(entity, databaseClient, converter, accessStrategy);
-        this.template = new R2dbcEntityTemplate(databaseClient, accessStrategy);
-        this.entityInformation = entity;
+        this.entity = entity;
+        this.entityOperations = new R2dbcEntityTemplate(databaseClient, accessStrategy);
+        this.idProperty = Lazy.of(() -> {
+            return (RelationalPersistentProperty) ((RelationalPersistentEntity) converter.getMappingContext().getRequiredPersistentEntity(this.entity.getJavaType())).getRequiredIdProperty();
+        });
+        this.exampleMapper = new RelationalExampleMapper(converter.getMappingContext());
+        this.databaseClient = databaseClient;
     }
 
     // 覆盖 insert 方法
     @Override
     public <S extends T> Mono<S> insert(S entity) {
-
         EntityUtils.ensureIdExists(entity);
-
-
-        // 如果 ID 为 null，则执行插入操作
-        return template.insert((Class<S>) entity.getClass())
+        return entityOperations.insert((Class<S>) entity.getClass())
                 .using(entity)
                 .thenReturn(entity);
     }
 
     public <S extends T> Flux<T> saveRefAll(Iterable<S> entities) {
-        // 将传入的实体列表转换成 Flux 来处理
         return Flux.fromIterable(entities)
                 .flatMap(entity -> {
-                    // 动态获取实体的主键字段和对应的值（使用反射）
-
-                    // 获取主键字段名
                     String idValue = EntityUtils.getIdValue(entity);
-
                     if (idValue != null) {
-
-                        // 使用 Update 构建更新操作
                         return super.save(entity);
                     } else {
-                        // 如果没有主键，则执行插入操作
                         return insert(entity);
                     }
                 });
     }
 
+    // 自定义方法：传入 ID 和 dslFn 方法来构建查询
+    public <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
 
-//    // 自定义方法：传入 ID 和 dslFn 方法来构建查询
-//    public <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<org.jooq.SelectConditionStep, SelectConditionStep> dslFn) {
-//
-//        // 动态创建一个 DSLContext 实例
-//        DSLContext dslContext = DSL.using(databaseClient.getConnectionFactory());
-//
-//
-//        var sqlBase = dslContext.selectFrom(this.entityInformation.getTableName().toString());
-//
-//
-//        // 构造 SQL 查询
-//        var sql =
-//                sqlBase.where("id = ?", id);
-//
-//        // 获取生成的 SQL 查询
-//
-//        // 使用传入的 dslFn 来构建查询
-//        var sqlBaseFormat = dslFn.apply(sql);
-//        // 打印 SQL 查询调试信息
-//        System.out.println("Generated SQL: " + sqlBaseFormat.getSQL());
-//
-//        // 执行查询并返回查询结果
-//        return databaseClient.sql(sqlBaseFormat.getSQL())
-//                .bind(0, id) // 将 id 绑定到查询中
-//                .map((row, metadata) -> {
-//                    // 这里可以根据返回结果的行来映射实体类
-//                    T result = MapperUtil.fromRow(row, this.entityInformation.getJavaType()); // 假设 mapRowToEntity 方法将 SQL 行映射为实体对象
-//                    return result;
-//                })
-//                .one(); // 返回查询结果（Mono）
-//    }
+        var tableName = this.entity.getTableName().toString();
+        var sqlBuilder = SqlBuilder.builder().from(tableName);
+        sqlBuilder.addEqualCondition("id", ":id");
+
+        // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
+        sqlBuilderFunction.apply(sqlBuilder);
 
 
+        sqlBuilder
+                .bind("id", id)
+                .findOne();
+
+        return databaseClient.sql(sqlBuilder.toString())
+                .map((row, metadata) -> {
+                    T instance = instantiateEntity();
+                    populateEntityFromRow(row, metadata, instance);
+                    return instance;
+                })
+                .one();
+    }
+
+    private T instantiateEntity() {
+        try {
+            return this.entity.getJavaType().getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            throw new RuntimeException("Failed to instantiate entity", e);
+        }
+    }
+
+    private void populateEntityFromRow(Row row, RowMetadata rowMetadata, T instance) {
+        for (var field : instance.getClass().getDeclaredFields()) {
+            String fieldName = field.getName();
+            String rowFieldName = camelToSnakeCase(fieldName);
+
+            if (rowMetadata.contains(rowFieldName)) {
+                Object value = row.get(rowFieldName, field.getType());
+                Method setter = findSetterMethod(instance.getClass(), field);
+                if (setter != null) {
+                    try {
+                        setter.invoke(instance, value);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to set value for field: " + fieldName, e);
+                    }
+                }
+            }
+        }
+    }
+
+    private Method findSetterMethod(Class<?> classType, Field field) {
+        String setterMethodName = "set" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
+        try {
+            return classType.getMethod(setterMethodName, field.getType());
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private String camelToSnakeCase(String camelCase) {
+        StringBuilder snakeCase = new StringBuilder();
+        for (char c : camelCase.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                if (!snakeCase.isEmpty()) {
+                    snakeCase.append("_");
+                }
+                snakeCase.append(Character.toLowerCase(c));
+            } else {
+                snakeCase.append(c);
+            }
+        }
+        return snakeCase.toString();
+    }
 }

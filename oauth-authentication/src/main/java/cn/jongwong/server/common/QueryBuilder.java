@@ -196,4 +196,5 @@ public class QueryBuilder<T> {
     public interface FieldMappingCallback<T> {
         T mapFields(Row row, T entity);
     }
+
 }

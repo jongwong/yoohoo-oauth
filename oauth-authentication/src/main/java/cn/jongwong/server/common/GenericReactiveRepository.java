@@ -13,6 +13,6 @@ public interface GenericReactiveRepository<T, ID> extends R2dbcRepository<T, ID>
     <S extends T> Flux<T> saveRefAll(Iterable<S> entities);
 
     // customFindOne 方法，传入 ID 和 xx 方法，返回查询结果
-//    <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SelectConditionStep, SelectConditionStep> DSLFunction);
+    <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction);
 
 }

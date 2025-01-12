@@ -70,7 +70,12 @@ public class PurchaseGroupService {
         // 合并purchaseGroupRepository  purchaseGroupProductRepository
 
 
-        return purchaseGroupRepository.findById(id)
+        return purchaseGroupRepository.findOneByDSL(id, sql -> sql.as("p").appendColumn("d.name as distribution_point_name")
+                        .appendColumn("d.address as distribution_point_address")
+
+                        .withJoin(t -> t.left()
+                                .table("tb_distribution_points d")
+                                .on("p.distribution_point_id = d.id")))
                 .flatMap(group -> {
                     return purchaseGroupProductRepository.findAllByPurchaseGroupId(id)
                             .collectList()

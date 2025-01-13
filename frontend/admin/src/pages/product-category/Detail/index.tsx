@@ -7,7 +7,7 @@ import { Button, Card, Form, message, Space } from 'antd';
 
 import { ContentLayout } from '@yoo/component';
 import { GlobalEnableTypeMap } from '@/constant/common';
-import { CategoryLevelMap } from '@/constant/product_category';
+import { CategoryLevelMap } from '@/constant/product-category';
 import { PAGES_PRODUCT_CATEGORY_DETAIL_URL } from '@/pages/product-category/pages';
 import {
 	createProductCategory,

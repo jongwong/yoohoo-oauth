@@ -65,19 +65,18 @@ public class PurchaseGroupController {
 
 
     @GetMapping("/product")
-    public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryLocation(
+    public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryProduct(
 
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String categoryId,
-            @RequestParam(required = false) Integer groupStatus,
+            @RequestParam(required = false) Integer[] groupStatus,
             @RequestParam(required = false) Integer listedStatus,
             @RequestParam(required = false) Integer enable,
             @RequestParam(required = false) String deliveryStartTime,
             @RequestParam(required = false) String deliveryEndTime,
             @RequestParam int page,
             @RequestParam int size) {
-
-        return purchaseGroupProductService.query(productName, categoryId, groupStatus, listedStatus, enable,
+        return purchaseGroupProductService.search(productName, categoryId, groupStatus, listedStatus, enable,
                         deliveryStartTime, deliveryEndTime, page, size)
                 .map(PageResponse::success);
 

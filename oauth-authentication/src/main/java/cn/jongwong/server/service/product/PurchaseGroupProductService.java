@@ -5,37 +5,58 @@ import cn.jongwong.server.repository.ClientPurchaseGroupProductRepository;
 import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 public class PurchaseGroupProductService {
-
-
     @Autowired
     private ClientPurchaseGroupProductRepository clientPurchaseGroupProductRepository;
 
-    public Mono<Page<ClientPurchaseGroupProductVO>> query(
+    public Mono<Page<ClientPurchaseGroupProductVO>> search(String productName, String categoryId, Integer[] groupStatus, Integer listedStatus, Integer enable,
+                                                           String deliveryStartTime, String deliveryEndTime, Integer page, Integer size) {
 
-            String productName, String categoryId, Integer groupStatus, Integer listedStatus, Integer enable,
-            String deliveryStartTime, String deliveryEndTime,
-            int page, // 当前页
-            int size) { // 每页大小
-        // 计算偏移量
-        int offset = (page - 1) * size;
+        return clientPurchaseGroupProductRepository.findPageByDSL(page, size, sql ->
+                sql.as("pgp")
+                        .column("pgp.id AS group_product_id")
+                        .column("pgp.purchase_group_id")
+                        .column("pgp.product_id")
+                        .column("pgp.max_stock")
+                        .column("pgp.sold_quantity")
+                        .column("p.code")
+                        .column("p.name")
+                        .column("p.price")
+                        .column("p.listed_status")
+                        .column("p.archived_status")
+                        .column("p.category_name")
+                        .column("p.category_id")
+                        .column("p.category_code")
+                        .field("pg.name", "group_name")
+                        .field("pg.status", "group_status")
+                        .field("pg.enable", "group_enable")
+                        .column("pg.time_start AS time_group_start")
+                        .column("pg.time_end AS time_group_end")
+                        .column("pg.time_delivery_start")
+                        .column("pg.time_delivery_end")
+                        .column("pg.distribution_point_id")
 
-        Flux<ClientPurchaseGroupProductVO> dataFlux = clientPurchaseGroupProductRepository.findByDynamicConditions(
-                productName, categoryId, groupStatus, listedStatus, enable,
-                deliveryStartTime, deliveryEndTime, size, offset);
 
-        // 获取总数
-        Mono<Long> countMono = clientPurchaseGroupProductRepository.countByDynamicConditions(
-                productName, categoryId, groupStatus, listedStatus, enable,
-                deliveryStartTime, deliveryEndTime);
+                        .eq("pg.enable", enable)
+                        .like("p.name", productName)
+                        .eq("p.category_id", categoryId)
+                        .eq("p.status", listedStatus)
+                        .eq("pg.status", groupStatus)
+                        .customCondition("pg.time_delivery_start", ">=", deliveryStartTime)
+                        .customCondition("pg.time_delivery_end", "<=", deliveryEndTime)
 
-        // Collect Flux into a List and zip with the count
-        return dataFlux.collectList() // Collect Flux into a List
-                .zipWith(countMono)  // Combine the list with the count
-                .map(tuple -> new Page<>(tuple.getT1(), tuple.getT2(), page, size));
+                        .withJoin(t -> t.left()
+                                .table("tb_product p")
+                                .on("pgp.product_id = p.id"))
+                        .withJoin(t -> t.left()
+                                .table("tb_purchase_group pg")
+                                .on("pgp.purchase_group_id = pg.id"))
+
+        );
+
     }
+
 }

@@ -18,7 +18,7 @@ import {
 	getProductCategoryPage,
 } from '@/pages/product-category/service';
 import { Link } from 'react-router-dom';
-import { CategoryLevelMap } from '@/constant/product_category';
+import { CategoryLevelMap } from '@/constant/product-category';
 import { GlobalEnableTypeMap } from '@/constant/common';
 
 const List: React.FC = () => {

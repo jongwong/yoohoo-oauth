@@ -7,7 +7,7 @@ import type {
 	ProTableSearchFieldType,
 } from '@yoo/pro-component';
 import { EDefaultValueType, ProTable } from '@yoo/pro-component';
-import { Card, Space } from 'antd';
+import { Card, SelectProps, Space } from 'antd';
 
 import { GlobalEnableTypeMap } from '@/constant/common';
 import { transformUrlByRoutePath } from '@/utils/url';
@@ -45,6 +45,9 @@ const List: React.FC = () => {
 		{
 			label: '团购状态',
 			name: 'group_status',
+			fieldProps: {
+				mode: 'multiple',
+			} as SelectProps,
 			valueEnum: PurchaseGroupStatusMap,
 		},
 		{

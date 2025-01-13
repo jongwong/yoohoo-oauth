@@ -58,19 +58,24 @@ public class SqlBuilder {
         return sql;
     }
 
-    // 添加字段
-    public SqlBuilder column(String column) {
-        this.selectFields.add(column);
-        return this;
-    }
+
 
     // 拼接字段
-    public SqlBuilder appendColumn(String columns) {
+    public SqlBuilder column(String columns) {
         if (!columns.isEmpty()) {
             String[] columnArray = columns.split(",");
             for (String column : columnArray) {
                 this.selectFields.add(column.trim());
             }
+        }
+        return this;
+    }
+
+
+    // 拼接字段
+    public SqlBuilder field(String columns, String alias) {
+        if (!columns.isEmpty()) {
+            this.selectFields.add((columns + " AS " + alias).trim());
         }
         return this;
     }
@@ -101,53 +106,113 @@ public class SqlBuilder {
         return this;
     }
 
-    // Common method to handle eq, like, and leftLike conditions
-    private SqlBuilder addInnerCondition(String column, Object value, String operator, boolean isLeftLike) {
-        String trimmedValue = value != null ? value.toString().trim() : ""; // Trim the value
-
-        if (value == null || trimmedValue.isEmpty()) {
+    private SqlBuilder addInnerCondition(String column, Object value, String operator, boolean isLeftLike, Boolean notNull) {
+        // 检查是否为空
+        if (!notNull && (value == null || (value instanceof String && ((String) value).trim().isEmpty()))) {
             return this;
-
         }
-        // If the value does not start with a colon, add the column name prefixed with ":"
+
+        // 处理数组或集合类型
+        if (value instanceof List || value.getClass().isArray()) {
+            List<Object> values;
+            if (value instanceof List) {
+                values = (List<Object>) value;
+            } else {
+                values = List.of((Object[]) value);
+            }
+
+            // 如果值列表为空，直接跳过
+            if (values.isEmpty()) {
+                return this;
+            }
+
+            // 生成占位符
+            String placeholder = column + "_list";
+            this.bind(placeholder, values);
+
+            // IN 操作符的条件
+            Criteria criteria = Criteria.where(column).in(values);
+            criteriaList.add(criteria);
+
+            return this;
+        }
+
+        // 处理普通值（非数组或集合）
+        String trimmedValue = value != null ? value.toString().trim() : "";
         if (!trimmedValue.startsWith(":")) {
             var name = column.trim();
             trimmedValue = ":" + name;
-            this.bind(name, value); // Bind the value to the parameter
+            this.bind(name, value);
         }
 
-        // Adjust the condition based on whether it's a left match (for LIKE)
+        // 处理 LIKE 或其他运算符
         if (isLeftLike) {
-            trimmedValue = "%" + trimmedValue; // Left match means value starts with % (e.g., "%value")
+            trimmedValue = "%" + trimmedValue;
         } else if ("like".equals(operator)) {
-            trimmedValue = trimmedValue + "%"; // Regular LIKE means value ends with % (e.g., "value%")
+            trimmedValue = trimmedValue + "%";
         }
 
-        // Create the condition (eq, like, or leftLike) based on the operator
+        var formatOperator = operator.trim().toLowerCase();
         Criteria criteria;
-        if ("like".equals(operator)) {
-            criteria = Criteria.where(column).like(trimmedValue);
-        } else {
-            criteria = Criteria.where(column).is(trimmedValue);
+        switch (formatOperator) {
+            case "like":
+                criteria = Criteria.where(column).like(trimmedValue);
+                break;
+            case "<=":
+                criteria = Criteria.where(column).lessThanOrEquals(trimmedValue);
+                break;
+            case ">=":
+                criteria = Criteria.where(column).greaterThanOrEquals(trimmedValue);
+                break;
+            case "<":
+                criteria = Criteria.where(column).lessThan(trimmedValue);
+                break;
+            case ">":
+                criteria = Criteria.where(column).greaterThan(trimmedValue);
+                break;
+            default:
+                criteria = Criteria.where(column).is(trimmedValue);
         }
 
-        criteriaList.add(criteria); // Add the condition to the criteria list
-        return this; // Return the builder itself for chaining
+        criteriaList.add(criteria);
+        return this;
     }
 
+    public SqlBuilder customCondition(String column, String operator, Object value) {
+        return addInnerCondition(column, value, operator, false, false); // Regular equality check
+    }
+
+    public SqlBuilder in(String column, Object value) {
+        return addInnerCondition(column, value, "in", false, false);
+    }
     // eq condition (equals)
     public SqlBuilder eq(String column, Object value) {
-        return addInnerCondition(column, value, "eq", false); // Regular equality check
+        return addInnerCondition(column, value, "eq", false, false); // Regular equality check
     }
 
     // like condition (matches right side)
     public SqlBuilder like(String column, Object value) {
-        return addInnerCondition(column, value, "like", false); // Right match (value%)
+        return addInnerCondition(column, value, "like", false, false); // Right match (value%)
     }
 
     // leftLike condition (matches left side)
     public SqlBuilder leftLike(String column, Object value) {
-        return addInnerCondition(column, value, "like", true); // Left match (%value)
+        return addInnerCondition(column, value, "like", true, false); // Left match (%value)
+    }
+
+    // eq condition (equals)
+    public SqlBuilder eq(String column, Object value, Boolean notNull) {
+        return addInnerCondition(column, value, "eq", false, notNull); // Regular equality check
+    }
+
+    // like condition (matches right side)
+    public SqlBuilder like(String column, Object value, Boolean notNull) {
+        return addInnerCondition(column, value, "like", false, notNull); // Right match (value%)
+    }
+
+    // leftLike condition (matches left side)
+    public SqlBuilder leftLike(String column, Object value, Boolean notNull) {
+        return addInnerCondition(column, value, "like", true, notNull); // Left match (%value)
     }
 
     // 设置 JOIN 子句
@@ -235,13 +300,10 @@ public class SqlBuilder {
         }
 
         sqlBuilder.append(" FROM ").append(getTableNameFromEntity());
-        if (!isCountQuery) {
-            for (Join join : joinClauseList) {
-                sqlBuilder.append(" ").append(join.getJoinType())
-                        .append(" ").append(join.getTable())
-                        .append(" ON ").append(join.getOnCondition());
-            }
-
+        for (Join join : joinClauseList) {
+            sqlBuilder.append(" ").append(join.getJoinType())
+                    .append(" ").append(join.getTable())
+                    .append(" ON ").append(join.getOnCondition());
         }
 
 

@@ -10,7 +10,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.Map;
 
 @Component
 public class SnakeCaseParamWebFilter implements WebFilter {
@@ -18,12 +17,13 @@ public class SnakeCaseParamWebFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         // 获取查询参数
-        Map<String, String> queryParams = exchange.getRequest().getQueryParams().toSingleValueMap();
+        MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
         // 转换 snake_case 为 camelCase
         MultiValueMap<String, String> modifiedParams = new LinkedMultiValueMap<>();
-        queryParams.forEach((key, value) -> {
+        queryParams.forEach((key, values) -> {
+            String camelKey = snakeToCamel(key);
             // 转换参数名为 camelCase，并保留对应的值
-            modifiedParams.add(snakeToCamel(key), value);
+            values.forEach(value -> modifiedParams.add(camelKey, value));
         });
 
         // 使用 UriComponentsBuilder 创建新的 URI，并替换查询参数

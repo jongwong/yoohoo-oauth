@@ -82,8 +82,8 @@ public class PurchaseGroupService {
         // 合并purchaseGroupRepository  purchaseGroupProductRepository
 
 
-        return purchaseGroupRepository.findOneByDSL(id, sql -> sql.as("p").appendColumn("d.name as distribution_point_name")
-                        .appendColumn("d.address as distribution_point_address")
+        return purchaseGroupRepository.findOneByDSL(id, sql -> sql.as("p").column("d.name as distribution_point_name")
+                        .column("d.address as distribution_point_address")
 
                         .withJoin(t -> t.left()
                                 .table("tb_distribution_points d")
@@ -132,8 +132,8 @@ public class PurchaseGroupService {
 
         return purchaseGroupRepository.findPageByDSL(page, size, sql ->
                 sql.as("p")
-                        .appendColumn("d.name as distribution_point_name")
-                        .appendColumn("d.address as distribution_point_address")
+                        .column("d.name as distribution_point_name")
+                        .column("d.address as distribution_point_address")
                         .eq("enable", enable).like("name", name)
                         .withJoin(t -> t.left()
                                 .table("tb_distribution_points d")

@@ -32,5 +32,10 @@ public class PageResponse<T> extends Response<List<T>> {
         });
     }
 
+    public static <T> PageResponse<T> success(Page<T> data) {
+        // 构建 ResponseResult，将 Page 的数据填充到 ResponseResult 中
+        return new PageResponse<T>(ResponseErrorCodeEnum.SUCCESS.getCode(), "", data.getData(), data.getTotal());
+    }
+
 
 }

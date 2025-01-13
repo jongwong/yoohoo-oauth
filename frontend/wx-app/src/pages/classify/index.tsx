@@ -36,10 +36,10 @@ const Index: React.FC = () => {
 
   useRequest(
     () => {
-      return request.get("/client/product", {
+      return request.get("/client/group/product", {
         params: {
           page: 1,
-          size: 400,
+          size: 20,
         },
       });
     },
@@ -47,8 +47,7 @@ const Index: React.FC = () => {
       refreshDeps: [currentArea?.id],
       ready: currentArea?.id,
       onSuccess: (res) => {
-        setAreaList(res.data || []);
-        setCurrentArea(res?.data?.[0]);
+        console.log("=====res=====", res);
       },
     }
   );
@@ -129,6 +128,7 @@ const Index: React.FC = () => {
   useEffect(() => {
     getWxLocation();
   }, []);
+  console.log("=====currentArea=====", currentArea);
   return (
     <View className={styles.container}>
       <View className={styles.header}>

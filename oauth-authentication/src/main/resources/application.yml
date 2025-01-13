@@ -36,7 +36,9 @@ spring:
     user: ${custom-config.mysql.username}
 
   jackson:
+    property-naming-strategy: SNAKE_CASE
     time-zone: GMT+8
+
   thymeleaf:
     prefix: classpath:/static/
     suffix: .html

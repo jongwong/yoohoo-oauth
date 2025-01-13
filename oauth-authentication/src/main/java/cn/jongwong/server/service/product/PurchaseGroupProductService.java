@@ -1,48 +1,41 @@
 package cn.jongwong.server.service.product;
 
-import cn.jongwong.server.entity.PurchaseGroupProductVO;
-import cn.jongwong.server.repository.PurchaseGroupProductRepository;
+import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
+import cn.jongwong.server.repository.ClientPurchaseGroupProductRepository;
+import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 public class PurchaseGroupProductService {
 
-    private final PurchaseGroupProductRepository purchaseGroupProductRepository;
 
     @Autowired
-    public PurchaseGroupProductService(PurchaseGroupProductRepository purchaseGroupProductRepository) {
-        this.purchaseGroupProductRepository = purchaseGroupProductRepository;
-    }
+    private ClientPurchaseGroupProductRepository clientPurchaseGroupProductRepository;
 
-    /**
-     * 根据团购ID查询团购商品信息
-     *
-     * @param purchaseGroupId 团购ID
-     * @return Mono<PurchaseGroupProductVO> 单个团购商品信息
-     */
-    public Mono<PurchaseGroupProductVO> findByPurchaseGroupId(String purchaseGroupId) {
-        return purchaseGroupProductRepository.findById(purchaseGroupId);
-    }
+    public Mono<Page<ClientPurchaseGroupProductVO>> query(
 
-    /**
-     * 保存团购商品信息
-     *
-     * @param purchaseGroupProductVO 团购商品实体
-     * @return Mono<PurchaseGroupProductVO> 保存后的团购商品信息
-     */
-    public Mono<PurchaseGroupProductVO> save(PurchaseGroupProductVO purchaseGroupProductVO) {
-        return purchaseGroupProductRepository.save(purchaseGroupProductVO);
-    }
+            String productName, String categoryId, Integer groupStatus, Integer listedStatus, Integer enable,
+            String deliveryStartTime, String deliveryEndTime,
+            int page, // 当前页
+            int size) { // 每页大小
+        // 计算偏移量
+        int offset = (page - 1) * size;
 
-    /**
-     * 删除团购商品信息
-     *
-     * @param id 团购商品ID
-     * @return Mono<Void> 操作结果
-     */
-    public Mono<Void> deleteById(String id) {
-        return purchaseGroupProductRepository.deleteById(id);
+        Flux<ClientPurchaseGroupProductVO> dataFlux = clientPurchaseGroupProductRepository.findByDynamicConditions(
+                productName, categoryId, groupStatus, listedStatus, enable,
+                deliveryStartTime, deliveryEndTime, size, offset);
+
+        // 获取总数
+        Mono<Long> countMono = clientPurchaseGroupProductRepository.countByDynamicConditions(
+                productName, categoryId, groupStatus, listedStatus, enable,
+                deliveryStartTime, deliveryEndTime);
+
+        // Collect Flux into a List and zip with the count
+        return dataFlux.collectList() // Collect Flux into a List
+                .zipWith(countMono)  // Combine the list with the count
+                .map(tuple -> new Page<>(tuple.getT1(), tuple.getT2(), page, size));
     }
 }

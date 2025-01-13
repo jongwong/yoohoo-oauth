@@ -12,7 +12,7 @@ export type ProTableSearchFieldType<T = any> = QueryFormFieldType<T>;
 
 export type ProTableColumnType<T = any> = Pick<
 	BaseTableProFieldType<T>,
-	'valueType' | 'valueEnum'
+	'valueType' | 'valueEnum' | 'extraFieldNames'
 > &
 	ColumnType<T>;
 

@@ -16,6 +16,7 @@ import java.util.List;
 @Configuration
 public class WebFluxConfig implements WebFluxConfigurer {
 
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/swagger-ui/**")

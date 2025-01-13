@@ -4,6 +4,10 @@ export const deletePurchaseGroupById = (id: string) => {
 	return http.delete('/admin/purchase-group/' + id);
 };
 
+export const getPurchaseGroupProductPage = (params: Record<string, any>) => {
+	return http.get(`/admin/purchase-group/product`, { params });
+};
+
 export const getPurchaseGroupAll = (params: Record<string, any>) => {
 	return http.get(`/admin/purchase-group/all`, { params });
 };

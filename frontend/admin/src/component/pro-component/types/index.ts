@@ -45,6 +45,7 @@ export type BaseTableProFieldFuncType<T = any> =
 export type BaseTableProFieldType<T = any> = BaseProFieldType<T> & {
 	dataIndex?: Key | Key[]; // 字段名
 	title?: ReactNode; // 显示的标签
+	extraFieldNames?: string[];
 };
 
 export type ElementOf<T> = T extends (infer U)[] ? U : never;

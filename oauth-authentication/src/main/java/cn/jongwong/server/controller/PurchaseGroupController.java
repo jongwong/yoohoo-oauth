@@ -1,7 +1,9 @@
 package cn.jongwong.server.controller;
 
+import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
 import cn.jongwong.server.entity.PurchaseGroupVO;
 import cn.jongwong.server.service.PurchaseGroupService;
+import cn.jongwong.server.service.product.PurchaseGroupProductService;
 import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,10 @@ public class PurchaseGroupController {
 
     @Autowired
     private PurchaseGroupService purchaseGroupService;
+
+
+    @Autowired
+    private PurchaseGroupProductService purchaseGroupProductService;
 
 
     @GetMapping
@@ -51,5 +57,29 @@ public class PurchaseGroupController {
     public Mono<Response<Void>> delete(@PathVariable String id) {
         return purchaseGroupService.deleteById(id)
                 .then(Mono.just(Response.success()));
+    }
+
+//
+//         补充下面全部参数   String productName, String categoryId, Integer groupStatus, Integer listedStatus, Integer enable,
+//            String deliveryStartTime, String deliveryEndTime,
+
+
+    @GetMapping("/product")
+    public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryLocation(
+
+            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) Integer groupStatus,
+            @RequestParam(required = false) Integer listedStatus,
+            @RequestParam(required = false) Integer enable,
+            @RequestParam(required = false) String deliveryStartTime,
+            @RequestParam(required = false) String deliveryEndTime,
+            @RequestParam int page,
+            @RequestParam int size) {
+
+        return purchaseGroupProductService.query(productName, categoryId, groupStatus, listedStatus, enable,
+                        deliveryStartTime, deliveryEndTime, page, size)
+                .map(PageResponse::success);
+
     }
 }

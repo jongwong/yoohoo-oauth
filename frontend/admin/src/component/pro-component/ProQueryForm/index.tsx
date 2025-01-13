@@ -56,7 +56,7 @@ const ProQueryForm: React.FC<ProQueryFormProps> = ({
 		return (
 			<Row gutter={[16, 16]} style={{ width: '100%' }}>
 				{fields.map((field: any) => (
-					<Col key={field.key || field.name} xs={24} sm={12} md={8} lg={6}>
+					<Col key={field.key || field.name} xs={24} sm={12} md={8} lg={8} xl={8} xxl={6}>
 						<ProField
 							{...field}
 							fieldFunc={isFunction(field) ? field : undefined}

@@ -16,7 +16,8 @@ import { PAGES_PURCHASE_GROUP_DETAIL_URL } from '../pages'; // 相对路径
 import { getPurchaseGroupProductPage } from '../service';
 import { PurchaseGroupStatusMap } from '@/constant/purchase-group';
 import CategorySelect from '@/component/business/CategorySelect';
-import dayjs from 'dayjs'; // 相对路径
+import dayjs from 'dayjs';
+import { RangePickerProps } from 'antd/es/date-picker'; // 相对路径
 
 const List: React.FC = () => {
 	const actionRef = useRef<ProTableActionType>();
@@ -43,7 +44,7 @@ const List: React.FC = () => {
 			renderFormItem: () => <CategorySelect />,
 		},
 		{
-			label: '团购状态',
+			label: '状态',
 			name: 'group_status',
 			fieldProps: {
 				mode: 'multiple',
@@ -51,9 +52,23 @@ const List: React.FC = () => {
 			valueEnum: PurchaseGroupStatusMap,
 		},
 		{
-			label: '启用状态',
+			label: '是否启用',
 			name: 'group_enable',
 			valueEnum: GlobalEnableTypeMap,
+		},
+		{
+			label: '活动时间',
+			name: 'time_group_start',
+			fieldProps: {} as RangePickerProps,
+			extraFieldNames: ['time_group_start', 'time_group_end'],
+			valueType: EDefaultValueType.RangePicker,
+		},
+		{
+			label: '预约配送时间',
+			name: 'time_delivery_start',
+			fieldProps: {} as RangePickerProps,
+			extraFieldNames: ['time_delivery_start', 'time_delivery_end'],
+			valueType: EDefaultValueType.RangePicker,
 		},
 	];
 

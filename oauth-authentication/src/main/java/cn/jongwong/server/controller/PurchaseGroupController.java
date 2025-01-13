@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/admin/purchase-group")
 public class PurchaseGroupController {
@@ -61,7 +63,7 @@ public class PurchaseGroupController {
 
 //
 //         补充下面全部参数   String productName, String categoryId, Integer groupStatus, Integer listedStatus, Integer enable,
-//            String deliveryStartTime, String deliveryEndTime,
+//            String timeDeliveryStart, String timeDeliveryEnd,
 
 
     @GetMapping("/product")
@@ -72,12 +74,14 @@ public class PurchaseGroupController {
             @RequestParam(required = false) Integer[] groupStatus,
             @RequestParam(required = false) Integer listedStatus,
             @RequestParam(required = false) Integer enable,
-            @RequestParam(required = false) String deliveryStartTime,
-            @RequestParam(required = false) String deliveryEndTime,
+            @RequestParam(required = false) LocalDateTime timeDeliveryStart,
+            @RequestParam(required = false) LocalDateTime timeDeliveryEnd,
+            @RequestParam(required = false) LocalDateTime timeGroupStart,
+            @RequestParam(required = false) LocalDateTime timeGroupEnd,
             @RequestParam int page,
             @RequestParam int size) {
         return purchaseGroupProductService.search(productName, categoryId, groupStatus, listedStatus, enable,
-                        deliveryStartTime, deliveryEndTime, page, size)
+                        timeDeliveryStart, timeDeliveryEnd, timeGroupStart, timeGroupEnd, page, size)
                 .map(PageResponse::success);
 
     }

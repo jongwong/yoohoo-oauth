@@ -7,13 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 @Service
 public class PurchaseGroupProductService {
     @Autowired
     private ClientPurchaseGroupProductRepository clientPurchaseGroupProductRepository;
 
     public Mono<Page<ClientPurchaseGroupProductVO>> search(String productName, String categoryId, Integer[] groupStatus, Integer listedStatus, Integer enable,
-                                                           String deliveryStartTime, String deliveryEndTime, Integer page, Integer size) {
+                                                           LocalDateTime timeDeliveryStart, LocalDateTime timeDeliveryEnd, LocalDateTime timeGroupStart, LocalDateTime timeGroupEnd, Integer page, Integer size) {
 
         return clientPurchaseGroupProductRepository.findPageByDSL(page, size, sql ->
                 sql.as("pgp")
@@ -45,8 +47,10 @@ public class PurchaseGroupProductService {
                         .eq("p.category_id", categoryId)
                         .eq("p.status", listedStatus)
                         .eq("pg.status", groupStatus)
-                        .customCondition("pg.time_delivery_start", ">=", deliveryStartTime)
-                        .customCondition("pg.time_delivery_end", "<=", deliveryEndTime)
+                        .customCondition("pg.time_delivery_start", ">=", timeDeliveryStart)
+                        .customCondition("pg.time_delivery_end", "<=", timeDeliveryEnd)
+                        .customCondition("pg.time_start", ">=", timeGroupStart)
+                        .customCondition("pg.time_end", "<=", timeGroupEnd)
 
                         .withJoin(t -> t.left()
                                 .table("tb_product p")

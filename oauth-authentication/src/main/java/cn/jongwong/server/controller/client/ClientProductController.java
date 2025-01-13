@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,8 +30,10 @@ public class ClientProductController {
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) Integer[] groupStatus,
-            @RequestParam(required = false) String deliveryStartTime,
-            @RequestParam(required = false) String deliveryEndTime,
+            @RequestParam(required = false) LocalDateTime timeDeliveryStart,
+            @RequestParam(required = false) LocalDateTime timeDeliveryEnd,
+            @RequestParam(required = false) LocalDateTime timeGroupStart,
+            @RequestParam(required = false) LocalDateTime timeGroupEnd,
             @RequestParam int page, // 当前页
             @RequestParam int size) { // 每页大小
 
@@ -51,7 +54,7 @@ public class ClientProductController {
         // 将交集转为数组
         Integer[] finalStatus = statusIntersection.toArray(new Integer[0]);
         return purchaseGroupProductService.search(productName, categoryId, finalStatus, ProductListedStatus.LISTED.getCode(), GlobalEnableTypeEnum.ENABLE.getValue(),
-                        deliveryStartTime, deliveryEndTime, page, size)
+                        timeDeliveryStart, timeDeliveryEnd, timeGroupStart, timeGroupEnd, page, size)
                 .map(PageResponse::success);
 
     }

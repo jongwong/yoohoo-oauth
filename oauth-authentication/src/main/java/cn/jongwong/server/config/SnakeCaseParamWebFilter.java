@@ -10,6 +10,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 
 @Component
 public class SnakeCaseParamWebFilter implements WebFilter {
@@ -22,9 +27,24 @@ public class SnakeCaseParamWebFilter implements WebFilter {
         MultiValueMap<String, String> modifiedParams = new LinkedMultiValueMap<>();
         queryParams.forEach((key, values) -> {
             String camelKey = snakeToCamel(key);
-            // 转换参数名为 camelCase，并保留对应的值
-            values.forEach(value -> modifiedParams.add(camelKey, value));
+            values.forEach(value -> {
+
+                // 校验是否为日期时间参数
+                if (isDateTimeParameter(key, value, values)) {
+                    try {
+                        // 转换为 LocalDateTime 格式
+                        LocalDateTime dateTimeValue = convertTimestampToLocalDateTime(value);
+                        modifiedParams.add(camelKey, dateTimeValue.toString());
+                    } catch (DateTimeParseException e) {
+                        throw new IllegalArgumentException("Invalid date format for parameter: " + key, e);
+                    }
+                } else {
+                    // 非日期时间参数直接加入
+                    modifiedParams.add(camelKey, value);
+                }
+            });
         });
+
 
         // 使用 UriComponentsBuilder 创建新的 URI，并替换查询参数
         String newUri = UriComponentsBuilder.fromUri(exchange.getRequest().getURI())
@@ -39,6 +59,36 @@ public class SnakeCaseParamWebFilter implements WebFilter {
         return chain.filter(modifiedExchange);  // 继续过滤链
     }
 
+    private boolean isDateTimeParameter(String camelKey, String value, List<String> values) {
+        // 检查参数名是否满足条件：以 time_ 开头或以 _at 结尾
+        boolean isKeyMatch = camelKey.startsWith("time_") || camelKey.endsWith("_at");
+        // 检查值是否符合时间戳格式（13 位数字）
+        boolean isValueValid = isValidTimestamp(value);
+
+        // 检查 values 是否只有一个元素
+        boolean isSingleValue = values.size() == 1;
+
+        // 参数名符合条件，值符合条件，并且 values 长度为 1 才返回 true
+        return isKeyMatch && isValueValid && isSingleValue;
+    }
+
+    private boolean isValidTimestamp(String value) {
+        // 检查值是否为 13 位时间戳（毫秒级）
+        return value.matches("\\d{13}");
+    }
+
+    public LocalDateTime convertTimestampToLocalDateTime(String str) {
+        // 1. 将时间戳字符串转换为 long 类型
+        long timestamp = Long.parseLong(str);
+
+        // 2. 将时间戳转换为 Instant
+        Instant instant = Instant.ofEpochMilli(timestamp);
+
+        // 3. 转换为 LocalDateTime，根据系统时区
+        LocalDateTime localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        return localDateTime;
+    }
     // 将 snake_case 转换为 camelCase
     private String snakeToCamel(String snakeCase) {
         StringBuilder result = new StringBuilder();

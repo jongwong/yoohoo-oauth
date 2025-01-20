@@ -1,5 +1,6 @@
 import { serviceConfig } from "../../config";
 import Taro from "@tarojs/taro";
+import { isNil, omitBy } from "lodash-es";
 
 type ResponseData<T = any> = {
   code: number;
@@ -16,6 +17,7 @@ export type RequestOption<T = any, U = any> = Omit<
   },
   "method" | "url"
 >;
+const urlList = ["/client/wechat/login"];
 
 const request = <T = any, U = any>(
   config: RequestOption<T, U> & {
@@ -23,12 +25,21 @@ const request = <T = any, U = any>(
     url: string;
   }
 ): Promise<ResponseData<T>> => {
+  if (config?.params) {
+    config.params = omitBy(config?.params, (it) => !isNil(it));
+  }
+
   return new Promise((resolve, reject) => {
     const _url = config.url.startsWith("/")
       ? serviceConfig.client + config.url
       : config.url;
 
     const token = wx.getStorageSync("access_token");
+    if (!token && !urlList.includes(config.url)) {
+      wx.navigateTo({
+        url: "/pages/login/index",
+      });
+    }
     Taro.request({
       header: {
         "Content-Type": "application/json", // 默认请求头
@@ -48,7 +59,6 @@ const request = <T = any, U = any>(
           ) {
             wx.removeStorageSync("access_token");
             wx.removeStorageSync("refresh_token");
-            console.log("=====222=====", 222);
           }
 
           wx.navigateTo({

@@ -1,0 +1,50 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 1989858 */
+  src: url("./iconfont.woff2?t=1736797459372") format("woff2"),
+    url("./iconfont.woff?t=1736797459372") format("woff"),
+    url("./iconfont.ttf?t=1736797459372") format("truetype");
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.yh-minus-circle-fill:before {
+  content: "\e844";
+}
+
+.yh-plus-circle-fill:before {
+  content: "\e845";
+}
+
+.yh-minus-circle:before {
+  content: "\e780";
+}
+
+.yh-half-pc-password:before {
+  content: "\e913";
+}
+
+.yh-half-qrcode:before {
+  content: "\e914";
+}
+
+.yh-half-verification-code:before {
+  content: "\e915";
+}
+
+.yh-QRcode:before {
+  content: "\e90f";
+}
+
+.yh-yanzhengma:before {
+  content: "\e90e";
+}
+
+.yh-pc-password1:before {
+  content: "\e90d";
+}

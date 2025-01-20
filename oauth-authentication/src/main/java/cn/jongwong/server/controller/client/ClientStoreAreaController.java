@@ -23,12 +23,13 @@ public class ClientStoreAreaController {
     // 获取最近的配送点
     @GetMapping("/distance")
     public Mono<PageResponse<DistributionPointVO>> queryLocation(@RequestParam(required = false) String name,
+                                                                 @RequestParam(required = false) Integer enable,
                                                                  @RequestParam(required = true) BigDecimal latitude,
                                                                  @RequestParam(required = true) BigDecimal longitude,
                                                                  @RequestParam(required = true) int page,
                                                                  @RequestParam(required = true) int size) {
         // String 转成 浮点数
-        return PageResponse.reactivePageSuccess(distributionPointService.searchSortByLocation(name, latitude, longitude, page, size));
+        return PageResponse.reactivePageSuccess(distributionPointService.searchSortByLocation(name, enable, latitude, longitude, page, size));
     }
 
 

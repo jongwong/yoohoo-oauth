@@ -17,7 +17,8 @@ import { getPurchaseGroupProductPage } from '../service';
 import { PurchaseGroupStatusMap } from '@/constant/purchase-group';
 import CategorySelect from '@/component/business/CategorySelect';
 import dayjs from 'dayjs';
-import { RangePickerProps } from 'antd/es/date-picker'; // 相对路径
+import { RangePickerProps } from 'antd/es/date-picker';
+import DistributionPointSelect from '@/component/business/DistributionPointSelect'; // 相对路径
 
 const List: React.FC = () => {
 	const actionRef = useRef<ProTableActionType>();
@@ -31,10 +32,6 @@ const List: React.FC = () => {
 	// 查询表单字段
 	const fields: ProTableSearchFieldType[] = [
 		{
-			label: '名称',
-			name: 'name',
-		},
-		{
 			label: '商品名称',
 			name: 'product_name',
 		},
@@ -42,6 +39,11 @@ const List: React.FC = () => {
 			label: '商品类别',
 			name: 'category_id',
 			renderFormItem: () => <CategorySelect />,
+		},
+		{
+			label: '配送地址',
+			name: 'distribution_point_id',
+			renderFormItem: () => <DistributionPointSelect />,
 		},
 		{
 			label: '状态',
@@ -99,6 +101,7 @@ const List: React.FC = () => {
 			width: 150,
 			valueType: EDefaultValueType.Money,
 		},
+
 		{
 			title: '商品类别',
 			dataIndex: 'category_name',
@@ -116,6 +119,12 @@ const List: React.FC = () => {
 			dataIndex: 'group_enable',
 			width: 120,
 			valueEnum: GlobalEnableTypeMap,
+		},
+		{
+			title: '配送地址',
+			dataIndex: 'distribution_point_name',
+			width: 250,
+			ellipsis: true,
 		},
 		{
 			title: '团购时间',

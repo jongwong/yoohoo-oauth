@@ -74,7 +74,6 @@ public class WebFluxSecurityConfig {
         // 配置 SMS 认证过滤器
         JwtAuthenticationWebFilter jwtAuthenticationWebFilter = new JwtAuthenticationWebFilter(reactiveAuthenticationManager, (ServerAuthenticationSuccessHandler) jwtAuthenticationSuccessHandler, customAuthenticationFailureHandler);
 
-
         http.csrf(t -> t.disable());
         // 1. 首先放行 /login
         http.authorizeExchange(t -> t
@@ -87,7 +86,13 @@ public class WebFluxSecurityConfig {
         http.formLogin(ServerHttpSecurity.FormLoginSpec::disable);
 
 
-
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http
+                .headers(headers -> headers
+                        .frameOptions(ServerHttpSecurity.HeaderSpec.FrameOptionsSpec::disable) // 设置 X-Frame-Options
+                        .xssProtection(ServerHttpSecurity.HeaderSpec.XssProtectionSpec::disable) // 设置 X-XSS-Protection
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; object-src 'none'")) // 设置 Content-Security-Policy
+                );
         http.addFilterAt(smsAuthenticationWebFilter,SecurityWebFiltersOrder.AUTHENTICATION);
 
         http.addFilterAt(authenticationWebFilter,SecurityWebFiltersOrder.AUTHENTICATION);
@@ -142,7 +147,7 @@ public class WebFluxSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // 设置允许跨域的来源
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://dev.admin.yoohoo.cn")); // 设置允许跨域的来源
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE")); // 设置允许的请求方法
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type")); // 设置允许的请求头
         configuration.setAllowCredentials(true); // 是否允许携带凭证

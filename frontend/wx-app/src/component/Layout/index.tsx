@@ -2,8 +2,9 @@ import React from "react";
 
 import { ConfigProvider } from "@nutui/nutui-react-taro";
 
-import styles from "./index.module.less";
 import classNames from "classnames";
+
+import styles from "./index.module.less";
 
 type LayoutProps = {
   children?: React.ReactNode;
@@ -16,6 +17,7 @@ const Layout: React.FC<LayoutProps> = (props) => {
     nutuiColorPrimary: "#8cb24b",
     nutuiColorPrimaryStop1: "#8cb24b",
     nutuiColorPrimaryStop2: "#8cb24b",
+    nutuiPickerTitleOkColor: "#8cb24b",
   };
   return (
     <ConfigProvider

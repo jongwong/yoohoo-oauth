@@ -1,73 +1,137 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ScrollView, View } from "@tarojs/components";
-import styles from "./index.module.less";
-import ProductCardItem from "./component/ProductCardItem";
-import Taro from "@tarojs/taro";
-import classNames from "classnames";
-import { Space } from "@nutui/nutui-react-taro";
-import { Location, Star } from "@nutui/icons-react-taro";
-import request from "@/utils/request";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Image, ScrollView, Text, View } from "@tarojs/components";
+import { Button, Empty, Picker, Space, Sticky } from "@nutui/nutui-react-taro";
+
 import { useRequest } from "ahooks";
+import dayjs, { Dayjs } from "dayjs";
+import { groupBy } from "lodash-es";
+import classNames from "classnames";
+import request from "@/utils/request";
+import SwiperDatePicker from "@/component/DatePicker";
+import ProductCardItem from "./component/ProductCardItem";
+import { generateFileUrl, getNoDataUrl } from "@/utils/file";
+import styles from "./index.module.less";
+import Taro from "@tarojs/taro";
 
-const state = {
-  src: "//img10.360buyimg.com/n2/s240x240_jfs/t1/210890/22/4728/163829/6163a590Eb7c6f4b5/6390526d49791cb9.jpg!q70.jpg",
-  title: "伯牙绝弦（茉莉雪芽）",
-  originalPrice: 17,
-  price: 13,
-  shopDescription: "早餐",
-};
 const Index: React.FC = () => {
-  const menu = [
-    { title: "营养早餐", id: "breakfast" },
-    { title: "阳光午餐", id: "lunch" },
-    { title: "夜宴盛味", id: "dinner" },
-    { title: "轻茶慢享", id: "afternoon" },
-    { title: "囤享时光", id: "takeaway" },
-    { title: "取餐须知", id: "notice" },
-  ];
-
+  // State hooks
   const [activeIndex, setActiveIndex] = useState(0); // 当前激活的菜单项
   const [scrollToId, setScrollToId] = useState<string>(""); // 滚动到的目标
+  const [selectTime, setSelectTime] = useState<Dayjs>(dayjs()); // 选择时间
+  const [productList, setProductList] = useState<any[]>([]); // 产品列表
+  const [currentArea, setCurrentArea] = useState<{
+    id: string;
+    name: string;
+  }>(); // 当前选中的区域
+  const [addressPickVisible, setAddressPickVisible] = useState(false); // 地址选择弹窗是否显示
+  const [areaList, setAreaList] = useState<any[]>([]); // 区域列表
+
+  const [cartMap, setCartMap] = useState({});
+
+  // Refs
   const isScrollingByClick = useRef(false); // 是否为点击触发滚动
-  const scrollTimer = useRef<NodeJS.Timeout | null>(null); // 定时器用于清理滚动状态
-  const [areaList, setAreaList] = useState();
+  const scrollTimer = useRef<NodeJS.Timeout | null>(null); // 用于清理滚动状态的定时器
 
-  const [currentArea, setCurrentArea] = useState();
+  // 数据请求
+  const { data: menuList = [] } = useRequest(async () => {
+    const res = await request.get("/client/menus/category");
+    return res?.data || [];
+  });
 
-  useRequest(
-    () => {
+  // 请求产品列表数据
+  const { loading: productLoading } = useRequest(
+    async () => {
       return request.get("/client/group/product", {
         params: {
           page: 1,
-          size: 20,
+          size: 400,
+          time_delivery_start: selectTime?.startOf("day").valueOf(),
+          time_delivery_end: selectTime?.endOf("day").valueOf(),
+          group_status: [20, 30],
+          distribution_point_id: currentArea?.id,
         },
       });
     },
     {
-      refreshDeps: [currentArea?.id],
-      ready: currentArea?.id,
+      refreshDeps: [currentArea?.id, selectTime],
+      ready: !!currentArea?.id && !!selectTime,
       onSuccess: (res) => {
-        console.log("=====res=====", res);
+        if (res.success) {
+          setProductList(res?.data || []);
+        }
       },
     }
   );
 
+  // 获取当前位置信息
+  const getWxLocation = () => {
+    wx.getLocation({
+      type: "wgs84",
+      success(res) {
+        wx.setStorageSync("locationInfo", res);
+        fetchLocationList({
+          page: 1,
+          size: 10,
+          enable: 1,
+          latitude: res?.latitude,
+          longitude: res?.longitude,
+        });
+      },
+      fail(error) {
+        console.error("获取位置失败", error);
+        wx.showToast({ title: "获取位置失败" });
+      },
+    });
+  };
+
+  // 获取区域列表
+  const fetchLocationList = async (params: {
+    latitude: number;
+    longitude: number;
+    name?: string;
+    page: number;
+    size: number;
+    enable?: number;
+  }) => {
+    const res = await request.get("/client/store/area/distance", { params });
+    if (res.success) {
+      setAreaList(res.data || []);
+      setCurrentArea(res?.data?.[0]);
+    }
+  };
+
+  useEffect(() => {
+    getWxLocation();
+  }, []);
+
+  // 格式化菜单数据
+  const formatMenuData = useMemo(() => {
+    return (menuList || []).sort((a, b) => a.sort - b.sort);
+  }, [menuList]);
+
+  // 根据分类获取产品列表
+  const productListCategoryMap = useMemo(() => {
+    return groupBy(productList, (it) => it?.category_id);
+  }, [productList]);
+
+  const getCategoryProductList = (id: string) => {
+    return productListCategoryMap[id] || [];
+  };
+
   // 点击菜单触发滚动
   const handleMenuClick = (index: number) => {
-    // 清除上一次滚动的定时器
     if (scrollTimer.current) {
       clearTimeout(scrollTimer.current);
       scrollTimer.current = null;
     }
 
-    isScrollingByClick.current = true; // 标记为点击滚动
-    setActiveIndex(index); // 设置当前激活菜单
-    setScrollToId(`content-${menu[index].id}`); // 设置滚动目标
+    isScrollingByClick.current = true;
+    setActiveIndex(index);
+    setScrollToId(`content-${menuList[index].id}`);
 
-    // 定时器：解除滚动锁定状态
     scrollTimer.current = setTimeout(() => {
       isScrollingByClick.current = false;
-    }, 500); // 根据滚动动画时长调整
+    }, 500);
   };
 
   // 手动滚动触发
@@ -75,11 +139,9 @@ const Index: React.FC = () => {
     if (isScrollingByClick.current) return;
 
     const query = Taro.createSelectorQuery();
-
     query
-      .selectAll(".content-title") // 为内容区域设置统一的类名
+      .selectAll(".content-title")
       .boundingClientRect((rects: any[]) => {
-        // rects 是所有内容区域的位置信息数组
         for (let i = 0; i < rects?.length; i++) {
           const rect = rects[i];
           if (rect.top >= 0) {
@@ -91,71 +153,46 @@ const Index: React.FC = () => {
       .exec();
   };
 
-  const getWxLocation = () => {
-    wx.getLocation({
-      type: "wgs84",
-      success(res) {
-        wx.setStorageSync("locationInfo", res);
-        fetchLocationList({
-          page: 1,
-          size: 10,
-          latitude: res?.latitude,
-          longitude: res?.longitude,
-        });
-      },
-      fail(error) {
-        console.error("获取位置失败", error);
-        wx.showToast({
-          title: "获取位置失败",
-        });
-      },
-    });
-  };
+  const productCount = useMemo(() => {
+    return Object.keys(cartMap || {})
+      .map((it) => cartMap[it])
+      .reduce((it, pre) => pre + (it || 0), 0);
+  }, [cartMap]);
 
-  const fetchLocationList = async (params: {
-    latitude: number;
-    longitude: number;
-    name?: string;
-    page: number;
-    size: number;
-  }) => {
-    const res = await request.get("/client/store/area/distance", { params });
-    if (res.success) {
-      setAreaList(res.data || []);
-      setCurrentArea(res?.data?.[0]);
-    }
-  };
-  useEffect(() => {
-    getWxLocation();
-  }, []);
-  console.log("=====currentArea=====", currentArea);
   return (
     <View className={styles.container}>
+      {/* Header: Store Name and Location */}
       <View className={styles.header}>
-        {/* 第一行：收藏图标 + 红星商务大厦 */}
         <View className={styles["store-title"]}>
-          <Star size={14} className={styles.icon} />
-          <View>
-            {currentArea?.name || ""}
-            {" >"}
+          {/*<Star size={14} className={styles.icon} />*/}
+          <View onClick={() => setAddressPickVisible(true)}>
+            {currentArea?.name ? (
+              <Text>
+                {currentArea?.name} {" >"}
+              </Text>
+            ) : null}
           </View>
         </View>
-
-        {/* 第二行：定位图标 + 具体地址 */}
         <View className={styles["store-location"]}>
-          <Location size={12} className={styles.icon} />
-          <View className={styles.text}>{currentArea?.address || ""}</View>
+          {/*<Location size={12} className={styles.icon} />*/}
+          <Text className={styles.text}>{currentArea?.address || ""}</Text>
         </View>
       </View>
+
+      {/* Time Picker */}
+      <View className={styles["time-picker-box"]}>
+        <SwiperDatePicker value={selectTime} onChange={setSelectTime} />
+      </View>
+
+      {/* Menu Container */}
       <View className={styles.menuContainer}>
-        {/* 左侧菜单 */}
         <ScrollView className={styles.menu} scrollY>
-          {menu.map((item, index) => (
+          {formatMenuData.map((item, index) => (
             <View
               key={item.id}
-              className={`${styles.menuItem} ${
-                activeIndex === index ? styles.active : ""
-              }`}
+              className={classNames(styles.menuItem, {
+                [styles.active]: activeIndex === index,
+              })}
               onClick={() => handleMenuClick(index)}
             >
               {item.title}
@@ -163,36 +200,111 @@ const Index: React.FC = () => {
           ))}
         </ScrollView>
 
-        {/* 右侧内容 */}
+        {/* Content Section */}
         <ScrollView
           className={styles.content}
           scrollY
           scrollWithAnimation
-          scrollIntoView={scrollToId} // 指定滚动目标
+          scrollIntoView={scrollToId}
           onScroll={handleContentScroll}
         >
-          {menu.map((item) => (
+          {productList?.length ? (
+            formatMenuData.map((item) => {
+              const list = getCategoryProductList(item?.category_id);
+              const isSpecial = item.title === "团购须知";
+              let content: ReactNode = null;
+
+              if (isSpecial && currentArea?.delivery_time_note) {
+                content = <View>{currentArea?.delivery_time_note}</View>;
+              }
+              if (!content && !list?.length) {
+                return null;
+              }
+
+              if (list?.length) {
+                content = (
+                  <>
+                    {list.map((productIt) => (
+                      <ProductCardItem
+                        key={productIt.id}
+                        title={productIt?.name}
+                        price={productIt?.price}
+                        src={generateFileUrl(
+                          productIt?.thumbnail_image_url,
+                          true
+                        )}
+                        num={cartMap[productIt.id]}
+                        onCartChange={(num) => {
+                          setCartMap((old) => ({
+                            ...old,
+                            [productIt.id]: num,
+                          }));
+                        }}
+                        originalPrice={productIt?.original_price}
+                      />
+                    ))}
+                  </>
+                );
+              }
+
+              return (
+                <View
+                  key={item.id}
+                  id={`content-${item.id}`}
+                  className={styles.contentBlock}
+                >
+                  <View
+                    className={classNames(styles.contentTitle, "content-title")}
+                  >
+                    {item.title}
+                  </View>
+                  <View className={styles.contentDescription}>
+                    <Space direction="vertical">{content}</Space>
+                  </View>
+                </View>
+              );
+            })
+          ) : (
             <View
-              key={item.id}
-              id={`content-${item.id}`} // 绑定对应的内容区域
-              className={styles.contentBlock}
+              style={{
+                marginTop: "15vh",
+                height: "100vw",
+                bottom: 0,
+              }}
             >
-              <View
-                className={classNames(styles.contentTitle, "content-title")}
-              >
-                {item.title}
-              </View>
-              <View className={styles.contentDescription}>
-                <Space direction={"vertical"}>
-                  <ProductCardItem {...state} />
-                  <ProductCardItem {...state} />
-                  <ProductCardItem {...state} />
-                </Space>
-              </View>
+              <Empty
+                description={"暂无商品"}
+                style={{ width: "100vw", flex: "0 0 auto" }}
+                image={<Image src={getNoDataUrl()} />}
+              />
             </View>
-          ))}
+          )}
         </ScrollView>
       </View>
+      {productCount ? (
+        <Sticky threshold={120}>
+          <View className={styles.cartBar}>
+            <Button type="primary">去结算</Button>
+          </View>
+        </Sticky>
+      ) : null}
+      {/* Address Picker */}
+      <Picker
+        title="选择地址"
+        options={areaList?.map((it) => ({
+          text: it.name,
+          value: it.id,
+        }))}
+        visible={addressPickVisible}
+        onConfirm={(e) => {
+          const find = areaList.find((it) => it.id === e?.[0]?.value);
+          setCurrentArea(find);
+          setAddressPickVisible(false);
+        }}
+        onCancel={() => setAddressPickVisible(false)}
+        key={currentArea?.id}
+        defaultValue={currentArea?.id ? [currentArea?.id] : undefined}
+      />
     </View>
   );
 };

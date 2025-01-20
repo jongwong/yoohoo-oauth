@@ -4,15 +4,18 @@ import { Modal } from 'antd';
 import { isNil, omitBy } from 'lodash';
 import axiosRetry from 'axios-retry';
 
+const getRedirectUrl = () => {
+	const pathname = window.location.pathname; // 获取当前页面路径（不包含域名和查询参数）
+	const search = window.location.search; // 获取查询参数部分（包括问号“?”）
+	// 跳转到登录页，并附加当前路径和查询参数
+	return '/login?redirect_uri=' + encodeURIComponent(pathname + search);
+};
 const openLoginConfirm = (message: string) => {
 	Modal.confirm({
 		title: '未登录',
 		content: message,
 		onOk: () => {
-			const pathname = window.location.pathname; // 获取当前页面路径（不包含域名和查询参数）
-			const search = window.location.search; // 获取查询参数部分（包括问号“?”）
-			// 跳转到登录页，并附加当前路径和查询参数
-			window.location.href = '/login?redirect_uri=' + encodeURIComponent(pathname + search);
+			window.location.href = getRedirectUrl();
 		},
 	});
 };
@@ -46,7 +49,7 @@ const tryConfirm = (error: AxiosError): Promise<boolean> => {
 
 // 创建 Axios 实例
 const http = axios.create({
-	baseURL: 'http://localhost:8080', // 后端 API 基础地址
+	baseURL: 'http://dev.api.yoohoo.cn', // 后端 API 基础地址
 	timeout: 10000, // 请求超时时间
 	headers: {
 		'Content-Type': 'application/json', // 默认请求头
@@ -58,6 +61,7 @@ axiosRetry(http, {
 	retries: 10, // 重试次数
 	retryDelay: axiosRetry.exponentialDelay, // 使用指数回退延迟
 	retryCondition: error => {
+		console.log('=====error=====', error);
 		// 在这里可以根据错误的类型来决定是否重试
 		return tryConfirm(error);
 	},
@@ -68,12 +72,17 @@ http.interceptors.request.use(
 	config => {
 		const token = getCookie('access_token')?.trim();
 
+		if (!token && window.location.pathname !== '/login') {
+			window.location.href = getRedirectUrl();
+			return;
+		}
 		if (token?.length) {
 			config.headers['Authorization'] = `Bearer ${token}`;
 		}
 		return config;
 	},
 	error => {
+		console.log('=====error=====', error);
 		return Promise.reject(error);
 	}
 );
@@ -82,7 +91,7 @@ http.interceptors.request.use(
 http.interceptors.response.use(
 	response => {
 		const ob = response?.data || {};
-
+		console.log('=====ob=====', ob);
 		return { ...ob, success: ob?.code === 0 };
 	},
 	async error => {
@@ -91,6 +100,7 @@ http.interceptors.response.use(
 			success: false,
 			message: '',
 		};
+		console.log('=====error==77===', error);
 
 		if (error?.status === 401 || data?.code === 401) {
 			deleteCookie('access_token');
@@ -111,19 +121,61 @@ type ResponseData<T = any> = {
 };
 
 export default {
-	request: http.request,
+	request: (config: AxiosRequestConfig) => {
+		return http.request(config).catch(error => {
+			console.error('Global Error Handling (request):', error);
+			// 可以在这里统一处理错误
+			return Promise.reject(error); // 必须返回 rejection，否则会继续执行
+		});
+	},
+
 	get: (url: string, config?: AxiosRequestConfig) => {
 		const params = omitBy(config?.params || {}, it => {
 			return it === -1 || it === '' || isNil(it);
 		});
-		return http.get(url, {
-			...config,
-			params,
+		console.log('=====url=====', url);
+		try {
+			return http
+				.get(url, {
+					...config,
+					params,
+				})
+				.catch(error => {
+					console.log('=====error=====', error);
+				});
+		} catch (error) {
+			console.error('Global Error Handling (GET):', error);
+			// 可以在这里统一处理错误
+			return Promise.resolve({
+				success: false,
+				code: -1,
+			});
+		} // 必须返回 rejection
+	},
+
+	delete: (url: string, config?: AxiosRequestConfig) => {
+		return http.delete(url, config).catch(error => {
+			console.error('Global Error Handling (DELETE):', error);
+			// 可以在这里统一处理错误
+			return Promise.reject(error); // 必须返回 rejection，否则会继续执行
 		});
 	},
-	delete: http.delete,
-	post: http.post,
-	put: http.put,
+
+	post: (url: string, data?: any, config?: AxiosRequestConfig) => {
+		return http.post(url, data, config).catch(error => {
+			console.error('Global Error Handling (POST):', error);
+			// 可以在这里统一处理错误
+			return Promise.reject(error); // 必须返回 rejection，否则会继续执行
+		});
+	},
+
+	put: (url: string, data?: any, config?: AxiosRequestConfig) => {
+		return http.put(url, data, config).catch(error => {
+			console.error('Global Error Handling (PUT):', error);
+			// 可以在这里统一处理错误
+			return Promise.reject(error); // 必须返回 rejection，否则会继续执行
+		});
+	},
 } as {
 	request<T = any, R = AxiosResponse<T>, D = any>(
 		config: AxiosRequestConfig<D>
@@ -136,7 +188,6 @@ export default {
 		url: string,
 		config?: AxiosRequestConfig<D>
 	): Promise<ResponseData<T>>;
-
 	post<T = any, R = AxiosResponse<T>, D = any>(
 		url: string,
 		data?: D,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Taro from "@tarojs/taro";
 import { Loading } from "@nutui/nutui-react-taro";
 import request from "@/utils/request";
@@ -13,6 +13,16 @@ const useCheckLogin = () => {
   }, []);
 
   const handleLogin = () => {
+    const token = wx.getStorageSync("access_token");
+    const userInfo = wx.getStorageSync("userInfo");
+
+    if (token && userInfo) {
+      Taro.switchTab({
+        url: "/pages/home/index",
+      });
+      return;
+    }
+
     wx.login({
       success: async (res) => {
         setLoading(true);
@@ -63,7 +73,6 @@ const useCheckLogin = () => {
         if (userRes.success) {
           // 检查是否已注册
           if (userRes?.data?.name) {
-            wx.setStorageSync("user_id", _data.id);
             const userInfo = {
               union_id: _data.union_id,
               session_key: _data.session_key,
@@ -85,8 +94,13 @@ const useCheckLogin = () => {
         }
       },
       fail: (err) => {
+        console.error(err);
         setLoading(false);
-        console.error("调用 wx.login 失败：", err);
+        wx.showToast({
+          title: "登录失败",
+          type: "error",
+          message: err.errMsg,
+        });
       },
     });
   };

@@ -5,8 +5,7 @@ specifiers:
   '@babel/plugin-proposal-class-properties': 7.14.5
   '@babel/preset-react': ^7.24.1
   '@babel/runtime': ^7.21.5
-  '@nutui/icons-react-taro': 2.0.1
-  '@nutui/nutui-react-taro': 2.7.4
+  '@nutui/nutui-react-taro': 3.0.0-beta.11
   '@pmmmwh/react-refresh-webpack-plugin': ^0.5.5
   '@tarojs/binding-darwin-arm64': ^4.0.8
   '@tarojs/cli': 4.0.8
@@ -23,6 +22,7 @@ specifiers:
   '@tarojs/taro-loader': 4.0.8
   '@tarojs/vite-runner': 4.0.8
   '@tarojs/webpack5-runner': 4.0.8
+  '@types/lodash-es': ^4.17.12
   '@types/node': ^18.15.11
   '@types/react': ^18.0.0
   '@types/webpack-env': ^1.13.6
@@ -39,6 +39,7 @@ specifiers:
   eslint-plugin-import: ^2.12.0
   eslint-plugin-react: ^7.8.2
   eslint-plugin-react-hooks: ^4.2.0
+  lodash-es: ^4.17.21
   miniprogram-api-typings: ^4.0.2
   postcss: ^8.4.18
   react: ^18.0.0
@@ -55,8 +56,7 @@ specifiers:
 
 dependencies:
   '@babel/runtime': 7.26.0
-  '@nutui/icons-react-taro': 2.0.1
-  '@nutui/nutui-react-taro': 2.7.4_nnrd3gsncyragczmpvfhocinkq
+  '@nutui/nutui-react-taro': 3.0.0-beta.11_nnrd3gsncyragczmpvfhocinkq
   '@tarojs/components': 4.0.8_z7sjsydjr5eafpmusdhhlspbwq
   '@tarojs/helper': 4.0.8
   '@tarojs/plugin-platform-h5': 4.0.8_634q77ofzckxu5rmige7uxcnay
@@ -68,6 +68,7 @@ dependencies:
   ahooks: 3.8.4_react@18.3.1
   classnames: 2.5.1
   dayjs: 1.11.13
+  lodash-es: 4.17.21
   react: 18.3.1
   react-dom: 18.3.1_react@18.3.1
 
@@ -83,6 +84,7 @@ devDependencies:
   '@tarojs/taro-loader': 4.0.8_webpack@5.78.0
   '@tarojs/vite-runner': 4.0.8_kmsvdb2hopdnr74pcrjfnv54oi
   '@tarojs/webpack5-runner': 4.0.8_43yxhmnzuoj3kdwrtaitsjdrre
+  '@types/lodash-es': 4.17.12
   '@types/node': 18.19.68
   '@types/react': 18.3.18
   '@types/webpack-env': 1.18.5
@@ -2004,33 +2006,32 @@ packages:
       fastq: 1.17.1
     dev: true
 
-  /@nutui/icons-react-taro/1.0.5:
-    resolution: {integrity: sha512-p7dCW29wASH/qQ1OaUGGKA6PRV33wDPb80+qrHnWtT40syIb0W+e92mpplbULWM01s+GYVGyUU3i8b7Iy7qfvw==}
-    dev: false
-
-  /@nutui/icons-react-taro/2.0.1:
-    resolution: {integrity: sha512-/DYmt8Rfp0NGx37/67Nd+k85zB2sJMLjlJiLpLbKxXk75SY0inwka51HhgawFTUk53zeta0CH/sDscTZdN005w==}
+  /@nutui/icons-react-taro/3.0.0-beta.2:
+    resolution: {integrity: sha512-18/mbhcHEVqDUYqSvZGK0gPl2AJMjqXarYj6mCFBdN4PWgaAh500YVncEwxmCYNbHm72qHZff+/UhOCU7OwAow==}
     dev: false
 
   /@nutui/jdesign-icons-react-taro/1.0.6-beta.2:
     resolution: {integrity: sha512-2Scz5c9o14gA7Mw5JdiEkc/KEbNlNWMcJMuqVyFVipYeeYN/118N/fvHVpocmJviN0Gc4P+u3ZB3dIQSA2j4Fw==}
     dev: false
 
-  /@nutui/nutui-react-taro/2.7.4_nnrd3gsncyragczmpvfhocinkq:
-    resolution: {integrity: sha512-r47l2rkY5HbObyTHxt2ZCTMKolM+v9CxX7QwSQGyuVRCi5G5cwPbSEz3NucvWGyZ69NaD3XA4Oc2LumLhaHmGg==}
+  /@nutui/nutui-react-taro/3.0.0-beta.11_nnrd3gsncyragczmpvfhocinkq:
+    resolution: {integrity: sha512-OI09wo5bpIxA1snVcexLsJuxxwt3vfnGo//C76Zc8kzj4xK6rLwHj4Rog/fBHZ6ZRnxtJ8jpl5Sofs7CoZR2yA==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
       '@babel/runtime': 7.26.0
-      '@nutui/icons-react-taro': 1.0.5
+      '@nutui/icons-react-taro': 3.0.0-beta.2
       '@nutui/jdesign-icons-react-taro': 1.0.6-beta.2
       '@nutui/touch-emulator': 1.0.0
       '@react-spring/web': 9.6.1_nnrd3gsncyragczmpvfhocinkq
+      '@swc/helpers': 0.5.15
       '@use-gesture/react': 10.2.20_react@18.3.1
       async-validator: 4.2.5
       classnames: 2.5.1
       lodash.isequal: 4.5.0
       lodash.kebabcase: 4.1.1
+      lottie-miniprogram: 1.0.12
+      lottie-react: 2.4.0_nnrd3gsncyragczmpvfhocinkq
       react: 18.3.1
       react-transition-group: 4.4.5_nnrd3gsncyragczmpvfhocinkq
     transitivePeerDependencies:
@@ -2514,6 +2515,12 @@ packages:
 
   /@swc/counter/0.1.3:
     resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
+
+  /@swc/helpers/0.5.15:
+    resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
+    dependencies:
+      tslib: 2.8.1
+    dev: false
 
   /@swc/register/0.1.10_@swc+core@1.3.96:
     resolution: {integrity: sha512-6STwH/q4dc3pitXLVkV7sP0Hiy+zBsU2wOF1aXpXR95pnH3RYHKIsDC+gvesfyB7jxNT9OOZgcqOp9RPxVTx9A==}
@@ -3610,6 +3617,12 @@ packages:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
       '@types/node': 18.19.68
+    dev: true
+
+  /@types/lodash-es/4.17.12:
+    resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
+    dependencies:
+      '@types/lodash': 4.17.13
     dev: true
 
   /@types/lodash.debounce/4.0.9:
@@ -8246,6 +8259,25 @@ packages:
     hasBin: true
     dependencies:
       js-tokens: 4.0.0
+
+  /lottie-miniprogram/1.0.12:
+    resolution: {integrity: sha512-2ITtXAyeDXbftvYYe5w0ayl8jTV8laylWMCdJofpka1q205NkjRNj7kX+iIZZ/YjKh1f8plWxb9gSFHkC7BLUQ==}
+    dev: false
+
+  /lottie-react/2.4.0_nnrd3gsncyragczmpvfhocinkq:
+    resolution: {integrity: sha512-pDJGj+AQlnlyHvOHFK7vLdsDcvbuqvwPZdMlJ360wrzGFurXeKPr8SiRCjLf3LrNYKANQtSsh5dz9UYQHuqx4w==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      lottie-web: 5.12.2
+      react: 18.3.1
+      react-dom: 18.3.1_react@18.3.1
+    dev: false
+
+  /lottie-web/5.12.2:
+    resolution: {integrity: sha512-uvhvYPC8kGPjXT3MyKMrL3JitEAmDMp30lVkuq/590Mw9ok6pWcFCwXJveo0t5uqYw1UREQHofD+jVpdjBv8wg==}
+    dev: false
 
   /lower-case/1.1.4:
     resolution: {integrity: sha512-2Fgx1Ycm599x+WGpIYwJOvsjmXFzTSc34IwDWALRA/8AopUKAVPwfJ+h5+f85BCp0PWmmJcWzEpxOpoXycMpdA==}

@@ -59,17 +59,38 @@
 .addToCartBtn {
   width: 24px;
   height: 24px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: start;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 24px;
+
+  font-weight: bold;
+  display: flex;
+  position: relative;
+
+  color: #8cb24b;
+}
+
+.subToCartBtn {
+  width: 24px;
+  height: 24px;
   padding: 6px;
   box-sizing: border-box;
   border-radius: 50%;
-  background-color: #8cb24b;
+  color: #8cb24b;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   transition: background-color 0.3s;
+}
 
-  &:hover {
-    background-color: #aabf85;
-  }
+.cartBtns {
+  gap: 2px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }

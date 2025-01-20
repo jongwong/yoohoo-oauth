@@ -29,6 +29,7 @@ public class ClientProductController {
     public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryLocation(
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String distributionPointId,
             @RequestParam(required = false) Integer[] groupStatus,
             @RequestParam(required = false) LocalDateTime timeDeliveryStart,
             @RequestParam(required = false) LocalDateTime timeDeliveryEnd,
@@ -53,7 +54,7 @@ public class ClientProductController {
 
         // 将交集转为数组
         Integer[] finalStatus = statusIntersection.toArray(new Integer[0]);
-        return purchaseGroupProductService.search(productName, categoryId, finalStatus, ProductListedStatus.LISTED.getCode(), GlobalEnableTypeEnum.ENABLE.getValue(),
+        return purchaseGroupProductService.searchWithImage(productName, categoryId, distributionPointId, finalStatus, ProductListedStatus.LISTED.getCode(), GlobalEnableTypeEnum.ENABLE.getValue(),
                         timeDeliveryStart, timeDeliveryEnd, timeGroupStart, timeGroupEnd, page, size)
                 .map(PageResponse::success);
 

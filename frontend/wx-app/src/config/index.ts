@@ -1,3 +1,3 @@
 export const serviceConfig = {
-  client: "http://0.0.0.0:8080",
+  client: "http://dev.api.yoohoo.cn",
 };

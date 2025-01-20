@@ -71,6 +71,7 @@ public class PurchaseGroupController {
 
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String distributionPointId,
             @RequestParam(required = false) Integer[] groupStatus,
             @RequestParam(required = false) Integer listedStatus,
             @RequestParam(required = false) Integer enable,
@@ -80,7 +81,7 @@ public class PurchaseGroupController {
             @RequestParam(required = false) LocalDateTime timeGroupEnd,
             @RequestParam int page,
             @RequestParam int size) {
-        return purchaseGroupProductService.search(productName, categoryId, groupStatus, listedStatus, enable,
+        return purchaseGroupProductService.search(productName, categoryId, distributionPointId, groupStatus, listedStatus, enable,
                         timeDeliveryStart, timeDeliveryEnd, timeGroupStart, timeGroupEnd, page, size)
                 .map(PageResponse::success);
 

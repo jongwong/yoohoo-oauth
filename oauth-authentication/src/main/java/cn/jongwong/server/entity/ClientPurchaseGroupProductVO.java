@@ -60,6 +60,12 @@ public class ClientPurchaseGroupProductVO {
     @Schema(description = "上架状态")
     private Integer listedStatus;
 
+    @Schema(description = "配送点ID")
+    private String distributionPointId;
+
+    @Schema(description = "缩略图")
+    private String thumbnailImageUrl;
+
 
     // 团购相关信息
     @Schema(description = "团购名称")

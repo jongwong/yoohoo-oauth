@@ -12,7 +12,8 @@
 
 .menu {
   padding-top: 16px;
-  width: 28%; // 左侧菜单宽度
+  //width: 28%; 左侧菜单宽度
+  width: 0;
   background-color: #f5f5f5;
   overflow-y: scroll;
 }
@@ -35,7 +36,7 @@
 }
 
 .content {
-  width: 72%; // 右侧内容宽度
+  width: 100%; // 右侧内容宽度
   overflow-y: scroll;
 }
 
@@ -47,9 +48,10 @@
 }
 
 .contentTitle {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   margin-bottom: 8px;
+  color: #444;
 }
 
 .contentDescription {
@@ -61,7 +63,7 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column; /* 垂直布局 */
-  padding: 10px 15px;
+  padding: 4px 16px;
   font-size: 12px;
   color: #444444;
 }
@@ -87,4 +89,19 @@
   align-items: center; /* 垂直居中 */
   margin-bottom: 5px;
   font-size: 14px;
+}
+
+.time-picker-box {
+  z-index: 100;
+  padding: 4px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 轻微的阴影 */
+}
+
+.cartBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  border-top: 1px solid #eee;
+  background-color: #ffffff;
 }

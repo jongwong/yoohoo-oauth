@@ -18,10 +18,18 @@ const commonConfig: UserConfigExport<"vite"> | UserConfigExport<"webpack5"> = {
   },
   sourceRoot: "src",
   outputRoot: "dist",
+  public: {
+    css: ["//at.alicdn.com/t/font_1989858_lu8avru5dog.css"],
+  },
   plugins: ["@tarojs/plugin-html"],
   defineConstants: {},
   copy: {
-    patterns: [],
+    patterns: [
+      {
+        from: "src/assets", // 源文件夹
+        to: "dist/assets", // 目标文件夹
+      },
+    ],
     options: {},
   },
   framework: "react",
@@ -98,6 +106,9 @@ const webpackConfig = defineConfig<"webpack5">(async (merge, {}) => {
       },
     },
     mini: {
+      miniCssExtractPluginOption: {
+        ignoreOrder: true,
+      },
       postcss: {
         pxtransform: {
           enable: true,

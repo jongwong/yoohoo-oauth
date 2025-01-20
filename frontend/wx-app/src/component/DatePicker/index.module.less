@@ -1,0 +1,59 @@
+.yoo-swiper-date-picker {
+  background: #fff;
+  padding: 2px 0;
+  position: relative;
+  margin: 0 16px;
+
+  .yoo-date-month {
+    left: -16px;
+    position: absolute;
+    z-index: 100;
+    font-size: 12px;
+    color: #8a8a8a;
+    width: 16px;
+    text-align: right;
+    text-wrap: auto;
+  }
+
+  .yoo-date-week {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+
+    gap: 8px;
+
+    .yoo-date-item {
+      flex: 0 0 auto;
+      width: 30px;
+      height: 40px;
+      text-align: center;
+      background: #f4f4f4;
+      border-radius: 15px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #8a8a8a;
+    }
+
+    .yoo-date-item-active {
+      background: #b8cf61;
+      color: #ffffff;
+    }
+
+    .yoo-date-item-date {
+      font-size: 14px;
+    }
+
+    .yoo-date-item-week {
+      font-size: 12px;
+    }
+
+    .yoo-date-item-week-text {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}

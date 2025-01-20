@@ -15,8 +15,8 @@ import Layout from "../../component/Layout";
 const Index: React.FC = () => {
   const [current, setCurrent] = useState(0);
   const banners = [
-    "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/swiper/1.png",
-    "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/swiper/2.png",
+    "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/swiper/1.png",
+    "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/swiper/2.png",
   ];
 
   return (
@@ -111,7 +111,7 @@ const Index: React.FC = () => {
 
         <View className={styles.integralBanner}>
           <Image
-            src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/banner/integral.jpeg" // 确保图片路径正确
+            src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/banner/integral.jpeg" // 确保图片路径正确
             className={styles.bannerImage}
             mode="aspectFill" // 使用 aspectFill 来确保图片填充容器
           />
@@ -122,7 +122,7 @@ const Index: React.FC = () => {
 
         <View className={styles.integralBanner} style={{ marginTop: 0 }}>
           <Image
-            src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/fontend/home/banner/recommend.png" // 确保图片路径正确
+            src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/banner/recommend.png" // 确保图片路径正确
             className={styles.bannerImage}
             mode="aspectFill" // 使用 aspectFill 来确保图片填充容器
           />

@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { View } from "@tarojs/components";
 import styles from "./index.module.less";
-import {
-  Avatar,
-  Image,
-  Progress,
-  Swiper,
-  SwiperItem,
-} from "@nutui/nutui-react-taro";
+import { Image, Progress, Swiper, SwiperItem } from "@antmjs/vantui";
 import classNames from "classnames";
 import Taro from "@tarojs/taro";
 import Layout from "../../component/Layout";
@@ -25,16 +19,13 @@ const Index: React.FC = () => {
         {/* 轮播图组件 */}
         <Swiper
           className={styles.banner}
-          autoplay
-          defaultValue={0}
           onChange={(e) => {
-            setCurrent(e.detail.current);
+            setCurrent(e);
           }}
-          height={"40vh"}
-          indicatorDots={false}
-          duration={20000}
+          height={"38vh"}
           loop
-          indicator={
+          autoPlay={10000}
+          pageContent={
             <View className={styles.indicatorContainer}>
               {banners.map((_, index) => (
                 <View
@@ -52,7 +43,7 @@ const Index: React.FC = () => {
           {banners.map((img, index) => (
             <SwiperItem key={index}>
               <View className={styles.imageContainer}>
-                <Image src={img} className={styles.image} mode="aspectFill" />
+                <Image src={img} className={styles.image} fit="widthFix" />
                 {/* 渐变层 */}
                 <View className={styles.gradientLayer}></View>
               </View>
@@ -61,10 +52,10 @@ const Index: React.FC = () => {
         </Swiper>
         <View className={styles.userInfoCard}>
           <View className={styles.userInfo}>
-            <Avatar
+            <Image
               className={styles.avatar}
-              color="#fff"
-              background="#eeeeee"
+              round
+              src="https://img.yzcdn.cn/vant/cat.jpeg"
             />
             <View className={styles.userBox}>
               <View className={styles.userName}>王忠(JongWong)</View>
@@ -72,7 +63,8 @@ const Index: React.FC = () => {
                 <View className={styles.integralBar}>
                   <Progress
                     strokeWidth="4"
-                    percent={30}
+                    percentage={30}
+                    showPivot={false}
                     color="linear-gradient(270deg, rgba(140, 178, 75, 1) 0%, rgba(102, 152, 69, 1) 40%, rgba(44, 155, 75, 1) 100%)"
                   />
                 </View>
@@ -113,7 +105,7 @@ const Index: React.FC = () => {
           <Image
             src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/banner/integral.jpeg" // 确保图片路径正确
             className={styles.bannerImage}
-            mode="aspectFill" // 使用 aspectFill 来确保图片填充容器
+            fit="widthFix" // 使用 aspectFill 来确保图片填充容器
           />
           {/*<View className={styles.arrowButton}>*/}
           {/*  <ArrowDown size={10} color="#fff" /> /!* 使用 NutUI 的箭头图标 *!/*/}
@@ -124,7 +116,7 @@ const Index: React.FC = () => {
           <Image
             src="//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/banner/recommend.png" // 确保图片路径正确
             className={styles.bannerImage}
-            mode="aspectFill" // 使用 aspectFill 来确保图片填充容器
+            fit="widthFix" // 使用 aspectFill 来确保图片填充容器
           />
           {/*<View className={styles.arrowButton}>*/}
           {/*  <ArrowDown size={10} color="#fff" /> /!* 使用 NutUI 的箭头图标 *!/*/}

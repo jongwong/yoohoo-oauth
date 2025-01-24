@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Taro from "@tarojs/taro";
-import { Loading } from "@nutui/nutui-react-taro";
+import { Loading } from "@antmjs/vantui";
 import request from "@/utils/request";
 
 const useCheckLogin = () => {
@@ -115,7 +115,7 @@ const useCheckLogin = () => {
     if (loading) {
       return (
         <div className="wrapper" style={wrapperStyle}>
-          <Loading direction="vertical">加载中</Loading>
+          <Loading vertical>加载中</Loading>
         </div>
       );
     }

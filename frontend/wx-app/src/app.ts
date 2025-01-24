@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDidHide, useDidShow } from "@tarojs/taro";
-import "@nutui/nutui-react-taro/dist/style.css";
+
 // 全局样式
 import "./app.less";
 

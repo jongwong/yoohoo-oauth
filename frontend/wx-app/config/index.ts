@@ -1,15 +1,23 @@
 import { defineConfig, type UserConfigExport } from "@tarojs/cli";
-import TsconfigPathsPlugin from "tsconfig-paths-webpack-plugin";
 import devConfig from "./dev";
 import prodConfig from "./prod";
 import vitePluginImp from "vite-plugin-imp";
+import * as path from "node:path";
 
 const isVite = process.argv.includes("--vite");
 
 const commonConfig: UserConfigExport<"vite"> | UserConfigExport<"webpack5"> = {
   projectName: "vite-demo",
   date: "2025-1-3",
-  designWidth: 375,
+  designWidth(input) {
+    if (
+      input.file &&
+      input.file.replace(/\+/g, "/").indexOf("@antmjs/vantui") > -1
+    ) {
+      return 750;
+    }
+    return 375;
+  },
   deviceRatio: {
     640: 2.34 / 2,
     750: 1,
@@ -109,11 +117,32 @@ const webpackConfig = defineConfig<"webpack5">(async (merge, {}) => {
       miniCssExtractPluginOption: {
         ignoreOrder: true,
       },
+      lessLoaderOption: {
+        // lessOptions: {
+        //   modifyVars: {
+        //     hack: `true; @import "${npath.join(
+        //       process.cwd(),
+        //       "src/styles/index.less"
+        //     )}";`,
+        //   },
+        // },
+        // 适用于全局引入样式
+        // additionalData: "@import '~/src/styles/index.less';",
+      },
+      esnextModules: [/@antmjs[\/]vantui/],
       postcss: {
+        autoprefixer: {
+          enable: true,
+          config: {},
+        },
         pxtransform: {
           enable: true,
+          config: {},
+        },
+        url: {
+          enable: true,
           config: {
-            selectorBlackList: ["nut-"],
+            limit: 1024, // 设定转换尺寸上限
           },
         },
         cssModules: {
@@ -125,6 +154,13 @@ const webpackConfig = defineConfig<"webpack5">(async (merge, {}) => {
         },
       },
       webpackChain(chain) {
+        chain.resolve.modules
+          .clear() // 清除默认解析路径
+          .add(path.resolve(__dirname, "../node_modules")) // 项目根目录的 node_modules
+          .add("node_modules"); // 全局 node_modules
+
+        // 可选：添加 TsconfigPathsPlugin（如果用到 TypeScript 配置路径别名）
+        const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
         chain.resolve.plugin("tsconfig-paths").use(TsconfigPathsPlugin);
       },
     },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Swiper, SwiperItem } from "@nutui/nutui-react-taro";
+import { Swiper, SwiperItem } from "@antmjs/vantui";
 import { Text, View } from "@tarojs/components";
 import dayjs, { Dayjs } from "dayjs";
 import styles from "./index.module.less";
@@ -56,12 +56,13 @@ const SwiperDatePicker: React.FC<{
       <View className={styles["yoo-date-month"]}>{curMon}月</View>
       {/* 日期选择器 */}
       <Swiper
-        current={currentIndex}
+        initPage={currentIndex}
         height={44}
         onChange={(e) => {
-          setCurrentIndex(e.detail.current);
+          setCurrentIndex(e);
         }}
         loop={false}
+        autoPlay={0}
       >
         {weekDates.map((date, index) => (
           <SwiperItem key={index}>

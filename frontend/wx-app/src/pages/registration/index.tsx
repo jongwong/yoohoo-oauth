@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Taro from "@tarojs/taro";
-import { Button, Form, Input } from "@nutui/nutui-react-taro";
+import { Button, Field, Form, FormItem } from "@antmjs/vantui";
+
 import Layout from "../../component/Layout";
 
 import request from "@/utils/request";
@@ -10,42 +11,48 @@ import styles from "./index.module.less";
 const Registration: React.FC = () => {
   const [loading, setLoading] = useState(false); // 加载状态
 
-  const [form] = Form.useForm();
-
+  const form = Form.useForm();
   // 提交注册信息
   const handleRegister = async (e) => {
     const { encryptedData, iv } = e.detail;
-    setLoading(true);
-    await form.validateFields();
-    const values = form.getFieldsValue(true);
-    const _data = {
-      ...values, // 提交表单数据
-      encrypted_data: encryptedData,
-      iv,
-      union_id: wx.getStorageSync("union_id"),
-      session_key: wx.getStorageSync("session_key"),
-    };
-    const res = await request
-      .post("/client/wechat/register", _data)
-      .finally(() => {
-        setLoading(false);
-      });
-    if (res.success) {
-      wx.showToast({
-        title: "注册成功",
-        icon: "success",
-        duration: 2000,
-      });
-      Taro.reLaunch({
-        url: "/pages/login/index",
-      });
-    } else {
-      wx.showToast({
-        title: "注册失败，请重试",
-        icon: "none",
-        duration: 2000,
-      });
+    if (!form) {
+      return;
     }
+    setLoading(true);
+    form.validateFields(async (errorMess) => {
+      if (errorMess?.length) {
+        return;
+      }
+      const values = form.getFieldsValue();
+      const _data = {
+        ...values, // 提交表单数据
+        encrypted_data: encryptedData,
+        iv,
+        union_id: wx.getStorageSync("union_id"),
+        session_key: wx.getStorageSync("session_key"),
+      };
+      const res = await request
+        .post("/client/wechat/register", _data)
+        .finally(() => {
+          setLoading(false);
+        });
+      if (res.success) {
+        wx.showToast({
+          title: "注册成功",
+          icon: "success",
+          duration: 2000,
+        });
+        Taro.reLaunch({
+          url: "/pages/login/index",
+        });
+      } else {
+        wx.showToast({
+          title: "注册失败，请重试",
+          icon: "none",
+          duration: 2000,
+        });
+      }
+    });
   };
 
   /*  // 校验密码：检查是否包含大写字母、小写字母、数字和特殊字符
@@ -78,49 +85,61 @@ const Registration: React.FC = () => {
         backgroundColor: "#f8faf6",
       }}
     >
-      <Form
-        className={styles.form}
-        labelPosition={"top"}
-        form={form}
-        footer={
-          <Button
-            className={styles.button}
-            type="primary"
-            formType="submit"
-            size={"large"}
-            block
-            openType="getPhoneNumber"
-            onGetPhoneNumber={handleRegister}
-            loading={loading}
-          >
-            注册
-          </Button>
-        }
-      >
-        <Form.Item
+      <Form className={styles.form} form={form}>
+        <FormItem
           label="姓名"
           name="name"
+          layout={"vertical"}
           rules={[
-            { required: true, message: "姓名不能为空" },
-            { min: 2, message: "姓名长度不能小于 2 个字符" }, // 设置最小长度为 2
-            { max: 8, message: "姓名长度不能超过 8 个字符" },
+            {
+              rule: (value, call) => {
+                if (!value) {
+                  call("姓名不能为空");
+                } else if (value.length < 2) {
+                  call("姓名长度不能小于 2 个字符");
+                } else if (value.length > 8) {
+                  call("姓名长度不能超过 8 个字符");
+                }
+              },
+            },
           ]}
         >
-          <Input placeholder="请输入姓名" className={styles.input} />
-        </Form.Item>
+          <Field placeholder="请输入姓名" className={styles.input} />
+        </FormItem>
 
-        <Form.Item
+        <FormItem
           label="昵称"
           name="nickname"
+          layout={"vertical"}
           rules={[
-            { required: true, message: "昵称不能为空" },
-            { min: 2, message: "姓名长度不能小于 2 个字符" }, // 设置最小长度为 2
-            { max: 12, message: "姓名长度不能超过 12 个字符" },
+            {
+              rule: (value, call) => {
+                if (!value) {
+                  call("昵称不能为空");
+                } else if (value.length < 2) {
+                  call("昵称长度不能小于 2 个字符");
+                } else if (value.length > 12) {
+                  call("昵称长度不能超过 12 个字符");
+                }
+              },
+            },
           ]}
         >
-          <Input placeholder="请输入昵称" className={styles.input} />
-        </Form.Item>
+          <Field placeholder="请输入昵称" className={styles.input} />
+        </FormItem>
       </Form>
+      <Button
+        className={styles.button}
+        type="primary"
+        formType="submit"
+        size={"large"}
+        block
+        openType="getPhoneNumber"
+        onGetPhoneNumber={handleRegister}
+        loading={loading}
+      >
+        注册
+      </Button>
     </Layout>
   );
 };

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ConfigProvider } from "@nutui/nutui-react-taro";
+import { ConfigProvider } from "@antmjs/vantui";
 
 import classNames from "classnames";
 
@@ -13,19 +13,13 @@ type LayoutProps = {
 };
 const Layout: React.FC<LayoutProps> = (props) => {
   const { children, edge, style, ...rest } = props;
-  const darkTheme = {
-    nutuiColorPrimary: "#8cb24b",
-    nutuiColorPrimaryStop1: "#8cb24b",
-    nutuiColorPrimaryStop2: "#8cb24b",
-    nutuiPickerTitleOkColor: "#8cb24b",
-  };
+
   return (
     <ConfigProvider
       className={classNames(
         styles["yoohoo-layout"],
         edge && styles["yoohoo-layout-edge-" + edge]
       )}
-      theme={darkTheme}
       style={style}
     >
       {children}

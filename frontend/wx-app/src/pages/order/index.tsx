@@ -1,7 +1,7 @@
 import React from "react";
 
 import Layout from "../../component/Layout";
-import { Button, Image, Space, Tabs } from "@nutui/nutui-react-taro";
+import { Button, Image, Space, Tab, Tabs } from "@antmjs/vantui";
 import { View } from "@tarojs/components";
 import styles from "./index.module.less";
 import dayjs from "dayjs";
@@ -122,19 +122,18 @@ const Profile: React.FC = () => {
     <Layout
       style={{
         backgroundColor: "#f6f6f6",
-        padding: "16px",
       }}
       edge={"none"}
     >
       <View>
-        <Tabs align="left" className={styles.tabs}>
-          <Tabs.TabPane key={-1} title={"全部订单"}></Tabs.TabPane>
-          <Tabs.TabPane key={1} title={"待支付"}></Tabs.TabPane>
-          <Tabs.TabPane key={2} title={"待收货"}></Tabs.TabPane>
-          <Tabs.TabPane key={3} title={"退款/售后"}></Tabs.TabPane>
+        <Tabs className={styles.tabs}>
+          <Tab key={-1} title={"全部订单"}></Tab>
+          <Tab key={1} title={"待支付"}></Tab>
+          <Tab key={2} title={"待收货"}></Tab>
+          <Tab key={3} title={"退款/售后"}></Tab>
         </Tabs>
 
-        <Space direction={"vertical"}>
+        <Space direction={"vertical"} block gapVertical={16}>
           {orderDataList.map((it) => {
             return (
               <View className={styles.orderItem}>

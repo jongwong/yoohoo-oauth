@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Image, ScrollView, Text, View } from "@tarojs/components";
-import { Button, Empty, Picker, Space, Sticky } from "@nutui/nutui-react-taro";
+import { Button, Empty, Picker, Space, Sticky } from "@antmjs/vantui";
 
 import { useRequest } from "ahooks";
 import dayjs, { Dayjs } from "dayjs";
@@ -282,7 +282,7 @@ const Index: React.FC = () => {
         </ScrollView>
       </View>
       {productCount ? (
-        <Sticky threshold={120}>
+        <Sticky offsetTop={120}>
           <View className={styles.cartBar}>
             <Button type="primary">去结算</Button>
           </View>
@@ -291,11 +291,11 @@ const Index: React.FC = () => {
       {/* Address Picker */}
       <Picker
         title="选择地址"
-        options={areaList?.map((it) => ({
+        columns={areaList?.map((it) => ({
           text: it.name,
           value: it.id,
         }))}
-        visible={addressPickVisible}
+        idKey={"value"}
         onConfirm={(e) => {
           const find = areaList.find((it) => it.id === e?.[0]?.value);
           setCurrentArea(find);
@@ -303,7 +303,7 @@ const Index: React.FC = () => {
         }}
         onCancel={() => setAddressPickVisible(false)}
         key={currentArea?.id}
-        defaultValue={currentArea?.id ? [currentArea?.id] : undefined}
+        value={currentArea?.id ? [currentArea?.id] : undefined}
       />
     </View>
   );

@@ -57,6 +57,7 @@
 .contentDescription {
   font-size: 14px;
   color: #666;
+  width: 100%;
 }
 
 .header {
@@ -66,6 +67,7 @@
   padding: 4px 16px;
   font-size: 12px;
   color: #444444;
+  background: #fff;
 }
 
 .store-location {
@@ -81,7 +83,7 @@
 .icon {
   font-size: 8px;
   color: #444444; /* 图标颜色，可以根据设计调整 */
-  margin-right: 8px; /* 图标与文字之间的间距 */
+  margin-right: 2px; /* 图标与文字之间的间距 */
 }
 
 .store-title {
@@ -91,9 +93,10 @@
   font-size: 14px;
 }
 
-.time-picker-box {
+.timePickerBox {
   z-index: 100;
   padding: 4px 0;
+  background: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 轻微的阴影 */
 }
 
@@ -101,7 +104,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
+  padding: 2px;
   border-top: 1px solid #eee;
-  background-color: #ffffff;
+  box-sizing: border-box;
+  height: 48px;
+  border-radius: 24px;
+  background-color: #fff;
+  margin: 8px;
+  overflow: hidden;
+  box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.1); /* 轻微的阴影 */
 }

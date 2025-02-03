@@ -49,9 +49,13 @@ const SwiperDatePicker: React.FC<{
     }
   }, [valueProp]);
   const curMon = weekDates?.[currentIndex]?.[3]?.format("MM");
+
+  const isCurMoth = curMon === dayjs().format("MM");
   return (
     <View className={styles["yoo-swiper-date-picker"]}>
-      <View className={styles["yoo-date-month"]}>{curMon}月</View>
+      {!isCurMoth ? (
+        <View className={styles["yoo-date-month"]}>{curMon}月</View>
+      ) : null}
       {/* 日期选择器 */}
       <Swiper
         initPage={currentIndex}

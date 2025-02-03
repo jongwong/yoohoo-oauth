@@ -13,12 +13,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.yh-minus-circle-fill:before {
-  content: "\e844";
+.yh-minus-circle-outline:before {
+  content: "\e7fc";
 }
 
-.yh-plus-circle-fill:before {
-  content: "\e845";
+.yh-plus-circle:before {
+  content: "\e854";
 }
 
 .yh-minus-circle:before {

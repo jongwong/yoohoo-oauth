@@ -7,11 +7,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { groupBy } from "lodash-es";
 import classNames from "classnames";
 import request from "@/utils/request";
-import SwiperDatePicker from "@/component/DatePicker";
 import ProductCardItem from "./component/ProductCardItem";
 import { generateFileUrl, getNoDataUrl } from "@/utils/file";
 import styles from "./index.module.less";
 import Taro from "@tarojs/taro";
+import SwiperDatePicker from "./component/DatePicker";
 
 const Index: React.FC = () => {
   // State hooks
@@ -94,6 +94,7 @@ const Index: React.FC = () => {
     enable?: number;
   }) => {
     const res = await request.get("/client/store/area/distance", { params });
+
     if (res.success) {
       setAreaList(res.data || []);
       setCurrentArea(res?.data?.[0]);
@@ -167,9 +168,27 @@ const Index: React.FC = () => {
           {/*<Star size={14} className={styles.icon} />*/}
           <View onClick={() => setAddressPickVisible(true)}>
             {currentArea?.name ? (
-              <Text>
-                {currentArea?.name} {" >"}
-              </Text>
+              <View style={{ display: "inline-flex" }}>
+                <Picker
+                  title="选择地址"
+                  columns={areaList?.map((it) => ({
+                    text: it.name,
+                    value: it.id,
+                  }))}
+                  idKey={"value"}
+                  onConfirm={(e) => {
+                    const find = areaList.find((it) => it.id === e?.[0]?.value);
+                    setCurrentArea(find);
+                    setAddressPickVisible(false);
+                  }}
+                  mode={"content"}
+                  allowClear={false}
+                  onCancel={() => setAddressPickVisible(false)}
+                  key={currentArea?.id}
+                  value={currentArea?.id ? [currentArea?.id] : undefined}
+                />
+                <Text style={"ml-4"}>{">"}</Text>
+              </View>
             ) : null}
           </View>
         </View>
@@ -288,23 +307,6 @@ const Index: React.FC = () => {
           </View>
         </Sticky>
       ) : null}
-      {/* Address Picker */}
-      <Picker
-        title="选择地址"
-        columns={areaList?.map((it) => ({
-          text: it.name,
-          value: it.id,
-        }))}
-        idKey={"value"}
-        onConfirm={(e) => {
-          const find = areaList.find((it) => it.id === e?.[0]?.value);
-          setCurrentArea(find);
-          setAddressPickVisible(false);
-        }}
-        onCancel={() => setAddressPickVisible(false)}
-        key={currentArea?.id}
-        value={currentArea?.id ? [currentArea?.id] : undefined}
-      />
     </View>
   );
 };

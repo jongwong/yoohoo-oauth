@@ -1,6 +1,5 @@
 export default definePageConfig({
   navigationBarTitleText: "我的订单",
   navigationBarTextStyle: "white",
-  // navigationBarBackgroundColor: "#73ba9c", // 设置导航栏背景色
-  navigationBarBackgroundColor: "#07c160", // 设置导航栏背景色
+  navigationBarBackgroundColor: "#8bc34a", // 设置导航栏背景色
 });

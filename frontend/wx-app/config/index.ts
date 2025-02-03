@@ -118,14 +118,15 @@ const webpackConfig = defineConfig<"webpack5">(async (merge, {}) => {
         ignoreOrder: true,
       },
       lessLoaderOption: {
-        // lessOptions: {
-        //   modifyVars: {
-        //     hack: `true; @import "${npath.join(
-        //       process.cwd(),
-        //       "src/styles/index.less"
-        //     )}";`,
-        //   },
-        // },
+        lessOptions: {
+          modifyVars: {
+            "@primary-color": "#8bc34a",
+            hack: `true; @import "${path.join(
+              process.cwd(),
+              "src/styles/variables.less"
+            )}";`,
+          },
+        },
         // 适用于全局引入样式
         // additionalData: "@import '~/src/styles/index.less';",
       },

@@ -21,7 +21,7 @@ const getWeekDates = (startOfWeek: dayjs.Dayjs) => {
 // 获取本周、下一周、下两周、上一周、上两周的日期（每周的周一到周日）
 const getWeeksAround = (current: dayjs.Dayjs) => {
   const weeks: Dayjs[][] = [];
-  const range = new Array(21).fill("").map((_it, idx) => idx - 7); // 上两周、上一周、本周、下一周、下两周
+  const range = new Array(4).fill("").map((_it, idx) => idx - 1);
   range.forEach((weekOffset) => {
     const startItem = current.add(weekOffset, "week");
     const startOfWeek = getStartOfWeek(startItem);
@@ -42,14 +42,12 @@ const SwiperDatePicker: React.FC<{
   const [weekDates, setWeekDates] = useState<any[]>([]);
 
   useEffect(() => {
-    getWeeksAround(value || dayjs());
     setValue(valueProp || dayjs().subtract(1, "week"));
 
     if (!weekDates?.length) {
       setWeekDates(getWeeksAround(valueProp || dayjs()));
     }
   }, [valueProp]);
-
   const curMon = weekDates?.[currentIndex]?.[3]?.format("MM");
   return (
     <View className={styles["yoo-swiper-date-picker"]}>

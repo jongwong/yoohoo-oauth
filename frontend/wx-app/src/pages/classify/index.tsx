@@ -54,7 +54,7 @@ const Index: React.FC = () => {
       });
     },
     {
-      refreshDeps: [currentArea?.id, selectTime],
+      refreshDeps: [currentArea, selectTime],
       ready: !!currentArea?.id && !!selectTime,
       onSuccess: (res) => {
         if (res.success) {
@@ -166,7 +166,11 @@ const Index: React.FC = () => {
   }, [cartMap]);
 
   return (
-    <Layout loading={productLoading || locationLoading} edge={"none"}>
+    <Layout
+      loading={productLoading || locationLoading}
+      backgroundColor={"#fff"}
+      edge={"none"}
+    >
       <View className={styles.container}>
         {/* Header: Store Name and Location */}
         <View className={styles.header}>
@@ -260,6 +264,11 @@ const Index: React.FC = () => {
                             productIt?.thumbnail_image_url,
                             true
                           )}
+                          onGotoOrderSubmit={() => {
+                            Taro.navigateTo({
+                              url: `/pages/order/create/index?product_id=${productIt?.id}&area_id=${currentArea?.id}`,
+                            });
+                          }}
                           data={productIt}
                           onCartChange={(num) => {
                             setCartMap((old) => ({

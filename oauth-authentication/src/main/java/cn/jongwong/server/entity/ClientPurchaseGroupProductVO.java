@@ -67,6 +67,9 @@ public class ClientPurchaseGroupProductVO {
     private String thumbnailImageUrl;
 
 
+    @Schema(description = "最小成团人数")
+    private Integer groupRequiredCount;
+
     // 团购相关信息
     @Schema(description = "团购名称")
     private String groupName;

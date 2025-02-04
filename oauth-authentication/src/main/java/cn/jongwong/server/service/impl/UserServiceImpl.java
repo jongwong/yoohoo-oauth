@@ -2,6 +2,8 @@ package cn.jongwong.server.service.impl;
 
 import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.QueryBuilder;
+import cn.jongwong.server.config.security.jwt.JwtCodeAuthenticationToken;
+import cn.jongwong.server.dto.user.CurrentAuthenticationUserRO;
 import cn.jongwong.server.dto.user.UserRO;
 import cn.jongwong.server.entity.UserVO;
 import cn.jongwong.server.repository.UserRepository;
@@ -10,6 +12,7 @@ import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -147,7 +150,22 @@ public class UserServiceImpl implements UserService {
             return Mono.just(userDetails.getUsername());  // 返回用户的用户名作为 ID
         }
 
+
         return Mono.just("系统用户");  // 如果没有认证的用户，返回一个默认值
+    }
+
+    public Mono<CurrentAuthenticationUserRO> getCurrentUser() {
+
+        return ReactiveSecurityContextHolder.getContext().map(c -> c.getAuthentication()).flatMap(authentication -> {
+            if (authentication != null && authentication instanceof JwtCodeAuthenticationToken) {
+                return Mono.just(((JwtCodeAuthenticationToken) authentication).getCurrentUser());  // 返回用户的用户名作为 ID
+            }
+
+            return Mono.empty();
+
+        });
+
+
     }
 
     public Mono<UserRO> findById(String id) {

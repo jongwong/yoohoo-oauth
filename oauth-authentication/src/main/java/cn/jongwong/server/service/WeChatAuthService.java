@@ -137,6 +137,15 @@ public class WeChatAuthService {
                                 // 根据用户信息生成 Token
                                 var accessToken = jwtUtil.generateToken(user, false);
                                 var refreshToken = jwtUtil.generateToken(user, true);
+
+//                                JwtCodeAuthenticationToken authenticationToken = new JwtCodeAuthenticationToken(accessToken, null);
+//
+//                                authenticationToken.setToken(accessToken);
+//
+//                                // 将 Authentication 设置到 SecurityContext 中
+//                                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+
                                 mapRe.put("access_token", accessToken);
                                 mapRe.put("refresh_token", refreshToken);
                                 return mapRe;

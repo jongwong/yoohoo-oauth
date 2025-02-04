@@ -5,7 +5,7 @@ import styles from "./index.module.less";
 import { Button, Tag } from "@antmjs/vantui";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration"; // 引入 duration 插件
-import relativeTime from "dayjs/plugin/relativeTime"; // 引入 relativeTime 插件
+import relativeTime from "dayjs/plugin/relativeTime";
 
 // 使用插件
 dayjs.extend(duration);
@@ -37,11 +37,13 @@ type ProductCardItemProps = {
   title: string; // 商品标题
   price: number; // 到手价
   originalPrice: number; // 原价
-  onCartChange: (num: number) => void; // 加入购物车的回调
+  onGotoOrderSubmit: () => void;
   num?: boolean;
   data?: {
     sold_quantity: number;
     time_group_end: number;
+    group_required_count?: number;
+    id?: string;
   };
 };
 
@@ -51,7 +53,7 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
   price,
   originalPrice,
   num = 0,
-  onCartChange,
+  onGotoOrderSubmit,
   data,
 }) => {
   const finalPrice = price || originalPrice;
@@ -86,9 +88,15 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
           </View>
 
           <View className={styles.tagBox}>
-            <Tag round type="danger" color="#ffe1e1" textColor="red">
-              100%拼成
-            </Tag>
+            {data?.group_required_count! > 1 ? (
+              <Tag round plain type="warning">
+                {data?.group_required_count}人成团
+              </Tag>
+            ) : (
+              <Tag round type="danger" color="#ffe1e1" textColor="red">
+                100%拼成
+              </Tag>
+            )}
           </View>
         </View>
 
@@ -108,7 +116,13 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
           </View>
 
           <View className={styles.cartBtns}>
-            <Button size={"small"} type={"primary"}>
+            <Button
+              size={"small"}
+              type={"primary"}
+              onClick={() => {
+                onGotoOrderSubmit();
+              }}
+            >
               {data?.sold_quantity ? "加入拼团" : "发起拼团"}
             </Button>
           </View>

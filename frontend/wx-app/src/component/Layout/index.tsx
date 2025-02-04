@@ -12,9 +12,10 @@ type LayoutProps = {
   style?: React.CSSProperties;
   edge?: "none";
   loading?: boolean;
+  backgroundColor?: string;
 };
 const Layout: React.FC<LayoutProps> = (props) => {
-  const { children, loading, edge, style, ...rest } = props;
+  const { children, backgroundColor, loading, edge, style, ...rest } = props;
 
   return (
     <ConfigProvider
@@ -22,7 +23,7 @@ const Layout: React.FC<LayoutProps> = (props) => {
         styles["yoohoo-layout"],
         edge && styles["yoohoo-layout-edge-" + edge]
       )}
-      style={style}
+      style={{ backgroundColor, ...style }}
     >
       {children}
       <Overlay

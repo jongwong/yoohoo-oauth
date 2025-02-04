@@ -90,6 +90,11 @@ public class PurchaseGroupVO {
     @Schema(description = "商品类别ID")
     private String categoryId;
 
+    @Schema(description = "最小成团人数")
+    private Integer groupRequiredCount;
+
+
+
     @Transient
     @Schema(description = "团购商品信息")
     private List<PurchaseGroupProductVO> products;

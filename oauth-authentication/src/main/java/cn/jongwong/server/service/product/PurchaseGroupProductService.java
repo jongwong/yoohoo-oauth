@@ -66,6 +66,46 @@ public class PurchaseGroupProductService {
 
     }
 
+
+    public Mono<ClientPurchaseGroupProductVO> fineOneWithImage(String id) {
+        return clientPurchaseGroupProductRepository.findOneByDSL(id, sql ->
+                sql.as("pgp")
+                        .column("pgp.id AS group_product_id")
+                        .column("pgp.purchase_group_id")
+                        .column("pgp.product_id")
+                        .column("pgp.max_stock")
+                        .column("pgp.sold_quantity")
+                        .column("p.code")
+                        .column("p.name")
+                        .column("p.price")
+//                              .column("p.thumbnail_image")
+                        .column("p.listed_status")
+                        .column("p.archived_status")
+                        .column("p.category_name")
+                        .column("p.category_id")
+                        .column("p.category_code")
+                        .field("pg.name", "group_name")
+                        .field("pg.group_required_count", "group_required_count")
+                        .field("pg.status", "group_status")
+                        .field("pg.enable", "group_enable")
+                        .column("pg.time_start AS time_group_start")
+                        .column("pg.time_end AS time_group_end")
+                        .column("pg.time_delivery_start")
+                        .column("pg.time_delivery_end")
+                        .column("pg.distribution_point_id")
+                        .column("p_img.url AS thumbnail_image_url")
+                        .withJoin(t -> t.left()
+                                .table("tb_product p")
+                                .on("pgp.product_id = p.id"))
+                        .withJoin(t -> t.left()
+                                .table("tb_product_images p_img")
+                                .on("pgp.product_id = p_img.product_id  AND p_img.image_type =  " + ProductImageType.THUMBNAIL.getCode()))
+                        .withJoin(t -> t.left()
+                                .table("tb_purchase_group pg")
+                                .on("pgp.purchase_group_id = pg.id")));
+    }
+
+
     public Mono<Page<ClientPurchaseGroupProductVO>> searchWithImage(String productName, String categoryId, String distributionPointId, Integer[] groupStatus, Integer listedStatus, Integer enable,
                                                                     LocalDateTime timeDeliveryStart, LocalDateTime timeDeliveryEnd, LocalDateTime timeGroupStart, LocalDateTime timeGroupEnd, Integer page, Integer size) {
 
@@ -79,14 +119,14 @@ public class PurchaseGroupProductService {
                                 .column("p.code")
                                 .column("p.name")
                                 .column("p.price")
-
-//                        .column("p.thumbnail_image")
+//                              .column("p.thumbnail_image")
                                 .column("p.listed_status")
                                 .column("p.archived_status")
                                 .column("p.category_name")
                                 .column("p.category_id")
                                 .column("p.category_code")
                                 .field("pg.name", "group_name")
+                                .field("pg.group_required_count", "group_required_count")
                                 .field("pg.status", "group_status")
                                 .field("pg.enable", "group_enable")
                                 .column("pg.time_start AS time_group_start")
@@ -95,7 +135,15 @@ public class PurchaseGroupProductService {
                                 .column("pg.time_delivery_end")
                                 .column("pg.distribution_point_id")
                                 .column("p_img.url AS thumbnail_image_url")
-
+                                .withJoin(t -> t.left()
+                                        .table("tb_product p")
+                                        .on("pgp.product_id = p.id"))
+                                .withJoin(t -> t.left()
+                                        .table("tb_product_images p_img")
+                                        .on("pgp.product_id = p_img.product_id  AND p_img.image_type =  " + ProductImageType.THUMBNAIL.getCode()))
+                                .withJoin(t -> t.left()
+                                        .table("tb_purchase_group pg")
+                                        .on("pgp.purchase_group_id = pg.id"))
 
                                 .eq("pg.distribution_point_id", distributionPointId)
                                 .eq("pg.enable", enable)
@@ -108,15 +156,6 @@ public class PurchaseGroupProductService {
                                 .customCondition("pg.time_start", ">=", timeGroupStart)
                                 .customCondition("pg.time_end", "<=", timeGroupEnd)
 
-                                .withJoin(t -> t.left()
-                                        .table("tb_product p")
-                                        .on("pgp.product_id = p.id"))
-                                .withJoin(t -> t.left()
-                                        .table("tb_product_images p_img")
-                                        .on("pgp.product_id = p_img.product_id  AND p_img.image_type =  " + ProductImageType.THUMBNAIL.getCode()))
-                                .withJoin(t -> t.left()
-                                        .table("tb_purchase_group pg")
-                                        .on("pgp.purchase_group_id = pg.id"))
 
         );
 

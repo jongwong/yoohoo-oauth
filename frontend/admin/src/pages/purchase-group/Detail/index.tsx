@@ -127,6 +127,17 @@ const Detail: React.FC = () => {
 			placeholder: '请输入团购描述',
 		},
 		{
+			label: '最小成团人数',
+			name: 'group_required_count',
+			placeholder: '请输入最小成团人数',
+			formItemProps: {
+				initialValue: 1,
+				rules: [{ required: true, type: 'number', min: 1 }],
+			},
+			valueType: EDefaultValueType.PositiveInteger,
+		},
+
+		{
 			label: '最大参与人数',
 			name: 'max_participants',
 			placeholder: '请输入最大参与人数',

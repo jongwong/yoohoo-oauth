@@ -1,5 +1,6 @@
 package cn.jongwong.server.service;
 
+import cn.jongwong.server.dto.user.CurrentAuthenticationUserRO;
 import cn.jongwong.server.dto.user.UserRO;
 import cn.jongwong.server.entity.UserVO;
 import cn.jongwong.server.util.response.Page;
@@ -38,6 +39,9 @@ public interface UserService {
     Mono<Page<UserRO>> getUsersList(String username, String email, int page, int size);
 
     Mono<String> getCurrentUserId();
+
+    Mono<CurrentAuthenticationUserRO> getCurrentUser();
+
 
 
     public Mono<UserRO> findById(String id);

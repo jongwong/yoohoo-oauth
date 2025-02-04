@@ -6,11 +6,9 @@ import cn.jongwong.server.enums.product.ProductListedStatus;
 import cn.jongwong.server.enums.product.PurchaseGroupStatus;
 import cn.jongwong.server.service.product.PurchaseGroupProductService;
 import cn.jongwong.server.util.response.PageResponse;
+import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -57,6 +55,15 @@ public class ClientProductController {
         return purchaseGroupProductService.searchWithImage(productName, categoryId, distributionPointId, finalStatus, ProductListedStatus.LISTED.getCode(), GlobalEnableTypeEnum.ENABLE.getValue(),
                         timeDeliveryStart, timeDeliveryEnd, timeGroupStart, timeGroupEnd, page, size)
                 .map(PageResponse::success);
+
+    }
+
+    @GetMapping("/product/{id}")
+    public Mono<Response<ClientPurchaseGroupProductVO>> findOneById(@PathVariable String id) { // 每页大小
+
+
+        return purchaseGroupProductService.fineOneWithImage(id)
+                .map(Response::ok);
 
     }
 

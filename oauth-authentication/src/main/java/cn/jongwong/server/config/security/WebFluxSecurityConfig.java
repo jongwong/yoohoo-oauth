@@ -147,7 +147,7 @@ public class WebFluxSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://dev.admin.yoohoo.cn")); // 设置允许跨域的来源
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://dev.admin.yoohoo.cn", "http://127.0.0.1:53124")); // 设置允许跨域的来源
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE")); // 设置允许的请求方法
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type")); // 设置允许的请求头
         configuration.setAllowCredentials(true); // 是否允许携带凭证

@@ -41,13 +41,12 @@ const UserDetail: React.FC = props => {
 	};
 
 	const fields: ProFormItemsFieldType[] = [
-		{ label: '优惠券名称', name: 'name', placeholder: '请输入优惠券名称', visible: editable },
+		{ label: '优惠券名称', name: 'name', placeholder: '请输入优惠券名称' },
 		{
 			label: '优惠券类型',
 			name: 'type',
 			valueEnum: CouponsTypeMap, // 假设你有 CouponTypeMap 来映射优惠券类型
 			placeholder: '请选择优惠券类型',
-			visible: editable,
 		},
 		r => ({
 			label: '折扣金额',

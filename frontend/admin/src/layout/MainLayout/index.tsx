@@ -18,15 +18,15 @@ dayjs.locale('zh-cn');
 const { Header, Sider } = Layout;
 
 const ranges = {
-	明天: [dayjs().add(1, 'day').startOf('day'), dayjs().add(1, 'day').endOf('day')],
-	下一周: [dayjs().startOf('day'), dayjs().add(7, 'day').endOf('day')],
+	明天: [dayjs().add(1, 'day').startOf('date'), dayjs().add(1, 'day').endOf('date')],
+	下一周: [dayjs().startOf('date'), dayjs().add(7, 'day').endOf('date')],
 	下个月: [dayjs().add(1, 'month').startOf('month'), dayjs().add(1, 'month').endOf('month')],
-	昨天: [dayjs().subtract(1, 'day').startOf('day'), dayjs().subtract(1, 'day').endOf('day')],
-	最近7天: [dayjs().subtract(6, 'day').startOf('day'), dayjs().endOf('day')],
-	最近30天: [dayjs().subtract(29, 'day').startOf('day'), dayjs().endOf('day')],
-	今天: [dayjs().startOf('day'), dayjs().endOf('day')],
-	本周: [dayjs().startOf('week'), dayjs().endOf('day')],
-	本月: [dayjs().startOf('month'), dayjs().endOf('day')],
+	昨天: [dayjs().subtract(1, 'day').startOf('date'), dayjs().subtract(1, 'day').endOf('date')],
+	最近7天: [dayjs().subtract(6, 'day').startOf('date'), dayjs().endOf('date')],
+	最近30天: [dayjs().subtract(29, 'day').startOf('date'), dayjs().endOf('date')],
+	今天: [dayjs().startOf('date'), dayjs().endOf('date')],
+	本周: [dayjs().startOf('week'), dayjs().endOf('date')],
+	本月: [dayjs().startOf('month'), dayjs().endOf('date')],
 };
 
 // 全局配置默认 props

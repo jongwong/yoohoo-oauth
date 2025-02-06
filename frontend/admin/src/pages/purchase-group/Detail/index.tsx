@@ -9,7 +9,7 @@ import {
 	ProFormItemsFieldType,
 } from '@yoo/pro-component';
 import { useUpdate } from 'ahooks';
-import { Button, Card, Form, message, Space, Typography } from 'antd';
+import { Button, Card, DatePicker, Form, message, Space, Typography } from 'antd';
 
 import ProductSearchSelect from '@/component/business/ProductSearchSelect';
 import { GlobalEnableTypeMap } from '@/constant/common';
@@ -164,8 +164,44 @@ const Detail: React.FC = () => {
 			fieldProps: {
 				showTime: true,
 			} as RangePickerProps,
-			extraFieldNames: ['time_start', 'time_end'],
-			valueType: EDefaultValueType.RangePicker,
+			render: (t, r) =>
+				t && r?.time_end
+					? [r.time_start, r.time_end].map(it => dayjs(it).format('YYYY-DD-MM HH:mm')).join(' ~ ')
+					: undefined,
+			renderFormItem: (t, _r, opt) => {
+				return (
+					<ProxyWrapped>
+						{inputProps => {
+							const r = form.getFieldsValue(true);
+							const val: any = [
+								r?.time_start ? dayjs(r?.time_start) : undefined,
+								r?.time_end ? dayjs(r?.time_end) : undefined,
+							];
+							return (
+								<DatePicker.RangePicker
+									{...inputProps}
+									value={val as any}
+									format="YYYY-MM-DD HH:mm:ss"
+									onChange={e => {
+										form.setFields([
+											{
+												name: 'time_start',
+												value: e?.[0]?.startOf('day').valueOf(),
+											},
+											{
+												name: 'time_end',
+												value: e?.[1]?.endOf('day').valueOf(),
+											},
+										]);
+										// validateFields 是为form item 的validateTrigger,onChange触发校验
+										form.validateFields([['time_start']]);
+									}}
+								/>
+							);
+						}}
+					</ProxyWrapped>
+				);
+			},
 		},
 		{
 			label: '配送时间',
@@ -175,8 +211,12 @@ const Detail: React.FC = () => {
 					return e;
 				},
 			},
-			extraFieldNames: ['time_delivery_start', 'time_delivery_end'],
-			valueType: EDefaultValueType.RangePicker,
+			render: (t, r) =>
+				t && r?.time_delivery_end
+					? [r.time_delivery_start, r.time_delivery_end]
+							.map(it => dayjs(it).format('YYYY-DD-MM HH:mm'))
+							.join(' ~ ')
+					: undefined,
 			renderFormItem: (t, r) => {
 				return (
 					<ProxyWrapped>

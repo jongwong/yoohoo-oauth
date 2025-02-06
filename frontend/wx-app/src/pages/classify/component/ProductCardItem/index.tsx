@@ -38,7 +38,6 @@ type ProductCardItemProps = {
   price: number; // 到手价
   originalPrice: number; // 原价
   onGotoOrderSubmit: () => void;
-  num?: boolean;
   data?: {
     sold_quantity: number;
     time_group_end: number;
@@ -52,7 +51,6 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
   title,
   price,
   originalPrice,
-  num = 0,
   onGotoOrderSubmit,
   data,
 }) => {

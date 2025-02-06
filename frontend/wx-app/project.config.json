@@ -4,7 +4,7 @@
 	"description": "wx-app",
 	"appid": "touristappid",
 	"setting": {
-		"urlCheck": true,
+    "urlCheck": false,
 		"es6": false,
     "enhance": false,
     "compileHotReLoad": true,

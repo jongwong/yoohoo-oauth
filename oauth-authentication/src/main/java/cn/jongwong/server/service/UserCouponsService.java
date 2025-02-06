@@ -1,6 +1,7 @@
 package cn.jongwong.server.service;
 
 import cn.jongwong.server.common.QueryBuilder;
+import cn.jongwong.server.entity.UserCouponsRO;
 import cn.jongwong.server.entity.UserCouponsVO;
 import cn.jongwong.server.enums.coupons.CouponsStatus;
 import cn.jongwong.server.repository.UserCouponsRepository;
@@ -8,6 +9,7 @@ import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -151,5 +153,10 @@ public class UserCouponsService {
 
         // 执行查询并返回分页结果
         return queryBuilder.paginate(page, size).exec();
+    }
+
+
+    public Flux<UserCouponsRO> getUserCouponsByUserId(String userId) {
+        return userCouponsRepository.findUserCouponsByUserId(userId);
     }
 }

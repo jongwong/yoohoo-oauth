@@ -91,7 +91,6 @@ http.interceptors.request.use(
 http.interceptors.response.use(
 	response => {
 		const ob = response?.data || {};
-		console.log('=====ob=====', ob);
 		return { ...ob, success: ob?.code === 0 };
 	},
 	async error => {
@@ -100,7 +99,6 @@ http.interceptors.response.use(
 			success: false,
 			message: '',
 		};
-		console.log('=====error==77===', error);
 
 		if (error?.status === 401 || data?.code === 401) {
 			deleteCookie('access_token');

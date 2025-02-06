@@ -39,6 +39,8 @@ public class PurchaseGroupService {
 
 
         EntityUtils.ensureIdExists(data);
+
+        System.out.printf("-------data.getTimeEnd()-------%s%n", data.getTimeEnd());
         // 显式事务控制
         return transactionalOperator.transactional(
                 purchaseGroupRepository.save(data)  // 保存团购信息

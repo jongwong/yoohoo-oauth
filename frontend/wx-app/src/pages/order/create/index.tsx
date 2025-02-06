@@ -1,20 +1,27 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import Layout from "@/component/Layout";
-import { useRequest } from "ahooks";
 import request from "@/utils/request";
 import { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
-import { Tag } from "@antmjs/vantui";
+import { Form, FormItem, Icon, Tag } from "@antmjs/vantui";
 import { formatSortTime } from "@/utils/date";
 import { first } from "lodash-es";
+import Image from "@/component/Image";
+import { generateFileUrl } from "@/utils/file";
+import classNames from "classnames";
+import useRequest from "@/hooks/useRequest";
+import CouponsPicker from "@/pages/order/create/components/CouponsPicker";
+import { useUpdate } from "ahooks";
 
 const OrderCreate: React.FC = () => {
   const router = useRouter();
 
   const [currentConsignee, setCurrentConsignee] = useState();
+  const form = Form.useForm();
+  const forceUpdate = useUpdate();
   // 请求产品列表数据
-  const { loading: productLoading, data: productDataRes } = useRequest(
+  const { loading: productLoading, data: productData } = useRequest(
     async () => {
       return request.get(`/client/group/product/${router.params?.product_id}`, {
         params: {},
@@ -29,7 +36,7 @@ const OrderCreate: React.FC = () => {
     }
   );
 
-  const { loading: consigneeLoading, data: consigneeDataRes } = useRequest(
+  const { loading: consigneeLoading } = useRequest(
     async () => {
       return request.get(`/client/consignee`, {
         params: {},
@@ -43,7 +50,30 @@ const OrderCreate: React.FC = () => {
   );
 
   // 请求产品列表数据
-  const { loading: areaLoading, data: areaDataRes } = useRequest(
+  const { loading: couponsLoading, data: couponsList = [] } = useRequest(
+    async () => {
+      return request.get(`/client/user/coupons`, {
+        params: {},
+      });
+    },
+    {
+      refreshDeps: [router.params?.area_id],
+      ready: !!router.params?.area_id,
+    }
+  );
+  // 请求产品列表数据
+  const { loading: deliveryFeeLoading, data: deliveryFee } = useRequest(
+    async () => {
+      return request.get(`/client/delivery/fee`);
+    },
+    {
+      refreshDeps: [router.params?.area_id],
+      ready: !!router.params?.area_id,
+    }
+  );
+
+  // 请求产品列表数据
+  const { loading: areaLoading, data: areaData } = useRequest(
     async () => {
       return request.get(`/client/store/area/${router.params?.area_id}`, {
         params: {},
@@ -58,15 +88,17 @@ const OrderCreate: React.FC = () => {
     }
   );
 
-  const productData = useMemo(() => productDataRes?.data, [productDataRes]);
-  const areaData = useMemo(() => areaDataRes?.data, [areaDataRes]);
-  const consigneeData = useMemo(
-    () => consigneeDataRes?.data,
-    [consigneeDataRes]
-  );
-
-  console.log("=====productData=====", productData);
-  console.log("=====areaData=====", areaData);
+  const getTotal = () => {
+    const currentCoupons = form.getFieldValue("currentCoupons");
+    const find = couponsList.find((item) => item.id === currentCoupons);
+    const couponsFee = find?.discount_amount || 0;
+    const re = {
+      price: productData?.price * 1 || 0,
+      deliveryFee: deliveryFee || 0,
+      couponsFee,
+    };
+    return re.price + re.deliveryFee - re.couponsFee;
+  };
 
   const renderAlert = () => {
     if (productData?.group_required_count! > 1) {
@@ -93,40 +125,130 @@ const OrderCreate: React.FC = () => {
       </View>
     );
   };
-
   return (
-    <Layout loading={productLoading || areaLoading || consigneeLoading}>
-      <View className={"mb-8"}>{renderAlert()}</View>
+    <Layout
+      loading={
+        productLoading ||
+        areaLoading ||
+        consigneeLoading ||
+        couponsLoading ||
+        deliveryFeeLoading
+      }
+    >
+      <Form initialValues={{ code: 3 }} form={form}>
+        <View className={"mb-16"}>{renderAlert()}</View>
 
-      <View className={styles.areaCard}>
-        <View>
-          <View className={styles.areaCardLocationTitle}>{areaData?.name}</View>
-          <View className={styles.areaCardLocationDesc}>
-            {areaData?.address}
+        <View className={styles.areaCard}>
+          <View>
+            <View className={styles.areaCardLocationTitle}>
+              {areaData?.name}
+            </View>
+            <View className={styles.areaCardLocationDesc}>
+              {areaData?.address}
+            </View>
+          </View>
+          <View className={"mt-16"}>
+            <View className={styles.areaCardLocationTitle}>收货人</View>
+            <View className={styles.areaCardLocationDesc}>
+              {currentConsignee
+                ? currentConsignee?.name + " " + currentConsignee?.mobile
+                : "请选择收货人"}
+            </View>
+          </View>
+          <View className={"mt-16"}>
+            <View className={styles.areaCardLocationTitle}>
+              <Text>
+                大约{formatSortTime(productData?.time_delivery_start)}送达
+              </Text>
+              <Tag round type="warning" className={"ml-4"}>
+                提前预约，指定时间送达
+              </Tag>
+            </View>
+            <View className={styles.areaCardLocationDesc}>
+              最迟{formatSortTime(productData?.time_delivery_end)}送达
+            </View>
+            <View className={styles.areaCardLocationDesc}>
+              最迟预约时间 {formatSortTime(productData?.time_group_end)}
+            </View>
           </View>
         </View>
-        <View className={"mt-16"}>
-          <View className={styles.areaCardLocationTitle}>收货人</View>
-          <View className={styles.areaCardLocationDesc}>
-            {currentConsignee
-              ? currentConsignee?.name + " " + currentConsignee?.mobile
-              : "请选择收货人"}
+        <View className={classNames("mt-16", styles.card)}>
+          <View className={styles.productCard}>
+            <Image
+              src={generateFileUrl(productData?.thumbnail_image_url, true)}
+              fadeIn
+              fallback
+              className={styles.productImage}
+              mode="aspectFill"
+            />
+            <View className={styles.productInfo}>
+              <View className={styles.productTitleRow}>
+                <View className={styles.productTitle}>{productData?.name}</View>
+
+                <Text className={styles.productPrice}>
+                  <Text className={"text-12"}>￥</Text>
+                  {productData?.price}
+                </Text>
+              </View>
+              <View>
+                <Text className={styles.productNum}> x 1</Text>
+              </View>
+            </View>
           </View>
+
+          <FormItem
+            label={"配送费"}
+            name={"_deliveryFee"}
+            controllFlexEnd
+            trigger={"none"}
+          >
+            <Text className={"text-12"}>￥</Text>
+            {deliveryFee}
+          </FormItem>
+          <FormItem
+            label={
+              <View className={styles.couponsLabel}>
+                <Icon
+                  className={styles.couponsLabelIcon}
+                  classPrefix="iconfont yh"
+                  name="coupons"
+                />
+                优惠券
+              </View>
+            }
+            name={"currentCoupons"}
+            controllFlexEnd
+            trigger={"none"}
+          >
+            <CouponsPicker
+              couponsList={couponsList}
+              value={form.getFieldValue("currentCoupons")}
+              onConfirm={(e) => {
+                form.setFieldsValue("currentCoupons", e);
+                forceUpdate();
+              }}
+            />
+          </FormItem>
+
+          <FormItem
+            label={
+              <Text
+                style={{
+                  fontSize: "16px",
+                }}
+              >
+                小计
+              </Text>
+            }
+            name={"_total"}
+            controllFlexEnd
+            trigger={"none"}
+          >
+            <Text className={"text-12"}>￥</Text>
+            {getTotal()}
+          </FormItem>
         </View>
-        <View className={"mt-16"}>
-          <View className={styles.areaCardLocationTitle}>
-            <Text>
-              大约{formatSortTime(productData?.delivery_time_start)}送达
-            </Text>
-            <Tag round type="warning" className={"ml-4"}>
-              提前预约，指定时间送达
-            </Tag>
-          </View>
-          <View className={styles.areaCardLocationDesc}>
-            最迟预约时间 {formatSortTime(productData?.time_group_end)}
-          </View>
-        </View>
-      </View>
+      </Form>
     </Layout>
   );
 };

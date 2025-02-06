@@ -26,7 +26,8 @@ const List: React.FC = () => {
 
 	// 获取团购列表
 	const fetchPurchaseGroupList = async (params: any) => {
-		return await getPurchaseGroupProductPage(params);
+		const res = await getPurchaseGroupProductPage(params);
+		return res;
 	};
 
 	// 查询表单字段

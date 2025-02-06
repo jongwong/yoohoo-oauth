@@ -22,7 +22,9 @@ const List: React.FC = () => {
 
 	// 获取团购列表
 	const fetchPurchaseGroupList = async (params: any) => {
-		return await getPurchaseGroupPage(params);
+		const res = await getPurchaseGroupPage(params);
+		console.log('=====res=====', res);
+		return res;
 	};
 
 	// 删除团购的操作

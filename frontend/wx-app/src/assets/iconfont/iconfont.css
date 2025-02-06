@@ -13,6 +13,30 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.yh-chevron-down:before {
+  content: "\e6a9";
+}
+
+.yh-chevron-left:before {
+  content: "\e6aa";
+}
+
+.yh-chevron-right:before {
+  content: "\e6ab";
+}
+
+.yh-chevron-up:before {
+  content: "\e6ac";
+}
+
+.yh-coupons:before {
+  content: "\e63e";
+}
+
+.yh-yixuanze:before {
+  content: "\e916";
+}
+
 .yh-minus-circle-outline:before {
   content: "\e7fc";
 }

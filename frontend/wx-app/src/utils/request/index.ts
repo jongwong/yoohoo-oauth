@@ -1,6 +1,7 @@
 import { serviceConfig } from "../../config";
 import Taro from "@tarojs/taro";
 import { isNil, omitBy } from "lodash-es";
+import { Toast } from "@antmjs/vantui";
 
 type ResponseData<T = any> = {
   code: number;
@@ -19,16 +20,24 @@ export type RequestOption<T = any, U = any> = Omit<
 >;
 const urlList = ["/client/wechat/login"];
 
+const getFormatUrl = (url: string, params: any) => {
+  let _params = params || {};
+  if (_params) {
+    _params = omitBy(_params, (it) => isNil(it));
+  }
+  if (Object.keys(_params).length === 0) {
+    _params = undefined;
+  }
+  const queryString = _params ? `?${buildQueryString(_params)}` : "";
+  return url + queryString;
+};
+
 const request = <T = any, U = any>(
   config: RequestOption<T, U> & {
     method: Taro.request.Option<T>["method"];
     url: string;
   }
 ): Promise<ResponseData<T>> => {
-  if (config?.params) {
-    config.params = omitBy(config?.params, (it) => !isNil(it));
-  }
-
   return new Promise((resolve, reject) => {
     const _url = config.url.startsWith("/")
       ? serviceConfig.client + config.url
@@ -70,6 +79,11 @@ const request = <T = any, U = any>(
           ...result?.data,
           success: result?.data?.code === 0,
         };
+        if (!_data.success) {
+          Toast.fail({
+            message: "网络异常",
+          });
+        }
         resolve(_data);
         config?.success?.(_data);
       },
@@ -96,10 +110,9 @@ const get = <T = any, U = any>(
   config: RequestOption<T, U> = {}
 ) => {
   const { params, ...rest } = config;
-  const queryString = params ? `?${buildQueryString(params)}` : "";
   return request({
     // @ts-ignore
-    url: url + queryString,
+    url: getFormatUrl(url, params),
     method: "GET",
     ...rest,
   });
@@ -111,10 +124,9 @@ const post = <T = any, U = any>(
   config: RequestOption<T, U> = {}
 ) => {
   const { params, ...rest } = config;
-  const queryString = params ? `?${buildQueryString(params)}` : "";
   return request({
     // @ts-ignore
-    url: url + queryString,
+    url: getFormatUrl(url, params),
     method: "POST",
     data,
     ...rest,
@@ -126,10 +138,9 @@ const put = <T = any, U = any>(
   config: RequestOption<T, U> = {}
 ) => {
   const { params, data, ...rest } = config;
-  const queryString = params ? `?${buildQueryString(params)}` : "";
   return request({
     // @ts-ignore
-    url: url + queryString,
+    url: getFormatUrl(url, params),
     method: "PUT",
     data,
     ...rest,
@@ -141,11 +152,10 @@ const del = <T = any, U = any>(
   config: RequestOption<T, U> = {}
 ) => {
   const { params, data, ...rest } = config;
-  const queryString = params ? `?${buildQueryString(params)}` : "";
 
   return request({
     // @ts-ignore
-    url: url + queryString,
+    url: getFormatUrl(url, params),
     method: "DELETE",
     data,
     ...rest,

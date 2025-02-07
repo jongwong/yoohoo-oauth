@@ -4,7 +4,7 @@ import request from "@/utils/request";
 import { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
-import { Form, FormItem, Icon, Tag } from "@antmjs/vantui";
+import { Button, Form, FormItem, Icon, Tag } from "@antmjs/vantui";
 import { formatSortTime } from "@/utils/date";
 import { first } from "lodash-es";
 import Image from "@/component/Image";
@@ -126,16 +126,29 @@ const OrderCreate: React.FC = () => {
     );
   };
   return (
-    <Layout
-      loading={
-        productLoading ||
-        areaLoading ||
-        consigneeLoading ||
-        couponsLoading ||
-        deliveryFeeLoading
-      }
-    >
-      <Form initialValues={{ code: 3 }} form={form}>
+    <Form initialValues={{ code: 3 }} form={form}>
+      <Layout
+        loading={
+          productLoading ||
+          areaLoading ||
+          consigneeLoading ||
+          couponsLoading ||
+          deliveryFeeLoading
+        }
+        footer={
+          <View className={styles.footer}>
+            <View className={styles.footerPrice}>
+              <Text className={"text-12"}>￥</Text>
+              {getTotal()}
+            </View>
+            <View>
+              <Button type="primary" style="margin-left: 120px">
+                立即支付
+              </Button>
+            </View>
+          </View>
+        }
+      >
         <View className={"mb-16"}>{renderAlert()}</View>
 
         <View className={styles.areaCard}>
@@ -248,8 +261,8 @@ const OrderCreate: React.FC = () => {
             {getTotal()}
           </FormItem>
         </View>
-      </Form>
-    </Layout>
+      </Layout>
+    </Form>
   );
 };
 

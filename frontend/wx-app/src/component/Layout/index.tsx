@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 
 import { ConfigProvider, Loading, Overlay } from "@antmjs/vantui";
 
@@ -13,19 +13,27 @@ type LayoutProps = {
   edge?: "none";
   loading?: boolean;
   backgroundColor?: string;
+  footer: ReactNode;
 };
 const Layout: React.FC<LayoutProps> = (props) => {
-  const { children, backgroundColor, loading, edge, style, ...rest } = props;
+  const { children, footer, backgroundColor, loading, edge, style, ...rest } =
+    props;
 
   return (
-    <ConfigProvider
-      className={classNames(
-        styles["yoohoo-layout"],
-        edge && styles["yoohoo-layout-edge-" + edge]
-      )}
-      style={{ backgroundColor, ...style }}
-    >
-      {children}
+    <ConfigProvider className={styles["yo-layout-wrapper"]}>
+      <View
+        className={classNames(
+          styles["yoohoo-layout"],
+          edge && styles["yoohoo-layout-edge-" + edge],
+          !!footer && styles["yo-layout-has-footer"]
+        )}
+        style={{ backgroundColor, ...style }}
+      >
+        {children}
+      </View>
+      {footer ? (
+        <View className={styles["yo-layout-footer"]}>{footer}</View>
+      ) : null}
       <Overlay
         show={loading}
         style={{ background: "rgba(255, 255, 255, 0.3)" }}

@@ -1,0 +1,24 @@
+.yo-footer-bar {
+  display: flex;
+
+  /* 使底部固定 */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* 确保它覆盖其他内容 */
+
+  /* 确保在移动设备上底部内容不被遮挡 */
+  box-sizing: border-box;
+
+  /* 在较小屏幕上减少底部内边距 */
+  @media (max-width: 768px) {
+    padding: 8px 8px 12px 8px;
+  }
+
+  /* 可选：如果需要固定底部但不影响内容的滚动，可以使用sticky */
+  @media (min-width: 769px) {
+    position: sticky;
+    bottom: 0;
+  }
+}

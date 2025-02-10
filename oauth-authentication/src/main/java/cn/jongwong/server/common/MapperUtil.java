@@ -68,8 +68,8 @@ public class MapperUtil {
         }
     }
 
-    public static <T> void merge(T source, T target) {
-        BeanUtils.copyProperties(source, target, getNullPropertyNames(source));
+    public static <T> void merge(T target, T copySource) {
+        BeanUtils.copyProperties(copySource, target, getNullPropertyNames(copySource));
     }
 
     // 获取 source 中为 null 的属性名称

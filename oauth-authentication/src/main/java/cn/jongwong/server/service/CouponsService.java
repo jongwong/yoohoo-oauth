@@ -55,9 +55,6 @@ public class CouponsService {
         old.setMaxDiscount(data.getMaxDiscount());
         old.setValidFrom(data.getValidFrom());
         old.setValidTo(data.getValidTo());
-        old.setTotalIssued(data.getTotalIssued());
-        old.setTotalUsed(data.getTotalUsed());
-        old.setTotalClaimed(data.getTotalClaimed());
         old.setCreatedBy(data.getCreatedBy());
         old.setStatus(data.getStatus());
         old.setRejectionReason(data.getRejectionReason());

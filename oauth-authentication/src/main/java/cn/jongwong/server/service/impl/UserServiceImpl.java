@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userVO.getId())
                 .flatMap(existingUser -> {
 
-                    MapperUtil.merge(existingUser, userVO);
+                    MapperUtil.merge(userVO, existingUser);
                     // 继续增加其他字段的判断
                     return userRepository.save(existingUser);
                 }).map((e) -> MapperUtil.mapFields(e, UserRO.class));

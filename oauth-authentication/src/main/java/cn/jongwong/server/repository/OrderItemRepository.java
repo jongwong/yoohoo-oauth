@@ -8,9 +8,7 @@ import reactor.core.publisher.Flux;
 @Repository
 public interface OrderItemRepository extends GenericReactiveRepository<OrderItemVO, String> {
 
-    // 根据订单ID查找订单明细
-    Flux<OrderItemVO> findByOrderId(String orderId);
 
     // 根据支付ID查找订单明细
-    Flux<OrderItemVO> findByPaymentId(String paymentId);
+    Flux<OrderItemVO> findByOrderId(String orderId);
 }

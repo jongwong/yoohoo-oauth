@@ -6,6 +6,8 @@ import { View } from "@tarojs/components";
 import styles from "./index.module.less";
 import dayjs from "dayjs";
 import { getFormatWeekdays } from "../../utils/date";
+import useRequest from "@/hooks/useRequest";
+import request from "@/utils/request";
 
 enum EOrderStatus {
   PendingPayment = 10, // 待支付
@@ -94,6 +96,10 @@ const Profile: React.FC = () => {
     },
   ];
 
+  const { data, loading } = useRequest(() => {
+    return request.get("/client/order/user");
+  });
+  console.log("=====data=====", data);
   const renderActions = (orderItem) => {
     if (orderItem?.status === EOrderStatus.PendingPayment) {
       return (
@@ -124,6 +130,7 @@ const Profile: React.FC = () => {
         backgroundColor: "#f6f6f6",
       }}
       edge={"none"}
+      loading={loading}
     >
       <View>
         <Tabs className={styles.tabs}>

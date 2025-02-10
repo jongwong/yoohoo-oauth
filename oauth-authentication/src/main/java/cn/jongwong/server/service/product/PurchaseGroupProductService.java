@@ -6,14 +6,41 @@ import cn.jongwong.server.repository.ClientPurchaseGroupProductRepository;
 import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class PurchaseGroupProductService {
     @Autowired
     private ClientPurchaseGroupProductRepository clientPurchaseGroupProductRepository;
+
+    private static final String[] COLUMNS = new String[]{
+            "pgp.id AS group_product_id",
+            "pgp.purchase_group_id",
+            "pgp.product_id",
+            "pgp.max_stock",
+            "pgp.sold_quantity",
+            "p.code",
+            "p.name",
+            "p.price",
+            "p.listed_status",
+            "p.archived_status",
+            "p.category_name",
+            "p.category_id",
+            "p.category_code",
+            "pg.name AS group_name",
+            "pg.group_required_count AS group_required_count",
+            "pg.status AS group_status",
+            "pg.enable AS group_enable",
+            "pg.time_start AS time_group_start",
+            "pg.time_end AS time_group_end",
+            "pg.time_delivery_start",
+            "pg.time_delivery_end",
+            "pg.distribution_point_id"
+    };
 
     public Mono<Page<ClientPurchaseGroupProductVO>> search(String productName, String categoryId, String distributionPointId, Integer[] groupStatus, Integer listedStatus, Integer enable,
                                                            LocalDateTime timeDeliveryStart, LocalDateTime timeDeliveryEnd, LocalDateTime timeGroupStart, LocalDateTime timeGroupEnd, Integer page, Integer size) {
@@ -70,29 +97,7 @@ public class PurchaseGroupProductService {
     public Mono<ClientPurchaseGroupProductVO> fineOneWithImage(String id) {
         return clientPurchaseGroupProductRepository.findOneByDSL(id, sql ->
                 sql.as("pgp")
-                        .column("pgp.id AS group_product_id")
-                        .column("pgp.purchase_group_id")
-                        .column("pgp.product_id")
-                        .column("pgp.max_stock")
-                        .column("pgp.sold_quantity")
-                        .column("p.code")
-                        .column("p.name")
-                        .column("p.price")
-//                              .column("p.thumbnail_image")
-                        .column("p.listed_status")
-                        .column("p.archived_status")
-                        .column("p.category_name")
-                        .column("p.category_id")
-                        .column("p.category_code")
-                        .field("pg.name", "group_name")
-                        .field("pg.group_required_count", "group_required_count")
-                        .field("pg.status", "group_status")
-                        .field("pg.enable", "group_enable")
-                        .column("pg.time_start AS time_group_start")
-                        .column("pg.time_end AS time_group_end")
-                        .column("pg.time_delivery_start")
-                        .column("pg.time_delivery_end")
-                        .column("pg.distribution_point_id")
+                        .columns(COLUMNS)
                         .column("p_img.url AS thumbnail_image_url")
                         .withJoin(t -> t.left()
                                 .table("tb_product p")
@@ -111,29 +116,7 @@ public class PurchaseGroupProductService {
 
         return clientPurchaseGroupProductRepository.findPageByDSL(page, size, sql ->
                         sql.as("pgp")
-                                .column("pgp.id AS group_product_id")
-                                .column("pgp.purchase_group_id")
-                                .column("pgp.product_id")
-                                .column("pgp.max_stock")
-                                .column("pgp.sold_quantity")
-                                .column("p.code")
-                                .column("p.name")
-                                .column("p.price")
-//                              .column("p.thumbnail_image")
-                                .column("p.listed_status")
-                                .column("p.archived_status")
-                                .column("p.category_name")
-                                .column("p.category_id")
-                                .column("p.category_code")
-                                .field("pg.name", "group_name")
-                                .field("pg.group_required_count", "group_required_count")
-                                .field("pg.status", "group_status")
-                                .field("pg.enable", "group_enable")
-                                .column("pg.time_start AS time_group_start")
-                                .column("pg.time_end AS time_group_end")
-                                .column("pg.time_delivery_start")
-                                .column("pg.time_delivery_end")
-                                .column("pg.distribution_point_id")
+                                .columns(COLUMNS)
                                 .column("p_img.url AS thumbnail_image_url")
                                 .withJoin(t -> t.left()
                                         .table("tb_product p")
@@ -160,5 +143,25 @@ public class PurchaseGroupProductService {
         );
 
     }
+
+
+    public Flux<ClientPurchaseGroupProductVO> findAllByIds(List<String> ids) {
+
+        return clientPurchaseGroupProductRepository.findAllByDSL(sql ->
+                sql.as("pgp")
+                        .columns(COLUMNS)
+                        .eq("pgp.id", ids)
+                        .withJoin(t -> t.left()
+                                .table("tb_product p")
+                                .on("pgp.product_id = p.id"))
+                        .withJoin(t -> t.left()
+                                .table("tb_purchase_group pg")
+                                .on("pgp.purchase_group_id = pg.id"))
+
+        );
+
+    }
+
+
 
 }

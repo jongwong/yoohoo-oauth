@@ -47,18 +47,12 @@ public class CouponsVO {
     @Schema(description = "优惠券失效时间")
     private LocalDateTime validTo;
 
-    @Schema(description = "发放总量")
-    private Integer totalIssued = 0; // Total issued
-
-    @Schema(description = "已使用数量")
-    private Integer totalUsed = 0; // Total used
-
-    @Schema(description = "已领取数量")
-    private Integer totalClaimed = 0; // Total claimed
-
 
     @Schema(description = "优惠券状态 (0: 草稿, 1: 审核中, 2: 审核拒绝, 3: 审核通过, 4: 已过期)")
     private Integer status = 0; // Status: (0: Draft, 1: Under Review, 2: Rejected, 3: Approved, 4: Expired)
+
+    @Schema(description = "是否禁用 (0: 否, 1: 是)")
+    private Integer disable = 0;
 
 
     @Schema(description = "审核拒绝原因 (仅在审核拒绝时有效)")

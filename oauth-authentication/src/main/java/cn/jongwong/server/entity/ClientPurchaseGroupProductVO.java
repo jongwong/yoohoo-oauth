@@ -93,4 +93,6 @@ public class ClientPurchaseGroupProductVO {
 
     @Schema(description = "配送截止时间")
     private LocalDateTime timeDeliveryEnd;
+
+
 }

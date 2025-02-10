@@ -66,13 +66,21 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
         return Flux.fromIterable(entities)
                 .flatMap(entity -> {
                     String idValue = EntityUtils.getIdValue(entity);
+
+                    // 如果主键值不为空，先查询数据库判断实体是否存在
                     if (idValue != null) {
-                        return super.save(entity);
+                        return findById((ID) idValue)  // 查找数据库中是否存在这个主键
+                                .flatMap(existingEntity -> {
+                                    // 如果存在实体，则执行更新操作
+                                    return super.save(entity);
+                                })
+                                .switchIfEmpty(insert(entity));  // 如果没有找到实体，则执行插入操作
                     } else {
-                        return insert(entity);
+                        return insert(entity);  // 如果主键值为空，直接插入
                     }
                 });
     }
+
 
     private T instantiateEntity() {
         try {
@@ -181,6 +189,26 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
         // 组合数据和总数，返回分页对象
         return Mono.zip(dataMono, countMono)
                 .map(tuple -> new Page<>(tuple.getT1(), tuple.getT2(), page, size));
+    }
+
+    public <S extends T> Flux<T> findAllByDSL(java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
+
+        var tableName = this.entity.getTableName().toString();
+        var sqlBuilder = SqlBuilder.select().from(tableName);
+
+        // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
+        sqlBuilderFunction.apply(sqlBuilder);
+
+
+        var listSql = sqlBuilder.clone().toString();
+
+        return databaseClient.sql(listSql)
+                .map((row, metadata) -> {
+                    T instance = instantiateEntity();
+                    populateEntityFromRow(row, metadata, instance);
+                    return instance;
+                }).all();
+
     }
 
 }

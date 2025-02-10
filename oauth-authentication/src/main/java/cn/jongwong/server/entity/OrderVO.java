@@ -5,42 +5,76 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@Table(name = "tb_order")
 public class OrderVO {
 
     @Schema(description = "订单ID")
+    @Id
     private String id;
 
     @Schema(description = "用户ID")
     private String userId;
 
-    @Schema(description = "订单号")
-    private String orderNumber;
-
     @Schema(description = "订单总金额")
-    private BigDecimal totalAmount;
+    private BigDecimal amountTotal;
 
-    @Schema(description = "实际支付金额")
-    private BigDecimal actualAmount;
+    @Schema(description = "配送费金额")
+    private BigDecimal amountDelivery;
 
-    @Schema(description = "订单状态 (1: 待支付, 2: 已支付, 3: 已取消, 4: 已完成)")
-    private Integer status;
+    @Schema(description = "优惠金额")
+    private BigDecimal amountDiscount;
 
-    @Schema(description = "创建时间")
+    @Schema(description = "商品金额")
+    private BigDecimal amountProduct;
+
+    @Schema(description = "优惠券ID")
+    private String couponsId;
+
+    @Schema(description = "优惠券名称")
+    private String couponsName;
+
+    @Schema(description = "优惠券类型")
+    private Integer couponsType;
+
+    @Schema(description = "收货人姓名")
+    private String consigneeName;
+
+    @Schema(description = "收货人手机")
+    private String consigneeMobile;
+
+    @Schema(description = "配送点ID")
+    private String deliveryPointId;
+
+    @Schema(description = "配送点名称")
+    private String deliveryPointName;
+
+
+    @Schema(description = "配送点地址")
+    private String deliveryPointAddress;
+
+    @Schema(description = "订单创建时间")
     private LocalDateTime createdAt;
 
-    @Schema(description = "更新时间")
+    @Schema(description = "订单更新时间")
     private LocalDateTime updatedAt;
 
+    @Schema(description = "支付状态")
+    private Integer paymentStatus;
+
     @Schema(description = "支付时间")
-    private LocalDateTime paymentAt;
+    private LocalDateTime paymentTime;
 
     @Schema(description = "创建人ID")
     private String createdBy;
@@ -53,4 +87,11 @@ public class OrderVO {
 
     @Schema(description = "更新人名称")
     private String updatedByName;
+
+    @Schema(description = "订单状态")
+    private Integer status;  // 订单状态（10: 待支付, 20: 待收货, 30: 退款中, 40: 已取消, 50: 待评价, 60: 已完成）
+
+    @Transient
+    @Schema(description = "订单明细")
+    private List<OrderItemVO> items;
 }

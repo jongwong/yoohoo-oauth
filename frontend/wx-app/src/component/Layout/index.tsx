@@ -13,7 +13,7 @@ type LayoutProps = {
   edge?: "none";
   loading?: boolean;
   backgroundColor?: string;
-  footer: ReactNode;
+  footer?: ReactNode;
 };
 const Layout: React.FC<LayoutProps> = (props) => {
   const { children, footer, backgroundColor, loading, edge, style, ...rest } =

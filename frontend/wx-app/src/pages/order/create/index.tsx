@@ -88,18 +88,6 @@ const OrderCreate: React.FC = () => {
     }
   );
 
-  const getTotal = () => {
-    const currentCoupons = form.getFieldValue("currentCoupons");
-    const find = couponsList.find((item) => item.id === currentCoupons);
-    const couponsFee = find?.discount_amount || 0;
-    const re = {
-      price: productData?.price * 1 || 0,
-      deliveryFee: deliveryFee || 0,
-      couponsFee,
-    };
-    return re.price + re.deliveryFee - re.couponsFee;
-  };
-
   const renderAlert = () => {
     if (productData?.group_required_count! > 1) {
       return (
@@ -125,6 +113,45 @@ const OrderCreate: React.FC = () => {
       </View>
     );
   };
+  const getFormatValue = () => {
+    const currentCoupons = form.getFieldValue("currentCoupons");
+    const find = couponsList.find((item) => item.id === currentCoupons);
+    const couponsFee = find?.discount_amount || 0;
+    const _products = [
+      {
+        id: productData?.id,
+        name: productData?.name,
+        code: productData?.code,
+        price: productData?.price,
+        num: 1,
+      },
+    ];
+    const amountProduct = _products.reduce((prev, next) => {
+      return prev + next.price * next.num;
+    }, 0);
+    const val = {
+      amount_delivery: deliveryFee || 0,
+      amount_discount: couponsFee || 0,
+      amount_product: amountProduct || 0,
+      products: _products,
+      coupons_id: currentCoupons,
+      consignee_mobile: currentConsignee?.mobile,
+      consignee_name: currentConsignee?.name,
+      delivery_point_id: areaData?.id,
+      delivery_point_name: areaData?.name,
+      delivery_point_address: areaData?.address,
+      amount_total: 0,
+    };
+    val.amount_total =
+      val.amount_product + val.amount_delivery - val.amount_discount;
+    return val;
+  };
+
+  const submitHandle = () => {
+    const val = getFormatValue();
+    request.post(`/client/order/submit`, val);
+  };
+
   return (
     <Form initialValues={{ code: 3 }} form={form}>
       <Layout
@@ -139,10 +166,14 @@ const OrderCreate: React.FC = () => {
           <View className={styles.footer}>
             <View className={styles.footerPrice}>
               <Text className={"text-12"}>￥</Text>
-              {getTotal()}
+              {getFormatValue()?.amount_total}
             </View>
             <View>
-              <Button type="primary" style="margin-left: 120px">
+              <Button
+                type="primary"
+                style="margin-left: 120px"
+                onClick={() => submitHandle()}
+              >
                 立即支付
               </Button>
             </View>
@@ -258,7 +289,7 @@ const OrderCreate: React.FC = () => {
             trigger={"none"}
           >
             <Text className={"text-12"}>￥</Text>
-            {getTotal()}
+            {getFormatValue()?.amount_total}
           </FormItem>
         </View>
       </Layout>

@@ -1,0 +1,29 @@
+package cn.jongwong.server.dto.order;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+@Schema(description = "订单商品明细")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderProductItemDTO {
+    @Schema(description = "商品ID")
+    private String id;
+
+    @Schema(description = "商品名称")
+    private String name;
+
+    @Schema(description = "商品编码")
+    private Integer code;
+
+    @Schema(description = "商品价格")
+    private BigDecimal price;
+
+    @Schema(description = "商品数量")
+    private Integer num;
+}

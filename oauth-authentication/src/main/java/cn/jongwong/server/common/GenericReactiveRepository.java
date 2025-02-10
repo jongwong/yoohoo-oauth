@@ -17,5 +17,6 @@ public interface GenericReactiveRepository<T, ID> extends R2dbcRepository<T, ID>
 
     <S extends T> Mono<Page<T>> findPageByDSL(Integer page, Integer size, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction);
 
+    <S extends T> Flux<T> findAllByDSL(java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction);
 
 }

@@ -18,6 +18,7 @@ public class SqlBuilder {
     private String tableName;
     private String tableAlias;
     private List<String> selectFields = new ArrayList<>();
+    private List<String> rawFieldsList = new ArrayList<>();
     private List<Join> joinClauseList = new ArrayList<>();
     private String orderByClause = "";
     private boolean isCountQuery = false;
@@ -46,6 +47,7 @@ public class SqlBuilder {
         cloned.limit = this.limit;
         cloned.offset = this.offset;
         cloned.type = this.type;
+        cloned.rawFieldsList = this.rawFieldsList;
 
         return cloned;
     }
@@ -70,6 +72,27 @@ public class SqlBuilder {
         }
         return this;
     }
+
+    public SqlBuilder field(String column, boolean rawField) {
+
+        if (rawField) {
+            this.rawFieldsList.add(column.trim().replaceAll("\\r\\n|\\n|\\r", ""));
+        } else {
+            this.column(column.trim());
+        }
+
+        return this;
+    }
+
+
+    // 拼接字段
+    public SqlBuilder columns(String[] columns) {
+        for (String column : columns) {
+            this.column(column.trim());
+        }
+        return this;
+    }
+
 
 
     // 拼接字段
@@ -298,6 +321,7 @@ public class SqlBuilder {
             }
             sqlBuilder.append(str);
         }
+        this.rawFieldsList.forEach(rawField -> sqlBuilder.append(", ").append(rawField));
 
         sqlBuilder.append(" FROM ").append(getTableNameFromEntity());
         for (Join join : joinClauseList) {
@@ -327,6 +351,7 @@ public class SqlBuilder {
 
 
         String sql = sqlBuilder.toString();
+        ;
 
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
             sql = sql.replace(entry.getKey(), String.valueOf(entry.getValue()));

@@ -278,4 +278,11 @@ public class ProductService {
         return productRepository.findAllByIdIn(ids);
     }
 
+    public Flux<ProductVO> findByGroupIds(List<String> ids) {
+        if (ids == null) {
+            return Flux.empty();
+        }
+        return productRepository.findAllByIdIn(ids);
+    }
+
 }

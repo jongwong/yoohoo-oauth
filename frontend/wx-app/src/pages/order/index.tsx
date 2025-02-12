@@ -61,8 +61,10 @@ const Profile: React.FC = () => {
       onSuccess: (e) => {
         if (e.success) {
           Toast.success("取消成功");
+          fetchOrderData();
         }
       },
+      manual: true,
     }
   );
 

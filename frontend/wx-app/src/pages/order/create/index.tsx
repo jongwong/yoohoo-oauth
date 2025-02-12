@@ -120,7 +120,7 @@ const OrderCreate: React.FC = () => {
     const _products = [
       {
         id: productData?.product_id,
-        group_product_id: productData?.group_id,
+        group_product_id: productData?.group_product_id,
         name: productData?.product_name,
         code: productData?.product_code,
         price: productData?.price,
@@ -128,7 +128,7 @@ const OrderCreate: React.FC = () => {
       },
     ];
     const amountProduct = _products.reduce((prev, next) => {
-      return prev + next.price * next.num;
+      return prev + next.price * next.count;
     }, 0);
     const val = {
       amount_delivery: deliveryFee || 0,
@@ -148,9 +148,14 @@ const OrderCreate: React.FC = () => {
     return val;
   };
 
-  const submitHandle = () => {
+  const submitHandle = async () => {
     const val = getFormatValue();
-    request.post(`/client/order/submit`, val);
+    const res = await request.post(`/client/order/submit`, val);
+    if (res.success) {
+      // Taro.navigateTo({
+      //   url: `/pages/order/detail/index?id=${res.data.id}`,
+      // });
+    }
   };
 
   return (

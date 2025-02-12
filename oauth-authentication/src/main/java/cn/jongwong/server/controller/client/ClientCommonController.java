@@ -37,9 +37,20 @@ public class ClientCommonController {
     }
 
     @GetMapping("/order/user")
-    public Mono<PageResponse<OrderVO>> queryByUser() {
-        return userService.getCurrentUser().flatMap(u -> orderService.queryByUserId(1, 10, u.getId())).map(PageResponse::success);
+    public Mono<PageResponse<OrderVO>> queryByUser(@RequestParam(required = false) Integer status) {
+        return userService.getCurrentUser().flatMap(u -> orderService.queryByUserId(1, 10, u.getId(), status)).map(PageResponse::success);
     }
+
+    @GetMapping("/order/{id}")
+    public Mono<Response<OrderVO>> queryByUser(@PathVariable(required = true) String id) {
+        return userService.getCurrentUser().flatMap(u -> orderService.findOneByUserId(id).map(Response::success));
+    }
+
+    @PostMapping("/order/{id}/cancel")
+    public Mono<Response<OrderVO>> cancelOrder(@PathVariable(required = true) String id) {
+        return orderService.cancelById(id).map(Response::ok);
+    }
+
 
 
 }

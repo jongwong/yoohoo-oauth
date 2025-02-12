@@ -8,6 +8,7 @@ import cn.jongwong.server.entity.OrderItemVO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.enums.OrderItemTypeEnum;
 import cn.jongwong.server.enums.OrderStatusEnum;
+import cn.jongwong.server.enums.PaymentStatusEnum;
 import cn.jongwong.server.enums.product.ProductArchivedStatus;
 import cn.jongwong.server.enums.product.ProductListedStatus;
 import cn.jongwong.server.repository.OrderItemRepository;
@@ -32,6 +33,11 @@ public class OrderService {
     @Autowired
     private UserService userService;
 
+
+    @Autowired
+    private PaymentService paymentService;
+
+
     @Autowired
     private OrderRepository orderRepository;
 
@@ -50,11 +56,34 @@ public class OrderService {
     private OrderItemRepository orderItemRepository;
 
     public Mono<OrderVO> update(OrderVO data) {
-        return orderRepository.insert(data);
+
+        return orderRepository.save(data);
     }
 
-    public Mono<Page<OrderVO>> queryByUserId(int page, int size, String userId) {
-        return orderRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.eq("user_id", userId).sort("status,asc").sort("created_at,desc"))
+    @Transactional
+    public Mono<OrderVO> cancelById(String id) {
+        return userService.getCurrentUser().flatMap((u) -> orderRepository.findById(id).map(order -> {
+            if (order.getStatus() != OrderStatusEnum.PENDING_PAYMENT.getCode()) {
+                throw new RuntimeException("订单状态不正确");
+            }
+            order.setUpdatedBy(u.getId());
+            order.setUpdatedByName(u.getName());
+            order.setUpdatedAt(LocalDateTime.now());
+            order.setStatus(OrderStatusEnum.CANCELLED.getCode());
+
+            return order;
+        }).flatMap(this::update).flatMap(order -> paymentService.findOneById(id).map(payment -> {
+            if (payment.getStatus() == PaymentStatusEnum.PENDING_PAYMENT.getCode()) {
+                throw new RuntimeException("支付状态不正确");
+            }
+            payment.setStatus(PaymentStatusEnum.CANCELLED.getCode());
+
+            return payment;
+        }).flatMap(paymentService::update).map(p -> order).switchIfEmpty(Mono.just(order)).map(o -> order)));
+    }
+
+    public Mono<Page<OrderVO>> queryByUserId(int page, int size, String userId, Integer status) {
+        return orderRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.eq("user_id", userId).eq("status", status).sort("status,asc").sort("created_at,desc"))
                 .flatMap(e -> {
                     List<String> ids = e.getData().stream()
                             .map(OrderVO::getId)   // 假设 getId() 返回的是 String
@@ -68,6 +97,24 @@ public class OrderService {
                             order.setItems(orderItem);
                         });
                         return e;
+                    });
+                });
+
+    }
+
+    @Transactional
+    public Mono<OrderVO> findOneByUserId(String orderId) {
+        return orderRepository.findById(orderId)
+                .flatMap(order -> {
+
+                    paymentService.findByOrderId(orderId).map(payment -> {
+                        order.setPaymentAt(payment.getPaymentAt());
+                        return order;
+                    });
+                    var items = orderItemRepository.findAllByDSL(sql -> sql.eq("order_id", orderId));
+                    return items.collectList().map(orderItems -> {
+                        order.setItems(orderItems);
+                        return order;
                     });
                 });
 

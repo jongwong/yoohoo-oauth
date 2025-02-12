@@ -45,8 +45,6 @@ public class OrderVO {
     @Schema(description = "优惠券名称")
     private String couponsName;
 
-    @Schema(description = "优惠券类型")
-    private Integer couponsType;
 
     @Schema(description = "收货人姓名")
     private String consigneeName;
@@ -73,8 +71,7 @@ public class OrderVO {
     @Schema(description = "支付状态")
     private Integer paymentStatus;
 
-    @Schema(description = "支付时间")
-    private LocalDateTime paymentTime;
+
 
     @Schema(description = "创建人ID")
     private String createdBy;
@@ -94,4 +91,8 @@ public class OrderVO {
     @Transient
     @Schema(description = "订单明细")
     private List<OrderItemVO> items;
+
+    @Transient
+    @Schema(description = "支付时间")
+    private LocalDateTime paymentAt;
 }

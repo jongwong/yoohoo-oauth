@@ -5,6 +5,7 @@ export default defineAppConfig({
     "pages/classify/index",
     "pages/order/index",
     "pages/order/create/index",
+    "pages/order/detail/index",
     "pages/profile/index",
     "pages/registration/index",
     "pages/login/index",

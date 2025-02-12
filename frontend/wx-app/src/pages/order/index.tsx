@@ -1,14 +1,16 @@
 import React from "react";
 
 import Layout from "../../component/Layout";
-import { Button, Image, Space, Tab, Tabs } from "@antmjs/vantui";
+import { Button, Empty, Image, Space, Tab, Tabs, Toast } from "@antmjs/vantui";
 import { View } from "@tarojs/components";
 import styles from "./index.module.less";
 import dayjs from "dayjs";
-import { getFormatWeekdays } from "../../utils/date";
+import { getFormatWeekdays } from "@/utils/date";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
-import { generateFileUrl } from "@/utils/file";
+import { generateFileUrl, getNoDataUrl } from "@/utils/file";
+import { useGetState } from "ahooks";
+import Taro from "@tarojs/taro";
 
 enum EOrderStatus {
   PendingPayment = 10, // 待支付
@@ -34,14 +36,47 @@ const statusMap = {
   90: "退款失败", // 订单状态 90 - 退款失败
 };
 const Profile: React.FC = () => {
-  const { data: orderDataList, loading } = useRequest(() => {
-    return request.get("/client/order/user");
+  const [currentStatus, setCurrentStatus, getCurrentStatus] = useGetState<
+    number | undefined
+  >(-1);
+
+  const {
+    data: orderDataList,
+    loading,
+    run: fetchOrderData,
+  } = useRequest(() => {
+    const val = getCurrentStatus();
+    return request.get("/client/order/user", {
+      params: {
+        status: val === -1 ? undefined : val,
+      },
+    });
   });
+
+  const { loading: cancelLoading, run: runCancelOrder } = useRequest(
+    (id) => {
+      return request.post(`/client/order/${id}/cancel`, {});
+    },
+    {
+      onSuccess: (e) => {
+        if (e.success) {
+          Toast.success("取消成功");
+        }
+      },
+    }
+  );
+
   const renderActions = (orderItem) => {
     if (orderItem?.status === EOrderStatus.PendingPayment) {
       return (
         <Space direction={"horizontal"}>
-          <Button>取消订单</Button>
+          <Button
+            onClick={() => {
+              runCancelOrder(orderItem.id);
+            }}
+          >
+            取消订单
+          </Button>
           <Button type={"primary"}>去支付</Button>
         </Space>
       );
@@ -56,61 +91,117 @@ const Profile: React.FC = () => {
 
     return (
       <Space direction={"horizontal"}>
-        <Button type={"primary"}>查看</Button>
+        <Button
+          type={"primary"}
+          onClick={() => {
+            // pages/order/detail/index
+            Taro.navigateTo({
+              url: `/pages/order/detail/index?id=${orderItem?.id}`,
+            });
+          }}
+        >
+          查看
+        </Button>
       </Space>
     );
   };
 
+  const tabList = [
+    {
+      value: -1,
+      title: "全部订单",
+    },
+    {
+      value: 10,
+      title: "待支付",
+    },
+    {
+      value: 20,
+      title: "待收货",
+    },
+    {
+      value: 30,
+      title: "退款/售后",
+    },
+    {
+      value: 60,
+      title: "已完成",
+    },
+  ];
   return (
     <Layout
       style={{
         backgroundColor: "#f6f6f6",
       }}
       edge={"none"}
-      loading={loading}
+      loading={loading || cancelLoading}
     >
       <View>
-        <Tabs className={styles.tabs}>
-          <Tab key={-1} title={"全部订单"}></Tab>
-          <Tab key={1} title={"待支付"}></Tab>
-          <Tab key={2} title={"待收货"}></Tab>
-          <Tab key={3} title={"退款/售后"}></Tab>
+        <Tabs
+          className={styles.tabs}
+          active={currentStatus}
+          onChange={(e) => {
+            const find = tabList.find((_it, idx) => idx === e.detail.index);
+
+            setCurrentStatus(find?.value);
+            setTimeout(() => {
+              fetchOrderData();
+            }, 100);
+          }}
+        >
+          {tabList.map((it) => (
+            <Tab key={it.value} title={it.title}></Tab>
+          ))}
         </Tabs>
 
         <Space direction={"vertical"} block gapVertical={16}>
-          {orderDataList?.length
-            ? orderDataList.map((orderItem) => {
-                return (
-                  <View className={styles.orderItem}>
-                    <View className={styles.orderItemHeader}>
-                      <View className={styles.orderItemStatus}>
-                        {statusMap[orderItem.status]}
-                      </View>
-                      <View className={styles.orderItemTime}>
-                        {dayjs(orderItem.orderAt).format("YYYY/MM/DD HH:mm ")}
-                        {getFormatWeekdays(orderItem.orderAt)}
-                      </View>
+          {orderDataList?.length ? (
+            orderDataList.map((orderItem) => {
+              return (
+                <View className={styles.orderItem}>
+                  <View className={styles.orderItemHeader}>
+                    <View className={styles.orderItemStatus}>
+                      {statusMap[orderItem.status]}
                     </View>
-                    {/* 商品部分 */}
-                    <View className={styles.orderItemProduct}>
-                      {orderItem.items.map((item, index) => (
-                        <View key={index}>
-                          <Image
-                            src={generateFileUrl(item.product_image_url)}
-                          ></Image>{" "}
-                          {/* 商品图片 */}
-                        </View>
-                      ))}
-                    </View>
-
-                    {/* 底部部分 */}
-                    <View className={styles.orderItemFooter}>
-                      {renderActions(orderItem)}
+                    <View className={styles.orderItemTime}>
+                      {dayjs(orderItem.created_at).format("YYYY/MM/DD HH:mm ")}
+                      {getFormatWeekdays(orderItem.created_at)}
                     </View>
                   </View>
-                );
-              })
-            : null}
+                  {/* 商品部分 */}
+                  <View className={styles.orderItemProduct}>
+                    {orderItem.items.map((item, index) => (
+                      <View key={index}>
+                        <Image
+                          src={generateFileUrl(item.product_image_url)}
+                        ></Image>{" "}
+                        {/* 商品图片 */}
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* 底部部分 */}
+                  <View className={styles.orderItemFooter}>
+                    {renderActions(orderItem)}
+                  </View>
+                </View>
+              );
+            })
+          ) : (
+            <View
+              style={{
+                marginTop: "15vh",
+                height: "100vw",
+                bottom: 0,
+              }}
+            >
+              <Empty
+                description={"暂无订单"}
+                style={{ width: "100vw", flex: "0 0 auto" }}
+                image={getNoDataUrl()}
+              />
+            </View>
+          )}
         </Space>
       </View>
     </Layout>

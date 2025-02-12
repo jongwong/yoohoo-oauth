@@ -32,6 +32,9 @@ public class OrderItemVO {
     @Schema(description = "金额")
     private BigDecimal amount;
 
+    @Schema(description = "商品数量")
+    private Integer count;
+
     @Schema(description = "商品ID")
     private String productId;
 

@@ -1,0 +1,106 @@
+.layoutBox {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+}
+
+.areaCard {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 16px 12px;
+
+  .areaCardLocationTitle {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+
+  .areaCardLocationDesc {
+    font-size: 12px;
+    color: #666;
+    padding: 0 4px;
+  }
+}
+
+.card {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 16px 12px;
+
+  :global {
+    .vant-form-required-box {
+      display: none;
+    }
+  }
+}
+
+.productCard {
+  display: flex;
+
+  .productImage {
+    flex: 0 0 auto;
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+    object-fit: cover;
+    margin-right: 16px;
+  }
+
+  .productInfo {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    flex-direction: column;
+
+    .productTitleRow {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .productTitle {
+      flex: 1;
+      width: 100%;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .productPrice {
+      font-size: 16px;
+      color: #666;
+    }
+
+    .productNum {
+      font-size: 14px;
+      color: #888;
+    }
+  }
+}
+
+.couponsLabel {
+  display: inline-flex;
+
+  .couponsLabelIcon {
+    margin-right: 4px;
+    color: #f3b23e;
+  }
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  background: white;
+  padding: 12px 22px;
+}
+
+.footerPrice {
+  font-size: 22px;
+  color: red;
+}

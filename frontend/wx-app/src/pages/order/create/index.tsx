@@ -124,7 +124,7 @@ const OrderCreate: React.FC = () => {
         name: productData?.product_name,
         code: productData?.product_code,
         price: productData?.price,
-        num: 1,
+        count: 1,
       },
     ];
     const amountProduct = _products.reduce((prev, next) => {

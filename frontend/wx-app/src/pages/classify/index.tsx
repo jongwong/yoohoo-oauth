@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Image, ScrollView, Text, View } from "@tarojs/components";
-import { Button, Empty, Icon, Picker, Space, Sticky } from "@antmjs/vantui";
+import { ScrollView, Text, View } from "@tarojs/components";
+import { Empty, Icon, Picker, Space } from "@antmjs/vantui";
 
 import { useRequest } from "ahooks";
 import dayjs, { Dayjs } from "dayjs";
@@ -316,19 +316,12 @@ const Index: React.FC = () => {
                 <Empty
                   description={"暂无商品"}
                   style={{ width: "100vw", flex: "0 0 auto" }}
-                  image={<Image src={getNoDataUrl()} />}
+                  image={getNoDataUrl()}
                 />
               </View>
             )}
           </ScrollView>
         </View>
-        {productCount ? (
-          <Sticky offsetTop={120}>
-            <View className={styles.cartBar}>
-              <Button type="primary">去结算</Button>
-            </View>
-          </Sticky>
-        ) : null}
       </View>
     </Layout>
   );

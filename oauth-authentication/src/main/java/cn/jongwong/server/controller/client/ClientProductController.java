@@ -24,7 +24,7 @@ public class ClientProductController {
     private PurchaseGroupProductService purchaseGroupProductService;
 
     @GetMapping("/product")
-    public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryLocation(
+    public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryProduct(
             @RequestParam(required = false) String productName,
             @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) String distributionPointId,

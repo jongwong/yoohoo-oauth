@@ -172,23 +172,26 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
         sqlBuilderFunction.apply(sqlBuilder);
 
 
-        var listSql = sqlBuilder.clone().limit(size).offset((page - 1) * size).toString();
-        var countSql = sqlBuilder.clone().count().toString();
+        var listSql = sqlBuilder.clone().field("COUNT(*) OVER() AS page_total", true).limit(size).offset((page - 1) * size).toString();
 
+        var data = new Page<T>();
+        data.setTotal(0);
+        data.setPage(page);
+        data.setSize(size);
         Mono<List<T>> dataMono = databaseClient.sql(listSql)
                 .map((row, metadata) -> {
                     T instance = instantiateEntity();
                     populateEntityFromRow(row, metadata, instance);
+                    var count = row.get("page_total", Integer.class);
+
                     return instance;
                 }).all()
                 .collectList();
-        Mono<Long> countMono = databaseClient.sql(countSql)
-                .map((row, metadata) -> row.get(0, Long.class))
-                .one();
 
-        // 组合数据和总数，返回分页对象
-        return Mono.zip(dataMono, countMono)
-                .map(tuple -> new Page<>(tuple.getT1(), tuple.getT2(), page, size));
+        return dataMono.map(list -> {
+            data.setData(list);
+            return data;
+        });
     }
 
     public <S extends T> Flux<T> findAllByDSL(java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {

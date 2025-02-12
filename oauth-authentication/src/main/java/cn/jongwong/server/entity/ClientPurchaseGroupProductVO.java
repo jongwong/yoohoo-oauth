@@ -36,10 +36,14 @@ public class ClientPurchaseGroupProductVO {
 
     // 商品相关信息
     @Schema(description = "商品编号")
-    private Integer code;
+    private String productId;
+
+    // 商品相关信息
+    @Schema(description = "商品编号")
+    private Integer productCode;
 
     @Schema(description = "商品名称")
-    private String name;
+    private String productName;
 
 
     @Schema(description = "商品价格")

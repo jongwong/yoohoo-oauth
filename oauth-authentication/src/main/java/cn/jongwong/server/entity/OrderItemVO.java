@@ -26,27 +26,33 @@ public class OrderItemVO {
     private String orderId;
 
 
-    @Schema(description = "明细类型 (1: 商品, 2: 配送费, 3: 优惠券)")
+    @Schema(description = "明细类型 (1: 商品")
     private Integer type;
 
     @Schema(description = "金额")
     private BigDecimal amount;
 
-    @Schema(description = "关联ID")
-    private String refId;
+    @Schema(description = "商品ID")
+    private String productId;
 
-    @Schema(description = "关联代码")
-    private Integer refCode;
+    @Schema(description = "团购商品ID")
+    private String groupProductId;
 
-    @Schema(description = "关联名称")
-    private String refName;
+    @Schema(description = "商品代码")
+    private Integer productCode;
 
-    @Schema(description = "关联单据的类型")
-    private Integer refType;
+    @Schema(description = "商品名称")
+    private String productName;
+
+    @Schema(description = "商品图片url")
+    private String productImageUrl;
+
 
     @Schema(description = "创建时间")
     private LocalDateTime createdAt;
 
     @Schema(description = "更新时间")
     private LocalDateTime updatedAt;
+
+
 }

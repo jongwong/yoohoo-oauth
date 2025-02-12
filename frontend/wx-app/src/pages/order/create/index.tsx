@@ -119,9 +119,10 @@ const OrderCreate: React.FC = () => {
     const couponsFee = find?.discount_amount || 0;
     const _products = [
       {
-        id: productData?.id,
-        name: productData?.name,
-        code: productData?.code,
+        id: productData?.product_id,
+        group_product_id: productData?.group_id,
+        name: productData?.product_name,
+        code: productData?.product_code,
         price: productData?.price,
         num: 1,
       },
@@ -227,7 +228,9 @@ const OrderCreate: React.FC = () => {
             />
             <View className={styles.productInfo}>
               <View className={styles.productTitleRow}>
-                <View className={styles.productTitle}>{productData?.name}</View>
+                <View className={styles.productTitle}>
+                  {productData?.product_name}
+                </View>
 
                 <Text className={styles.productPrice}>
                   <Text className={"text-12"}>￥</Text>

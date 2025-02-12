@@ -258,7 +258,7 @@ const Index: React.FC = () => {
                       {list.map((productIt) => (
                         <ProductCardItem
                           key={productIt.id}
-                          title={productIt?.name}
+                          title={productIt?.product_name}
                           price={productIt?.price}
                           src={generateFileUrl(
                             productIt?.thumbnail_image_url,

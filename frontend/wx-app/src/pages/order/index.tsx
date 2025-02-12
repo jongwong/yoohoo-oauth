@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { getFormatWeekdays } from "../../utils/date";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
+import { generateFileUrl } from "@/utils/file";
 
 enum EOrderStatus {
   PendingPayment = 10, // 待支付
@@ -33,73 +34,9 @@ const statusMap = {
   90: "退款失败", // 订单状态 90 - 退款失败
 };
 const Profile: React.FC = () => {
-  const orderDataList = [
-    {
-      id: "202501060001",
-      items: [
-        {
-          itemName: "苹果",
-          quantity: 3,
-          price: 5,
-          image: "https://via.placeholder.com/100x100.png?text=苹果",
-        },
-        {
-          itemName: "香蕉",
-          quantity: 2,
-          price: 3,
-          image: "https://via.placeholder.com/100x100.png?text=香蕉",
-        },
-      ],
-      totalPrice: 21,
-      orderAt: 1704508800000, // 时间戳
-      status: EOrderStatus.Completed, // 已完成
-    },
-    {
-      id: "202501060002",
-      items: [
-        {
-          itemName: "橙子",
-          quantity: 1,
-          price: 4,
-          image: "https://via.placeholder.com/100x100.png?text=橙子",
-        },
-        {
-          itemName: "西瓜",
-          quantity: 1,
-          price: 10,
-          image: "https://via.placeholder.com/100x100.png?text=西瓜",
-        },
-      ],
-      totalPrice: 14,
-      orderAt: 1704508800000,
-      status: EOrderStatus.InDelivery, // 已完成
-    },
-    {
-      id: "202501060003",
-      items: [
-        {
-          itemName: "芒果",
-          quantity: 5,
-          price: 6,
-          image: "https://via.placeholder.com/100x100.png?text=芒果",
-        },
-        {
-          itemName: "柚子",
-          quantity: 2,
-          price: 8,
-          image: "https://via.placeholder.com/100x100.png?text=柚子",
-        },
-      ],
-      totalPrice: 46,
-      orderAt: 1704508800000,
-      status: EOrderStatus.PendingPayment, // 已完成
-    },
-  ];
-
-  const { data, loading } = useRequest(() => {
+  const { data: orderDataList, loading } = useRequest(() => {
     return request.get("/client/order/user");
   });
-  console.log("=====data=====", data);
   const renderActions = (orderItem) => {
     if (orderItem?.status === EOrderStatus.PendingPayment) {
       return (
@@ -141,34 +78,39 @@ const Profile: React.FC = () => {
         </Tabs>
 
         <Space direction={"vertical"} block gapVertical={16}>
-          {orderDataList.map((it) => {
-            return (
-              <View className={styles.orderItem}>
-                <View className={styles.orderItemHeader}>
-                  <View className={styles.orderItemStatus}>
-                    {statusMap[it.status]}
-                  </View>
-                  <View className={styles.orderItemTime}>
-                    {dayjs(it.orderAt).format("YYYY/MM/DD HH:mm ")}
-                    {getFormatWeekdays(it.orderAt)}
-                  </View>
-                </View>
-                {/* 商品部分 */}
-                <View className={styles.orderItemProduct}>
-                  {it.items.map((item, index) => (
-                    <View key={index}>
-                      <Image src={item.image}></Image> {/* 商品图片 */}
+          {orderDataList?.length
+            ? orderDataList.map((orderItem) => {
+                return (
+                  <View className={styles.orderItem}>
+                    <View className={styles.orderItemHeader}>
+                      <View className={styles.orderItemStatus}>
+                        {statusMap[orderItem.status]}
+                      </View>
+                      <View className={styles.orderItemTime}>
+                        {dayjs(orderItem.orderAt).format("YYYY/MM/DD HH:mm ")}
+                        {getFormatWeekdays(orderItem.orderAt)}
+                      </View>
                     </View>
-                  ))}
-                </View>
+                    {/* 商品部分 */}
+                    <View className={styles.orderItemProduct}>
+                      {orderItem.items.map((item, index) => (
+                        <View key={index}>
+                          <Image
+                            src={generateFileUrl(item.product_image_url)}
+                          ></Image>{" "}
+                          {/* 商品图片 */}
+                        </View>
+                      ))}
+                    </View>
 
-                {/* 底部部分 */}
-                <View className={styles.orderItemFooter}>
-                  {renderActions(it)}
-                </View>
-              </View>
-            );
-          })}
+                    {/* 底部部分 */}
+                    <View className={styles.orderItemFooter}>
+                      {renderActions(orderItem)}
+                    </View>
+                  </View>
+                );
+              })
+            : null}
         </Space>
       </View>
     </Layout>

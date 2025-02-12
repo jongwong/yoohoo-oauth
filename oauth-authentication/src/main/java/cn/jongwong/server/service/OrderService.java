@@ -42,6 +42,7 @@ public class OrderService {
     private CouponsService couponsService;
 
 
+
     @Autowired
     private PurchaseGroupProductService groupProductService;
 
@@ -53,8 +54,22 @@ public class OrderService {
     }
 
     public Mono<Page<OrderVO>> queryByUserId(int page, int size, String userId) {
-        // TODO
-        return Mono.empty();
+        return orderRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.eq("user_id", userId).sort("status,asc").sort("created_at,desc"))
+                .flatMap(e -> {
+                    List<String> ids = e.getData().stream()
+                            .map(OrderVO::getId)   // 假设 getId() 返回的是 String
+                            .toList();
+                    var items = orderItemRepository.findAllByDSL(sql -> sql.in("order_id", ids));
+                    return items.collectList().map(orderItems -> {
+                        e.getData().forEach(order -> {
+                            var orderItem = orderItems.stream()
+                                    .filter(it -> it.getOrderId().equals(order.getId()))
+                                    .toList();
+                            order.setItems(orderItem);
+                        });
+                        return e;
+                    });
+                });
 
     }
 
@@ -87,10 +102,7 @@ public class OrderService {
 
 
             return productsMono.collectList().map(re -> {
-                System.out.printf("-------re-------%s%n", re);
                 var total = re.stream().map(ClientPurchaseGroupProductVO::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
-                System.out.printf("-------total-------%s%n", total);
-                System.out.printf("-------data.getAmountProduct()-------%s%n", data.getAmountProduct());
                 if (total.compareTo(data.getAmountProduct()) != 0) {
                     throw new RuntimeException("商品金额不匹配");
                 }
@@ -164,9 +176,11 @@ public class OrderService {
                                 .orderId(savedOrder.getId())
                                 .type(OrderItemTypeEnum.PRODUCT.getCode())
                                 .amount(product.getPrice().multiply(BigDecimal.valueOf(product.getNum())))
-                                .refId(product.getId())
-                                .refCode(product.getCode())
-                                .refName(product.getName())
+                                .productId(product.getId())
+                                .productCode(product.getCode())
+                                .productName(product.getName())
+                                .groupProductId(product.getGroupProductId())
+                                .productImageUrl(product.getImageUrl())
                                 .createdAt(LocalDateTime.now())
                                 .updatedAt(LocalDateTime.now())
                                 .build();

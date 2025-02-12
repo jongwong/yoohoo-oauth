@@ -18,5 +18,9 @@ public class Page<T> {
         this.size = size;
     }
 
+    public Page() {
+
+    }
+
     // Getters and setters
 }

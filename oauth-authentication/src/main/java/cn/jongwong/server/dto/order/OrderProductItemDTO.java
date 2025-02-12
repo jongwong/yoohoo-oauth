@@ -21,6 +21,12 @@ public class OrderProductItemDTO {
     @Schema(description = "商品编码")
     private Integer code;
 
+    @Schema(description = "团购商品Id")
+    private String groupProductId;
+
+    @Schema(description = "商品图片")
+    private String imageUrl;
+
     @Schema(description = "商品价格")
     private BigDecimal price;
 

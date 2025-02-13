@@ -85,6 +85,16 @@ public class UserCouponsService {
                 });
     }
 
+    public Mono<UserCouponsVO> clearAsUsed(String id) {
+        return userCouponsRepository.findById(id)
+                .flatMap(userCoupon -> {
+
+                    userCoupon.setIsUsed(false);
+                    userCoupon.setUsedAt(null);
+                    return userCouponsRepository.save(userCoupon);
+                });
+    }
+
     /**
      * 删除用户优惠券（仅未使用的优惠券可删除）
      *

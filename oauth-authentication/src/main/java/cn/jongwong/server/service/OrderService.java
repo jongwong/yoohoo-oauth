@@ -60,6 +60,16 @@ public class OrderService {
         return orderRepository.save(data);
     }
 
+    public Mono<OrderVO> insert(OrderVO data) {
+
+        return userService.getCurrentUser().flatMap((u) -> {
+            data.setCreatedByName(u.getName());
+            data.setCreatedBy(u.getId());
+            data.setCreatedAt(LocalDateTime.now());
+            return orderRepository.insert(data);
+        });
+    }
+
     @Transactional
     public Mono<OrderVO> cancelById(String id) {
         return userService.getCurrentUser().flatMap((u) -> orderRepository.findById(id).map(order -> {
@@ -72,14 +82,21 @@ public class OrderService {
             order.setStatus(OrderStatusEnum.CANCELLED.getCode());
 
             return order;
-        }).flatMap(this::update).flatMap(order -> paymentService.findOneById(id).map(payment -> {
+                }).flatMap((order) -> {
+                    if (order.getCouponsId() == null) {
+                        return Mono.just(order);
+
+                    }
+                    return userCouponsService.clearAsUsed(order.getCouponsId()).map(uc -> order);
+                }).flatMap(this::update).
+                flatMap(order -> paymentService.findOneById(id).map(payment -> {
             if (payment.getStatus() == PaymentStatusEnum.PENDING_PAYMENT.getCode()) {
                 throw new RuntimeException("支付状态不正确");
             }
             payment.setStatus(PaymentStatusEnum.CANCELLED.getCode());
 
             return payment;
-        }).flatMap(paymentService::update).map(p -> order).switchIfEmpty(Mono.just(order)).map(o -> order)));
+                }).flatMap(paymentService::update).map(e -> order)));
     }
 
     public Mono<Page<OrderVO>> queryByUserId(int page, int size, String userId, Integer status) {
@@ -134,52 +151,64 @@ public class OrderService {
 
 
         return userService.getCurrentUser().flatMap(u -> {
-            order.setCreatedAt(LocalDateTime.now());
-            order.setCreatedBy(u.getId());
             order.setUserId(u.getId());
-            order.setCreatedByName(u.getName());
             return Mono.just(order);
         }).flatMap(o -> {
 
             var ids = data.getProducts().stream()
-                    .map(OrderProductItemDTO::getId)
+                    .map(OrderProductItemDTO::getGroupProductId)
                     .toList();
-
-            Flux<ClientPurchaseGroupProductVO> productsMono = groupProductService.findAllByIds(ids);
+            Flux<ClientPurchaseGroupProductVO> productsMono = groupProductService.findAllByIds(ids).map(e -> {
+                if (e == null) {
+                    throw new RuntimeException("商品不存在");
+                }
+                return e;
+            });
 
 
             return productsMono.collectList().map(re -> {
-                var total = re.stream().map(ClientPurchaseGroupProductVO::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
+                var total = re.stream()
+                        .map(p -> p.getPrice().multiply(BigDecimal.valueOf(data.getProducts().stream()
+                                .filter(it -> it.getGroupProductId().equals(p.getId()))
+                                .findFirst().get().getCount())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
                 if (total.compareTo(data.getAmountProduct()) != 0) {
                     throw new RuntimeException("商品金额不匹配");
                 }
                 re.forEach(p -> {
-                    var find = data.getProducts().stream()
-                            .filter(it -> it.getId().equals(p.getId()))  // 根据 p.getId() 找到对应的产品
-                            .findFirst().get();  // 获取第一个匹配的元素
+                    OrderProductItemDTO find = data.getProducts().stream()
+                            .filter(it -> it.getId().equals(p.getId()))
+                            .findFirst().orElse(null);
+                    ;
+                    if (find != null) {
 
-                    if (p.getArchivedStatus() != ProductArchivedStatus.COMPLETED.getCode()) {
-                        throw new RuntimeException("商品状态不能为" + ProductArchivedStatus.fromCode(p.getArchivedStatus()).getDescription());
+                        if (p.getArchivedStatus() != ProductArchivedStatus.COMPLETED.getCode()) {
+                            throw new RuntimeException("商品状态不能为" + ProductArchivedStatus.fromCode(p.getArchivedStatus()).getDescription());
+                        }
+
+                        if (p.getListedStatus() != ProductListedStatus.LISTED.getCode()) {
+                            throw new RuntimeException("商品上架状态不能为" + ProductListedStatus.fromCode(p.getListedStatus()).getDescription());
+                        }
+
+                        var leftover = p.getMaxStock() - p.getSoldQuantity();
+                        if (leftover < find.getCount()) {
+                            throw new RuntimeException("商品库存不足");
+                        }
+
+                        if (p.getPrice().compareTo(find.getPrice()) != 0) {
+                            throw new RuntimeException("价格已经发生变化，请重新刷新页面数据");
+                        }
                     }
 
-                    if (p.getListedStatus() != ProductListedStatus.LISTED.getCode()) {
-                        throw new RuntimeException("商品上架状态不能为" + ProductListedStatus.fromCode(p.getListedStatus()).getDescription());
-                    }
-
-                    var leftover = p.getMaxStock() - p.getSoldQuantity();
-                    if (leftover < find.getNum()) {
-                        throw new RuntimeException("商品库存不足");
-                    }
-
-                    if (p.getPrice().compareTo(find.getPrice()) != 0) {
-                        throw new RuntimeException("价格已经发生变化，请重新刷新页面数据");
-                    }
                 });
 
 
                 return order;
             });
         }).flatMap((o) -> {
+            if (data.getCouponsId() == null) {
+                return Mono.just(o);
+            }
             //校验优惠券金额是否存在
             return userCouponsService.findById(data.getCouponsId()).map(userCoupon -> {
 
@@ -198,6 +227,7 @@ public class OrderService {
                 return userCoupon;
             }).flatMap(userCoupon -> {
 
+
                 return couponsService.findById(userCoupon.getCouponsId()).map(coupons -> {
                     if (coupons.getDiscountAmount().compareTo(data.getAmountDiscount()) != 0) {
                         throw new RuntimeException("优惠券金额不匹配");
@@ -207,14 +237,15 @@ public class OrderService {
                         throw new RuntimeException("优惠券已停用");
                     }
                     return userCoupon;
+                }).flatMap((uc) -> {
+                    return userCouponsService.markAsUsed(data.getCouponsId()).map(_uc -> {
+                        return order;
+                    });
+
                 });
             });
 
-        }).flatMap(userCoupon -> {
-            return userCouponsService.markAsUsed(data.getCouponsId()).map(uc -> {
-                return order;
-            });
-        }).flatMap(this::update).flatMap(
+        }).flatMap(this::insert).flatMap(
                 savedOrder -> {
                     // 保存订单明细
                     List<OrderItemVO> orderItems = new ArrayList<>();
@@ -222,7 +253,7 @@ public class OrderService {
                         OrderItemVO item = OrderItemVO.builder()
                                 .orderId(savedOrder.getId())
                                 .type(OrderItemTypeEnum.PRODUCT.getCode())
-                                .amount(product.getPrice().multiply(BigDecimal.valueOf(product.getNum())))
+                                .amount(product.getPrice().multiply(BigDecimal.valueOf(product.getCount())))
                                 .productId(product.getId())
                                 .productCode(product.getCode())
                                 .productName(product.getName())
@@ -233,6 +264,7 @@ public class OrderService {
                                 .build();
                         orderItems.add(item);
                     }
+
 
                     // 保存所有的订单明细
                     return orderItemRepository.saveRefAll(orderItems).collectList().map(

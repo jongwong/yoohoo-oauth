@@ -31,5 +31,5 @@ public class OrderProductItemDTO {
     private BigDecimal price;
 
     @Schema(description = "商品数量")
-    private Integer num;
+    private Integer count;
 }

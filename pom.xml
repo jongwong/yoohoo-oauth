@@ -28,9 +28,14 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.jooq</groupId>
-                <artifactId>jooq</artifactId>
-                <version>3.19.17</version>
+                <groupId>cn.ipokerface</groupId>
+                <artifactId>snowflake-id-generator</artifactId>
+                <version>2.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.wechatpay-apiv3</groupId>
+                <artifactId>wechatpay-java</artifactId>
+                <version>0.2.16</version>
             </dependency>
             <dependency>
                 <groupId>com.aliyun.oss</groupId>
@@ -228,6 +233,10 @@
     </dependencyManagement>
 
     <repositories>
+        <repository>
+            <id>aliyun-repo</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
         <repository>
             <id>aliyun-repo</id>
             <url>https://maven.aliyun.com/repository/public</url>

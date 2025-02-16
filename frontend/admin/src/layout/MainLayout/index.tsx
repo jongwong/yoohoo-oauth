@@ -142,7 +142,7 @@ const MainLayout: React.FC = () => {
 											padding: '12px 16px',
 											textAlign: 'left',
 										}}>
-										<LogoSvg style={{ height: 22 }} />
+										<LogoSvg style={{ height: 32, fill: '#75af65' }} />
 									</div>
 									<MenuComponent routes={routes} /> {/* 动态生成菜单 */}
 								</Sider>

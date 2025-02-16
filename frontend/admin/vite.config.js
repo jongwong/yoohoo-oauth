@@ -25,6 +25,7 @@ export default defineConfig({
 		port: 3000,
 		host: '0.0.0.0',
 	},
+	publicDir: 'public',
 	plugins: [
 		svgr({
 			// svgr options: https://react-svgr.com/docs/options/

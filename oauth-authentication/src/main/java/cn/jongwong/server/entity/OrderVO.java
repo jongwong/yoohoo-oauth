@@ -24,6 +24,9 @@ public class OrderVO {
     @Id
     private String id;
 
+    @Schema(description = "订单ID")
+    private String num;
+
     @Schema(description = "用户ID")
     private String userId;
 

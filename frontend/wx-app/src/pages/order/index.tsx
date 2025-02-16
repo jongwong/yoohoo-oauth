@@ -73,39 +73,28 @@ const Profile: React.FC = () => {
       return (
         <Space direction={"horizontal"}>
           <Button
+            size={"small"}
             onClick={() => {
               runCancelOrder(orderItem.id);
             }}
           >
             取消订单
           </Button>
-          <Button type={"primary"}>去支付</Button>
+          <Button type={"primary"} size={"small"}>
+            去支付
+          </Button>
         </Space>
       );
     }
     if (orderItem?.status === EOrderStatus.PendingDelivery) {
       return (
         <Space direction={"horizontal"}>
-          <Button type={"primary"}>确认收货</Button>
+          <Button type={"primary"} size={"small"}>
+            确认收货
+          </Button>
         </Space>
       );
     }
-
-    return (
-      <Space direction={"horizontal"}>
-        <Button
-          type={"primary"}
-          onClick={() => {
-            // pages/order/detail/index
-            Taro.navigateTo({
-              url: `/pages/order/detail/index?id=${orderItem?.id}`,
-            });
-          }}
-        >
-          查看
-        </Button>
-      </Space>
-    );
   };
 
   const tabList = [
@@ -160,7 +149,14 @@ const Profile: React.FC = () => {
           {orderDataList?.length ? (
             orderDataList.map((orderItem) => {
               return (
-                <View className={styles.orderItem}>
+                <View
+                  className={styles.orderItem}
+                  onClick={() => {
+                    Taro.navigateTo({
+                      url: `/pages/order/detail/index?id=${orderItem?.id}`,
+                    });
+                  }}
+                >
                   <View className={styles.orderItemHeader}>
                     <View className={styles.orderItemStatus}>
                       {statusMap[orderItem.status]}

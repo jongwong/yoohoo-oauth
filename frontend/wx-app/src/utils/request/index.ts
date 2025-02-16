@@ -44,16 +44,23 @@ const request = <T = any, U = any>(
       : config.url;
 
     const token = wx.getStorageSync("access_token");
+
     if (!token && !urlList.includes(config.url)) {
-      wx.navigateTo({
-        url: "/pages/login/index",
-      });
+      // 获取当前页面地址，需要比对
+      const pages = getCurrentPages();
+      const pageUrl = pages[0].route;
+      if (pageUrl !== "/pages/login/index") {
+        wx.navigateTo({
+          url: "/pages/login/index",
+        });
+      }
+      return;
     }
     Taro.request({
       header: {
         "Content-Type": "application/json", // 默认请求头
         ...config.header,
-        Authorization: `Bearer ${token}`,
+        Authorization: token ? `Bearer ${token}` : undefined,
       },
       fail: (error) => {
         reject({
@@ -70,9 +77,13 @@ const request = <T = any, U = any>(
             wx.removeStorageSync("refresh_token");
           }
 
-          wx.navigateTo({
-            url: "/pages/login/index",
-          });
+          // 获取当前页面地址，需要比对
+          const pages = getCurrentPages();
+          if (!urlList.includes(config.url)) {
+            wx.navigateTo({
+              url: "/pages/login/index",
+            });
+          }
         }
 
         const _data = {

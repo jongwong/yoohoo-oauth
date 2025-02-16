@@ -13,6 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderSubmitDTO {
 
+
+    @Schema(description = "配送费")
+    private String openid;
+
     @Schema(description = "配送费")
     private BigDecimal amountDelivery;
 

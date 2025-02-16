@@ -123,7 +123,7 @@ const OrderCreate: React.FC = () => {
         group_product_id: productData?.group_product_id,
         name: productData?.product_name,
         code: productData?.product_code,
-        image_url: productData.thumbnail_image_url,
+        image_url: productData?.thumbnail_image_url,
         price: productData?.price,
         count: 1,
       },
@@ -177,6 +177,7 @@ const OrderCreate: React.FC = () => {
             </View>
             <View>
               <Button
+                size={"small"}
                 type="primary"
                 style="margin-left: 120px"
                 onClick={() => submitHandle()}

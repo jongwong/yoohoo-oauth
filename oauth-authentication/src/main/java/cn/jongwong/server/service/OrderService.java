@@ -1,6 +1,8 @@
 package cn.jongwong.server.service;
 
 import cn.jongwong.server.common.MapperUtil;
+import cn.jongwong.server.common.SnowflakeIdUtils;
+import cn.jongwong.server.config.wechatpay.WxPayService;
 import cn.jongwong.server.dto.order.OrderProductItemDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
@@ -38,6 +40,7 @@ public class OrderService {
     private PaymentService paymentService;
 
 
+
     @Autowired
     private OrderRepository orderRepository;
 
@@ -47,6 +50,8 @@ public class OrderService {
     @Autowired
     private CouponsService couponsService;
 
+    @Autowired
+    private WxPayService wxPayService;
 
 
     @Autowired
@@ -140,10 +145,26 @@ public class OrderService {
     @Transactional
     public Mono<OrderVO> submit(OrderSubmitDTO data) {
 
+        return createBusinessOrder(data).flatMap(order -> {
+            System.out.printf("-------order.getNum()-------%s%n", order.getNum());
+            return wxPayService.createOrderAsync(data.getOpenid(), order.getNum(), 1, order.getNum()).map(prepayId -> {
+                System.out.printf("-------prepayId-------%s%n", prepayId);
+                return order;
+            });
+        });
+    }
+
+
+    @Transactional
+    public Mono<OrderVO> createBusinessOrder(OrderSubmitDTO data) {
         var now = LocalDateTime.now();
+        String orderNum = String.valueOf(SnowflakeIdUtils.generateId());
+        System.out.printf("-------orderNum-------%s%n", orderNum);
+
         var order = OrderVO.builder().id(UUID.randomUUID().toString())
                 .deliveryPointId(data.getDeliveryPointId())
                 .deliveryPointName(data.getDeliveryPointName())
+                .num(orderNum)
                 .deliveryPointAddress(data.getDeliveryPointAddress())
                 .status(OrderStatusEnum.PENDING_PAYMENT.getCode())
                 .build();

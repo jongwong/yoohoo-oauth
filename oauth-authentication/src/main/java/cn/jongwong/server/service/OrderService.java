@@ -2,7 +2,6 @@ package cn.jongwong.server.service;
 
 import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.SnowflakeIdUtils;
-import cn.jongwong.server.config.wechatpay.WxPayService;
 import cn.jongwong.server.dto.order.OrderProductItemDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
@@ -50,8 +49,7 @@ public class OrderService {
     @Autowired
     private CouponsService couponsService;
 
-    @Autowired
-    private WxPayService wxPayService;
+
 
 
     @Autowired
@@ -145,13 +143,14 @@ public class OrderService {
     @Transactional
     public Mono<OrderVO> submit(OrderSubmitDTO data) {
 
-        return createBusinessOrder(data).flatMap(order -> {
-            System.out.printf("-------order.getNum()-------%s%n", order.getNum());
-            return wxPayService.createOrderAsync(data.getOpenid(), order.getNum(), 1, order.getNum()).map(prepayId -> {
-                System.out.printf("-------prepayId-------%s%n", prepayId);
-                return order;
-            });
-        });
+        return Mono.empty();
+//        return createBusinessOrder(data).flatMap(order -> {
+//            System.out.printf("-------order.getNum()-------%s%n", order.getNum());
+//            return wxPayService.createOrderAsync(data.getOpenid(), order.getNum(), 1, order.getNum()).map(prepayId -> {
+//                System.out.printf("-------prepayId-------%s%n", prepayId);
+//                return order;
+//            });
+//        });
     }
 
 

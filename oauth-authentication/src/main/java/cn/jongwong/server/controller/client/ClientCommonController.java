@@ -1,7 +1,6 @@
 package cn.jongwong.server.controller.client;
 
 
-import cn.jongwong.server.config.wechatpay.WxPayService;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.service.OrderService;
@@ -19,8 +18,6 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/client")
 public class ClientCommonController {
 
-    @Autowired
-    private WxPayService wxPayService;
 
     @Autowired
     private OrderService orderService;

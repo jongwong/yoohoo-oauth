@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class OauthAuthenticationApplication {
 
     public static void main(String[] args) {
+        System.setProperty("javax.net.ssl.trustStore", "none");
+        System.setProperty("javax.net.ssl.trustStorePassword", "");
+
         SpringApplication.run(OauthAuthenticationApplication.class, args);
     }
 

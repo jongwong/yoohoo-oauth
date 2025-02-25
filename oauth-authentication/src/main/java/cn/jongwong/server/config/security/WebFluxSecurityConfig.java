@@ -47,7 +47,8 @@ public class WebFluxSecurityConfig {
             "/auth/wechat-login",
             "/client/wechat/login",
             "/client/wechat/decrypt-phone",
-            "/client/wechat/register"
+            "/client/wechat/register",
+            "/admin/hello",
     };
 
     @Autowired

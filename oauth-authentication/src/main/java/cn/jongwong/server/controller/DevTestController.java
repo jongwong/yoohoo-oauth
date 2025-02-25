@@ -16,9 +16,10 @@ public class DevTestController {
 
 
     @GetMapping("/admin/hello")
-    public Mono<Response<String>> login() {
+    public Mono<String> login() {
+        System.out.printf("-------3333-------%s%n", 3333);
         // Return the name of the Thymeleaf template
-        return Mono.just(Response.success("hello"));  // It will look for 'src/main/resources/templates/login.html'
+        return Mono.just("hello");  // It will look for 'src/main/resources/templates/login.html'
     }
 
     @GetMapping("/admin/test")

@@ -5,7 +5,6 @@ import cn.jongwong.server.entity.OrderVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -17,7 +16,8 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+
+import static cn.jongwong.server.config.wechatpay.util.AuthorizationUtils.generatePaySign;
 
 
 @Service
@@ -40,7 +40,7 @@ public class WeChatPayService {
     private ObjectMapper objectMapper;
 
 
-    public Mono<Map<String, String>> createJsApiOrder(String curOpenId, OrderVO order) {
+    public Mono<HashMap<String, String>> createJsApiOrder(String curOpenId, OrderVO oder) {
 
         System.out.printf("-------curOpenId-------%s%n", curOpenId);
         // 创建请求参数
@@ -55,8 +55,6 @@ public class WeChatPayService {
         request.put("goods_tag", "WXG");
         request.put("support_fapiao", false);
         request.put("amount", Map.of("total", 1, "currency", "CNY"));
-
-
         request.put("payer", Map.of("openid", curOpenId));
         request.put("detail", Map.of(
                 "cost_price", 608800,
@@ -82,7 +80,6 @@ public class WeChatPayService {
                 )
         ));
         request.put("settle_info", Map.of("profit_sharing", false));
-        System.out.printf("-------request-------%s%n", request);
         WebClient webClient = WebClient.builder()
                 .baseUrl("https://api.mch.weixin.qq.com")  // 微信支付 API 基础 URL
                 .defaultHeader("Accept", "application/json")
@@ -90,47 +87,56 @@ public class WeChatPayService {
                 .build();
 
 
-        PrivateKey privateKeyPem = null;
-        Map<String, String> authorizationInfo = null;
+        var authorizationInfo = new HashMap<String, String>();
         try {
             var body = objectMapper.writeValueAsString(request);
-
-            privateKeyPem = readPrivateKeyFromFile(privateKeyPath);
+            ;
+            var privateKeyPem = readPrivateKeyFromFile(privateKeyPath);
             authorizationInfo = AuthorizationUtils.buildAuthorizationInfo(mchId, privateKeyPem, merchantSerialNumber, "POST", "/v3/pay/transactions/jsapi", body);
+
         } catch (Exception e) {
             e.printStackTrace();
-            return Mono.error(e);
         }
 
 
-        Map<String, String> map = new HashMap<>(Map.ofEntries(
-                Map.entry("timestamp", Objects.requireNonNullElse(authorizationInfo.get("timestamp"), "")),
-                Map.entry("nonce_str", Objects.requireNonNullElse(authorizationInfo.get("nonce_str"), "")),// keyNumber 代表 prepay_id
-                Map.entry("sign_type", Objects.requireNonNullElse(authorizationInfo.get("sign_type"), "RSA")), // 默认 "HMAC-SHA256"
-                Map.entry("pay_sign", Objects.requireNonNullElse(authorizationInfo.get("pay_sign"), ""))
-        ));
 
         // 设置请求头，使用微信支付 API 密钥进行身份验证
         String stringToSign = authorizationInfo.get("authorization");
-        System.out.printf("-------stringToSign-------%s%n", stringToSign);
+        var map = new HashMap<String, String>();
+        map.put("timestamp", authorizationInfo.get("timestamp"));
+        map.put("nonce_str", authorizationInfo.get("nonce_str"));
+        map.put("package", authorizationInfo.get("package")); // 这里 keyNumber 代表 prepay_id
+        map.put("sign_type", authorizationInfo.get("sign_type")); // 或 "HMAC-SHA256"，请确认你的签名类型
+        map.put("pay_sign", authorizationInfo.get("pay_sign"));
         return webClient.post()
                 .uri("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi")
                 .header("Authorization", stringToSign)
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(status -> {
-                    System.out.printf("-------status-------%s%n", status);
+
                     return status.is4xxClientError() || status.is5xxServerError();
-                }, ClientResponse::createException)
+                }, response -> {
+                    return response.createException();
+                })
                 .bodyToMono(Map.class)
-                .map(result -> {
-                    System.out.printf("-------result-------%s%n", result);
-                    map.put("package", "prepay_id=" + result.get("prepay_id"));
+                .map(res -> {
+                    var prepayId = res.get("prepay_id").toString();
+                    map.put("package", "prepay_id=" + prepayId);
+
+                    try {
+                        var privateKeyPem = readPrivateKeyFromFile(privateKeyPath);
+                        var paySign = generatePaySign(appId, map.get("timestamp"), map.get("nonce_str"), prepayId, privateKeyPem);
+                        map.put("pay_sign", paySign);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                     return map;
                 })
                 .doOnError(error -> {
-                    System.out.printf("-------error-------%s%n", error);
                     System.err.println("请求失败：" + error.getMessage());
+
                 });
 
     }

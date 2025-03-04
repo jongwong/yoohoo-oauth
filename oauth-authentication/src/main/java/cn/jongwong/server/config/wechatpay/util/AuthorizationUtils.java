@@ -4,6 +4,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -31,6 +32,16 @@ public class AuthorizationUtils {
                 + body + "\n";
     }
 
+    public static String generatePaySign(String appId, String timeStamp, String nonceStr, String prepayId, PrivateKey privateKey)
+            throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        // 1. 生成待签名字符串
+        String signMessage = appId + "\n" + timeStamp + "\n" + nonceStr + "\n" + "prepay_id=" + prepayId + "\n";
+
+        // 2. 使用 SHA256withRSA 签名
+        return SHA256SignUtils.signAndEncodeWithBase64(privateKey, signMessage);
+    }
+
+
     /**
      * 构建一个请求认证信息。
      *
@@ -42,25 +53,25 @@ public class AuthorizationUtils {
      * @param body       请求的body, 对于get 请求需要传递"" 空字符串
      * @return
      */
-    public static Map<String, String> buildAuthorizationInfo(String merchantId, PrivateKey privateKey, String keyNumber, String method, String path, String body)
+    public static HashMap<String, String> buildAuthorizationInfo(String merchantId, PrivateKey privateKey, String keyNumber, String method, String path, String body)
             throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         String nonceStr = StringUtils.generateNonceStr();
         long timestamp = System.currentTimeMillis() / 1000;
 
         String msg = concatAuthorizationInfo(nonceStr, timestamp, method, path, body);
-        String paySign = SHA256SignUtils.signAndEncodeWithBase64(privateKey, msg);
+        String sign = SHA256SignUtils.signAndEncodeWithBase64(privateKey, msg);
+
         String result = "mchid=\"" + merchantId + "\","
                 + "nonce_str=\"" + nonceStr + "\","
                 + "timestamp=\"" + timestamp + "\","
                 + "serial_no=\"" + keyNumber + "\","
-                + "signature=\"" + paySign + "\"";
+                + "signature=\"" + sign + "\"";
 
-        return Map.of(
+        return new HashMap<String, String>(Map.of(
                 "timestamp", String.valueOf(timestamp),
                 "nonce_str", nonceStr,
                 "sign_type", "RSA", // 确保你的签名类型正确
-                "pay_sign", paySign,
                 "authorization", "WECHATPAY2-SHA256-RSA2048 " + result
-        );
+        ));
     }
 }

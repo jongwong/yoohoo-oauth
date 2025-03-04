@@ -16,12 +16,12 @@ const useCheckLogin = () => {
     const token = wx.getStorageSync("access_token");
     const userInfo = wx.getStorageSync("userInfo");
     const openId = wx.getStorageSync("open_id");
-    if (token && userInfo && openId) {
-      Taro.switchTab({
-        url: "/pages/home/index",
-      });
-      return;
-    }
+    // if (token && userInfo && openId) {
+    //   Taro.switchTab({
+    //     url: "/pages/home/index",
+    //   });
+    //   return;
+    // }
 
     wx.login({
       success: async (res) => {
@@ -81,8 +81,8 @@ const useCheckLogin = () => {
               ...userRes?.data,
             };
             wx.setStorageSync("userInfo", userInfo);
-            console.log("=====userInfo=====", userInfo);
-            wx.setStorageSync("open_id", userInfo?.username);
+            console.log("=====_data=====", _data);
+            wx.setStorageSync("open_id", _data?.open_id);
 
             Taro.switchTab({
               url: "/pages/home/index",

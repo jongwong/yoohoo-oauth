@@ -85,7 +85,7 @@ public class WeChatAuthService {
                             mapRe.put("session_key", responseMap.getOrDefault("session_key", null));
 
                             var openId = responseMap.getOrDefault("openid", null);
-                            System.out.printf("-------openId-------%s%n", openId);
+                            mapRe.put("open_id", openId);
                             return Mono.just(responseMap);
                         } else {
                             return Mono.error(new RuntimeException("微信接口返回数据不完整: " + responseBody));

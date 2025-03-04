@@ -12,6 +12,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -98,4 +99,8 @@ public class OrderVO {
     @Transient
     @Schema(description = "支付时间")
     private LocalDateTime paymentAt;
+
+    @Transient
+    @Schema(description = "预支付ID")
+    private Map<String, String> prepayInfo;
 }

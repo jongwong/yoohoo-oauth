@@ -1,9 +1,11 @@
 package cn.jongwong.server.config.wechatpay;
 
 import cn.jongwong.server.config.wechatpay.util.AuthorizationUtils;
+import cn.jongwong.server.entity.OrderVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -15,39 +17,48 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Objects;
 
 
 @Service
 public class WeChatPayService {
 
 
+    private static String mchId = "1704006353";
+    private static String privateKeyPath = "/Users/jongwong/IdeaProjects/yoohoo-oauth/cert/apiclient_key.pem";
+    private static String publicKeyPath = "/Users/jongwong/IdeaProjects/yoohoo-oauth/cert/public_key.pem";
+    private static String merchantSerialNumber = "7E92F76242E500317FF50E2DE4F02C5D105A2853";
+    private static String apiKey = "p96vNItUlqiccUB3dbLyxoiRYQW0fy7E";
+    private static String certPath = "/Users/jongwong/IdeaProjects/yoohoo-oauth/cert/apiclient_cert.pem";
+    private static String appId = "wx4b90fea0e7b2a714";
+    private static String publicKeyId = "PUB_KEY_ID_0117040063532025021400298900001527";
+    private static String notifyUrl = "https://test.yoohoo.cn";
+    private static String openId = "owoZV7KyzmktjTlKSqiR1Ama5aYg";
+
+
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private WeChatPaySignature weChatPaySignature;
 
+    public Mono<Map<String, String>> createJsApiOrder(String curOpenId, OrderVO order) {
 
-    public Mono<String> createJsApiOrder() {
-        // 生成时间戳和随机串
-        String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
-        String nonceStr = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
-
+        System.out.printf("-------curOpenId-------%s%n", curOpenId);
         // 创建请求参数
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("appid", appId);
-        requestBody.put("mchid", mchId);
-        requestBody.put("description", "Image形象店-深圳腾大-QQ公仔");
-        requestBody.put("out_trade_no", "1217752501201407033233368018");
-        requestBody.put("time_expire", "2018-06-08T10:34:56+08:00");
-        requestBody.put("attach", "自定义数据说明");
-        requestBody.put("notify_url", notifyUrl);
-        requestBody.put("goods_tag", "WXG");
-        requestBody.put("support_fapiao", false);
-        requestBody.put("amount", Map.of("total", 1, "currency", "CNY"));
-        requestBody.put("payer", Map.of("openid", openId));
-        requestBody.put("detail", Map.of(
+        Map<String, Object> request = new HashMap<>();
+        request.put("appid", appId);
+        request.put("mchid", mchId);
+        request.put("description", "Image形象店-深圳腾大-QQ公仔");
+        request.put("out_trade_no", "1217752501201407033233368018");
+        request.put("time_expire", "2018-06-08T10:34:56+08:00");
+        request.put("attach", "自定义数据说明");
+        request.put("notify_url", notifyUrl);
+        request.put("goods_tag", "WXG");
+        request.put("support_fapiao", false);
+        request.put("amount", Map.of("total", 1, "currency", "CNY"));
+
+
+        request.put("payer", Map.of("openid", curOpenId));
+        request.put("detail", Map.of(
                 "cost_price", 608800,
                 "invoice_id", "微信123",
                 "goods_detail", new Object[]{
@@ -60,7 +71,7 @@ public class WeChatPayService {
                         )
                 }
         ));
-        requestBody.put("scene_info", Map.of(
+        request.put("scene_info", Map.of(
                 "payer_client_ip", "14.23.150.211",
                 "device_id", "013467007045764",
                 "store_info", Map.of(
@@ -70,7 +81,8 @@ public class WeChatPayService {
                         "address", "广东省深圳市南山区科技中一道10000号"
                 )
         ));
-        requestBody.put("settle_info", Map.of("profit_sharing", false));
+        request.put("settle_info", Map.of("profit_sharing", false));
+        System.out.printf("-------request-------%s%n", request);
         WebClient webClient = WebClient.builder()
                 .baseUrl("https://api.mch.weixin.qq.com")  // 微信支付 API 基础 URL
                 .defaultHeader("Accept", "application/json")
@@ -79,41 +91,47 @@ public class WeChatPayService {
 
 
         PrivateKey privateKeyPem = null;
-        String authorizationInfo = null;
+        Map<String, String> authorizationInfo = null;
         try {
-            var body = objectMapper.writeValueAsString(requestBody);
-            System.out.printf("-------body-------%s%n", body);
+            var body = objectMapper.writeValueAsString(request);
+
             privateKeyPem = readPrivateKeyFromFile(privateKeyPath);
             authorizationInfo = AuthorizationUtils.buildAuthorizationInfo(mchId, privateKeyPem, merchantSerialNumber, "POST", "/v3/pay/transactions/jsapi", body);
-
         } catch (Exception e) {
             e.printStackTrace();
+            return Mono.error(e);
         }
 
 
+        Map<String, String> map = new HashMap<>(Map.ofEntries(
+                Map.entry("timestamp", Objects.requireNonNullElse(authorizationInfo.get("timestamp"), "")),
+                Map.entry("nonce_str", Objects.requireNonNullElse(authorizationInfo.get("nonce_str"), "")),// keyNumber 代表 prepay_id
+                Map.entry("sign_type", Objects.requireNonNullElse(authorizationInfo.get("sign_type"), "RSA")), // 默认 "HMAC-SHA256"
+                Map.entry("pay_sign", Objects.requireNonNullElse(authorizationInfo.get("pay_sign"), ""))
+        ));
+
         // 设置请求头，使用微信支付 API 密钥进行身份验证
-        String stringToSign = "WECHATPAY2-SHA256-RSA2048 " + authorizationInfo;
-        System.out.printf("-------authorizationHeader----33---%s%n", authorizationInfo);
-
-
-        var re = webClient.post()
+        String stringToSign = authorizationInfo.get("authorization");
+        System.out.printf("-------stringToSign-------%s%n", stringToSign);
+        return webClient.post()
                 .uri("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi")
                 .header("Authorization", stringToSign)
-                .bodyValue(requestBody)
+                .bodyValue(request)
                 .retrieve()
-                .onStatus(status -> status.value() == 302, response -> {
-                    String redirectUrl = response.headers().header("Location").get(0);
-                    System.err.println("请求被重定向到: " + redirectUrl);
-                    return response.createException();
-                })
-                .bodyToMono(String.class)
-                .doOnSuccess(response -> {
-                    System.out.println("微信支付响应： " + response);
+                .onStatus(status -> {
+                    System.out.printf("-------status-------%s%n", status);
+                    return status.is4xxClientError() || status.is5xxServerError();
+                }, ClientResponse::createException)
+                .bodyToMono(Map.class)
+                .map(result -> {
+                    System.out.printf("-------result-------%s%n", result);
+                    map.put("package", "prepay_id=" + result.get("prepay_id"));
+                    return map;
                 })
                 .doOnError(error -> {
+                    System.out.printf("-------error-------%s%n", error);
                     System.err.println("请求失败：" + error.getMessage());
-                }).block();
-        return Mono.just(re);
+                });
 
     }
 

@@ -15,8 +15,8 @@ const useCheckLogin = () => {
   const handleLogin = () => {
     const token = wx.getStorageSync("access_token");
     const userInfo = wx.getStorageSync("userInfo");
-
-    if (token && userInfo) {
+    const openId = wx.getStorageSync("open_id");
+    if (token && userInfo && openId) {
       Taro.switchTab({
         url: "/pages/home/index",
       });
@@ -70,6 +70,7 @@ const useCheckLogin = () => {
         wx.setStorageSync("refresh_token", _data.refresh_token);
 
         const userRes = await request.get(`/client/user/${_data.user_id}`);
+
         if (userRes.success) {
           // 检查是否已注册
           if (userRes?.data?.name) {
@@ -80,6 +81,8 @@ const useCheckLogin = () => {
               ...userRes?.data,
             };
             wx.setStorageSync("userInfo", userInfo);
+            console.log("=====userInfo=====", userInfo);
+            wx.setStorageSync("open_id", userInfo?.username);
 
             Taro.switchTab({
               url: "/pages/home/index",

@@ -14,8 +14,8 @@ import java.util.List;
 public class OrderSubmitDTO {
 
 
-    @Schema(description = "配送费")
-    private String openid;
+    @Schema(description = "openId")
+    private String openId;
 
     @Schema(description = "配送费")
     private BigDecimal amountDelivery;

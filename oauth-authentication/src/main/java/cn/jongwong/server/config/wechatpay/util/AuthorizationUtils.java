@@ -4,6 +4,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.Map;
 
 /**
  * 微信 请求接口认证工具类。 构建认证信息。
@@ -41,19 +42,25 @@ public class AuthorizationUtils {
      * @param body       请求的body, 对于get 请求需要传递"" 空字符串
      * @return
      */
-    public static String buildAuthorizationInfo(String merchantId, PrivateKey privateKey, String keyNumber, String method, String path, String body)
+    public static Map<String, String> buildAuthorizationInfo(String merchantId, PrivateKey privateKey, String keyNumber, String method, String path, String body)
             throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         String nonceStr = StringUtils.generateNonceStr();
         long timestamp = System.currentTimeMillis() / 1000;
 
         String msg = concatAuthorizationInfo(nonceStr, timestamp, method, path, body);
-        String sign = SHA256SignUtils.signAndEncodeWithBase64(privateKey, msg);
-
+        String paySign = SHA256SignUtils.signAndEncodeWithBase64(privateKey, msg);
         String result = "mchid=\"" + merchantId + "\","
                 + "nonce_str=\"" + nonceStr + "\","
                 + "timestamp=\"" + timestamp + "\","
                 + "serial_no=\"" + keyNumber + "\","
-                + "signature=\"" + sign + "\"";
-        return result;
+                + "signature=\"" + paySign + "\"";
+
+        return Map.of(
+                "timestamp", String.valueOf(timestamp),
+                "nonce_str", nonceStr,
+                "sign_type", "RSA", // 确保你的签名类型正确
+                "pay_sign", paySign,
+                "authorization", "WECHATPAY2-SHA256-RSA2048 " + result
+        );
     }
 }

@@ -1,6 +1,7 @@
 package cn.jongwong.server;
 
 import cn.jongwong.server.config.wechatpay.WeChatPayService;
+import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
@@ -73,8 +74,10 @@ public class OauthServerApplicationTest {
 
     @Test
     public void testDemo1() throws Exception {
-        weChatPayService.createJsApiOrder();
+        var order = new OrderVO();
+        weChatPayService.createJsApiOrder("owoZV7KyzmktjTlKSqiR1Ama5aYg", order);
     }
+
 
     // 请求日志过滤器
     private ExchangeFilterFunction logRequest() {

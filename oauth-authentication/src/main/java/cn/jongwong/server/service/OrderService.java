@@ -2,6 +2,8 @@ package cn.jongwong.server.service;
 
 import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.SnowflakeIdUtils;
+import cn.jongwong.server.config.wechatpay.WeChatPayService;
+import cn.jongwong.server.dto.order.OrderPayDTO;
 import cn.jongwong.server.dto.order.OrderProductItemDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
@@ -39,6 +41,8 @@ public class OrderService {
     private PaymentService paymentService;
 
 
+    @Autowired
+    private WeChatPayService weChatPayService;
 
     @Autowired
     private OrderRepository orderRepository;
@@ -123,7 +127,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Mono<OrderVO> findOneByUserId(String orderId) {
+    public Mono<OrderVO> findOneByOrderId(String orderId) {
         return orderRepository.findById(orderId)
                 .flatMap(order -> {
 
@@ -143,14 +147,26 @@ public class OrderService {
     @Transactional
     public Mono<OrderVO> submit(OrderSubmitDTO data) {
 
-        return Mono.empty();
-//        return createBusinessOrder(data).flatMap(order -> {
-//            System.out.printf("-------order.getNum()-------%s%n", order.getNum());
-//            return wxPayService.createOrderAsync(data.getOpenid(), order.getNum(), 1, order.getNum()).map(prepayId -> {
-//                System.out.printf("-------prepayId-------%s%n", prepayId);
-//                return order;
-//            });
-//        });
+        return createBusinessOrder(data)
+                .flatMap(order -> weChatPayService.createJsApiOrder(data.getOpenId(), order).map(re -> {
+                    order.setPrepayInfo(re);
+                    return order;
+                }));
+    }
+
+    @Transactional
+    public Mono<OrderVO> payOrder(OrderPayDTO data) {
+
+        return findOneByOrderId(data.getOrderId())
+                .flatMap(order -> {
+
+                    System.out.printf("-------order-------%s%n", order);
+                    return weChatPayService.createJsApiOrder(data.getOpenId(), order).map(re -> {
+                        System.out.printf("-------re-------%s%n", re);
+                        order.setPrepayInfo(re);
+                        return order;
+                    });
+                });
     }
 
 

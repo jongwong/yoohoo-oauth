@@ -3,13 +3,14 @@ import Layout from "@/component/Layout";
 import { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
-import { Cell, Form } from "@antmjs/vantui";
+import { Button, Cell, Form } from "@antmjs/vantui";
 import Image from "@/component/Image";
 import { generateFileUrl } from "@/utils/file";
 import classNames from "classnames";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
 import { formatSortTime } from "@/utils/date";
+import { EOrderStatus } from "@/pages/order/constants";
 
 const OrderCreate: React.FC = () => {
   const router = useRouter();
@@ -31,8 +32,54 @@ const OrderCreate: React.FC = () => {
       },
     }
   );
+  const submitHandle = async () => {
+    const res = await request.post(`/client/order/pay/submit`, {
+      open_id: wx.getStorageSync("open_id"),
+      order_id: orderData?.id,
+    });
+
+    if (res.success) {
+      const data: Record<string, string> = res?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
+      console.log("=====data=====", data);
+      wx.requestPayment({
+        timeStamp: data.timestamp,
+        nonceStr: data.nonce_str,
+        package: data.package,
+        signType: "RSA" as any,
+        paySign: data.pay_sign,
+        success: (res) => {
+          console.log(res);
+        },
+        fail: (e) => {
+          console.log(e);
+        },
+      });
+    }
+  };
+
   return (
-    <Layout loading={loading}>
+    <Layout
+      loading={loading}
+      footer={
+        orderData?.status === EOrderStatus.PendingPayment ? (
+          <View className={styles.footer}>
+            <View className={styles.footerPrice}>
+              <Text className={"text-12"}>￥</Text>
+              {orderData?.amount_total || 0}
+            </View>
+            <Button
+              type="primary"
+              block
+              size={"small"}
+              style="margin-left: 120px"
+              onClick={() => submitHandle()}
+            >
+              立即支付
+            </Button>
+          </View>
+        ) : undefined
+      }
+    >
       <View className={styles.areaCard}>
         <View>
           <View className={styles.areaCardLocationTitle}>
@@ -99,12 +146,18 @@ const OrderCreate: React.FC = () => {
           title="创建时间"
           value={formatSortTime(orderData?.created_at)}
         ></Cell>
-        <Cell
-          title="支付时间"
-          value={
-            orderData?.payment_at ? formatSortTime(orderData?.payment_at) : "--"
-          }
-        ></Cell>
+
+        {orderData?.status !== EOrderStatus.PendingPayment &&
+        orderData?.status !== EOrderStatus.Cancelled ? (
+          <Cell
+            title="支付时间"
+            value={
+              orderData?.payment_at
+                ? formatSortTime(orderData?.payment_at)
+                : "--"
+            }
+          ></Cell>
+        ) : null}
       </View>
     </Layout>
   );

@@ -1,6 +1,7 @@
 package cn.jongwong.server.controller.client;
 
 
+import cn.jongwong.server.dto.order.OrderPayDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.service.OrderService;
@@ -40,6 +41,11 @@ public class ClientCommonController {
         return orderService.submit(data).map(Response::ok);
     }
 
+    @PostMapping("/order/pay/submit")
+    public Mono<Response<OrderVO>> submitPay(@RequestBody OrderPayDTO data) {
+        return orderService.payOrder(data).map(Response::ok);
+    }
+
     @GetMapping("/order/user")
     public Mono<PageResponse<OrderVO>> queryByUser(@RequestParam(required = false) Integer status) {
         return userService.getCurrentUser().flatMap(u -> orderService.queryByUserId(1, 10, u.getId(), status)).map(PageResponse::success);
@@ -47,7 +53,7 @@ public class ClientCommonController {
 
     @GetMapping("/order/{id}")
     public Mono<Response<OrderVO>> queryByUser(@PathVariable(required = true) String id) {
-        return userService.getCurrentUser().flatMap(u -> orderService.findOneByUserId(id).map(Response::success));
+        return userService.getCurrentUser().flatMap(u -> orderService.findOneByOrderId(id).map(Response::success));
     }
 
     @PostMapping("/order/{id}/cancel")

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Layout from "@/component/Layout";
 import request from "@/utils/request";
-import { useRouter } from "@tarojs/taro";
+import Taro, { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import { Button, Form, FormItem, Icon, Tag } from "@antmjs/vantui";
@@ -151,11 +151,32 @@ const OrderCreate: React.FC = () => {
 
   const submitHandle = async () => {
     const val = getFormatValue();
-    const res = await request.post(`/client/order/submit`, val);
+    const res = await request.post(`/client/order/submit`, {
+      ...val,
+      open_id: wx.getStorageSync("userInfo")?.open_id,
+    });
     if (res.success) {
-      // Taro.navigateTo({
-      //   url: `/pages/order/detail/index?id=${res.data.id}`,
-      // });
+      Taro.navigateTo({
+        url: `/pages/order/detail/index?id=${res.data.id}`,
+      });
+    }
+
+    if (res.success) {
+      const data = res.data; // 假设返回的数据在 resp.data
+
+      Taro.requestPayment({
+        timeStamp: data.timestamp,
+        nonceStr: data.nonceStr,
+        package: data.prepayId,
+        signType: "RSA",
+        paySign: data.sign,
+        success: (res) => {
+          console.log(res);
+        },
+        fail: (e) => {
+          console.log(e);
+        },
+      });
     }
   };
 
@@ -175,16 +196,15 @@ const OrderCreate: React.FC = () => {
               <Text className={"text-12"}>￥</Text>
               {getFormatValue()?.amount_total}
             </View>
-            <View>
-              <Button
-                size={"small"}
-                type="primary"
-                style="margin-left: 120px"
-                onClick={() => submitHandle()}
-              >
-                立即支付
-              </Button>
-            </View>
+            <Button
+              type="primary"
+              block
+              size={"small"}
+              style="margin-left: 120px"
+              onClick={() => submitHandle()}
+            >
+              立即支付
+            </Button>
           </View>
         }
       >

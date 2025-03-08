@@ -125,7 +125,7 @@ public class OrderServiceTest {
         // 在这里可以使用 SecurityContextHolder.getContext().getAuthentication() 来验证当前的认证用户
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         System.out.println("--333----" + authentication);
-        orderService.finishPayment("553475223693955072", "tesst").block();
+        orderService.finishPayment("553475223693955072", "tesst", "lll").block();
     }
 
 

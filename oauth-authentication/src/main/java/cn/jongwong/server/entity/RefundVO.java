@@ -8,39 +8,40 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table(name = "tb_payment")
-public class PaymentVO {
+@Table(name = "tb_refund")
+@Schema(description = "退款记录")
+public class RefundVO {
 
-    @Schema(description = "支付记录ID")
+
+    @Schema(description = "退款记录ID")
     @Id
     private String id;
 
     @Schema(description = "订单ID")
     private String orderId;
 
-    @Schema(description = "支付方式 (1: 微信支付, 2: 支付宝, 3: 银行卡等)")
+    @Schema(description = "退款方式 (1: 微信退款, 2: 退款宝, 3: 银行卡等)")
     private Integer paymentMethod; // 数据库中为 tinyint
 
-    @Schema(description = "支付金额")
-    private BigDecimal amount;
+    @Schema(description = "退款金额")
+    private Integer amount;
 
-    @Schema(description = "支付状态 (10: 支付中, 20: 支付成功, 30: 支付失败, 40: 已取消)")
+    @Schema(description = "退款状态 (10: 退款中, 20: 退款成功, 30: 退款失败, 40: 已取消)")
     private Integer status; // 数据库中为 tinyint
 
-    @Schema(description = "支付时间")
-    private LocalDateTime paymentAt;
+    @Schema(description = "退款时间")
+    private LocalDateTime refundAt;
 
-    @Schema(description = "支付平台返回的支付流水号Id")
+    @Schema(description = "支付平台返回的退款流水号Id")
     private String transactionId;
 
-    @Schema(description = "支付平台返回的支付流水号")
+    @Schema(description = "支付平台返回的退款流水号")
     private String transactionNo;
 
     @Schema(description = "创建时间")

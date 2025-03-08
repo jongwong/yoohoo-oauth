@@ -3,6 +3,7 @@ package cn.jongwong.server.controller.client;
 
 import cn.jongwong.server.config.wechatpay.WeChatPayService;
 import cn.jongwong.server.dto.order.OrderPayDTO;
+import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.service.OrderService;
@@ -71,9 +72,56 @@ public class ClientCommonController {
         return orderService.cancelById(id).map(Response::ok);
     }
 
+    @PostMapping("/wechat-pay/refund/notify")
+    public Mono<ResponseEntity<?>> refundNotify(
+            @RequestHeader("Wechatpay-Signature") String signature,
+            @RequestHeader("Wechatpay-Timestamp") String timestamp,
+            @RequestHeader("Wechatpay-Nonce") String nonce,
+            @RequestBody String body
+    ) {
 
-    @PostMapping("/wechat-pay/notify/payment")
-    public Mono<ResponseEntity<?>> verifySignature(
+        return weChatPayService.validateSignature(signature, timestamp, nonce, body)
+                .flatMap(isValid -> {
+                    if (isValid) {
+                        try {
+                            var callback = objectMapper.readValue(body, Notification.class);
+
+                            var source = callback.getResource();
+                            var reStr = weChatPayService.handlePaymentCallback(source.getCiphertext(), source.getAssociatedData(), source.getNonce());
+                            var result = objectMapper.readValue(reStr, Map.class);
+                            String transactionId = (String) result.get("transaction_id");
+
+                            String outTradeNo = (String) result.get("out_trade_no");
+
+                            var tradeState = result.get("refund_status");
+                            if (tradeState.equals("SUCCESS")) {
+                                // 使用 split 方法分割字符串
+                                String[] parts = outTradeNo.split("-");
+
+                                // 获取分割后的第一个部分
+                                String num = parts[0];
+                                return orderService.finishRefund(num, outTradeNo, transactionId).map(ResponseEntity::ok);
+
+                            }
+
+                            return Mono.error(new Exception("Payment failed."));
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return Mono.error(e);
+                        }
+
+//
+                    }
+                    var re = ResponseEntity.status(400).body("Verification failed.");
+                    return Mono.just(re);
+                })
+                .onErrorReturn(ResponseEntity.status(500).body("Verification error."));
+    }
+
+
+    @PostMapping("/wechat-pay/payment/notify")
+    public Mono<ResponseEntity<?>> paymentNotify(
             @RequestHeader("Wechatpay-Signature") String signature,
             @RequestHeader("Wechatpay-Timestamp") String timestamp,
             @RequestHeader("Wechatpay-Nonce") String nonce,
@@ -99,7 +147,7 @@ public class ClientCommonController {
 
                                 // 获取分割后的第一个部分
                                 String num = parts[0];
-                                return orderService.finishPayment(num, transactionId).map(ResponseEntity::ok);
+                                return orderService.finishPayment(num, outTradeNo, transactionId).map(ResponseEntity::ok);
 
                             }
 
@@ -118,10 +166,10 @@ public class ClientCommonController {
                 .onErrorReturn(ResponseEntity.status(500).body("Verification error."));
     }
 
-//    @PostMapping("/order/refund")
-//    public Mono<Response<OrderVO>> refundOrder(@RequestBody OrderPayDTO data) {
-//        return orderService.submit(data).map(Response::ok);
-//    }
+    @PostMapping("/order/refund")
+    public Mono<Response<OrderVO>> refundOrder(@RequestBody OrderRefundDTO data) {
+        return orderService.refund(data).map(Response::ok);
+    }
 
 
 

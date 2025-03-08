@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Layout from "@/component/Layout";
 import Taro, { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
@@ -19,6 +19,9 @@ const OrderCreate: React.FC<{
   const router = useRouter();
 
   const isRefund = pageType === "refund";
+  const [hasValidError, setHasValidError] = useState(false);
+
+  const [refundReason, setRefundReason] = useState("");
   const form = Form.useForm();
   // 请求产品列表数据
   const { loading, data: orderData } = useRequest(
@@ -61,6 +64,24 @@ const OrderCreate: React.FC<{
       });
     }
   };
+
+  const refundHandle = async () => {
+    console.log("=====refundReason=====", refundReason);
+    if (!refundReason?.trim()?.length) {
+      setHasValidError(true);
+      return Taro.showToast({
+        title: "请输入退款原因",
+        icon: "none",
+      });
+    }
+    const res = await request.post(`/client/order/refund`, {
+      reason: refundReason,
+      open_id: wx.getStorageSync("open_id"),
+      order_id: orderData?.id,
+    });
+
+    console.log("=====res=====", res);
+  };
   const renderFooter = () => {
     if (isRefund) {
       return (
@@ -69,7 +90,7 @@ const OrderCreate: React.FC<{
             type="primary"
             block
             size={"small"}
-            onClick={() => submitHandle()}
+            onClick={() => refundHandle()}
           >
             申请退款
           </Button>
@@ -162,24 +183,32 @@ const OrderCreate: React.FC<{
   if (isRefund) {
     return (
       <Layout loading={loading} footer={renderFooter()}>
-        <View
-          className={styles.card}
-          style={{
-            marginBottom: 16,
-          }}
-        >
+        <View className={classNames(styles.card, "mb-16")}>
           <View className={"mb-8"} style={{ fontSize: 16 }}>
             {StatusMap[orderData?.status]}
           </View>
           {renderProduct()}
-          {renderFee()}
+        </View>
+        <View className={classNames(styles.card, "mb-16")}>{renderFee()}</View>
+        <View className={styles.card}>
           <Field
-            label="多行输入"
             type="textarea"
-            placeholder="请输入内容"
+            value={refundReason}
+            onChange={(e) => {
+              const val = e?.detail;
+              console.log("=====val=====", val);
+              setHasValidError(!!val?.trim());
+              setRefundReason(val);
+            }}
+            style={"border: 1px solid #eee;background: rgba(0,0,0,0.01);"}
+            placeholder="请输入退款原因"
             autosize
-            rows={3} // 设置默认显示的行数
-            maxLength={200} // 可选，设置最大输入长度
+            focus
+            errorMessage={
+              hasValidError && !refundReason?.length
+                ? "请输入退款原因"
+                : undefined
+            }
             showWordLimit
           />
         </View>

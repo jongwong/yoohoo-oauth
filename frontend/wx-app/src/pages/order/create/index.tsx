@@ -273,17 +273,14 @@ const OrderCreate: React.FC = () => {
             controllFlexEnd
             trigger={"none"}
           >
-            <Text className={"text-12"}>￥</Text>
-            {/*deliveryFee等于0 显示删除线的样式*/}
-
-            <Text
-              style={{
-                color: deliveryFee === 0 ? "#666666" : "none",
-                textDecoration: deliveryFee === 0 ? "line-through" : "none",
-              }}
-            >
-              {deliveryFee ? transformMoney(deliveryFee) : "免配送费"}
-            </Text>
+            {deliveryFee ? (
+              <Text>
+                <Text className={"text-12"}>￥</Text>
+                {transformMoney(deliveryFee)}
+              </Text>
+            ) : (
+              <Text>免配送费</Text>
+            )}
           </FormItem>
           <FormItem
             label={

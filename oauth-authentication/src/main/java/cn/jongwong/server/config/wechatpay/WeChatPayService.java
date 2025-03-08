@@ -2,7 +2,9 @@ package cn.jongwong.server.config.wechatpay;
 
 import cn.jongwong.server.config.wechatpay.util.AesUtil;
 import cn.jongwong.server.config.wechatpay.util.AuthorizationUtils;
+import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.entity.OrderVO;
+import cn.jongwong.server.entity.PaymentVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,7 +38,7 @@ public class WeChatPayService {
     private static String certPath = "/Users/jongwong/IdeaProjects/yoohoo-oauth/cert/apiclient_cert.pem";
     private static String appId = "wx4b90fea0e7b2a714";
     private static String publicKeyId = "PUB_KEY_ID_0117040063532025021400298900001527";
-    private static String notifyUrl = "https://local.c.api.yoohoo.cn/client/wechat-pay/notify/payment";
+    private static String notifyUrl = "https://local.c.api.yoohoo.cn/client/wechat-pay/payment/notify";
     private static String openId = "owoZV7KyzmktjTlKSqiR1Ama5aYg";
 
 
@@ -46,7 +48,7 @@ public class WeChatPayService {
 
     public static String generateOutTradeNo(String orderId) {
         int randomNum = 10000 + new Random().nextInt(90000); // 生成5位随机数
-        return orderId + "-" + randomNum;
+        return orderId + "-R" + randomNum;
     }
 
     public Mono<HashMap<String, String>> createJsApiOrder(String curOpenId, OrderVO order) {
@@ -146,25 +148,26 @@ public class WeChatPayService {
     }
 
 
-    public Mono<HashMap<String, String>> refundJsApiOrder(String curOpenId, OrderVO order) {
-        var tradeNum = generateOutTradeNo(order.getNum()); // 订单号
-        var refundNum = "R" + tradeNum; // 生成退款单号
+    public Mono<HashMap<String, String>> refundJsApiOrder(OrderVO order, PaymentVO payment, OrderRefundDTO refundDTO) {
+        var tradeNum = payment.getTransactionNo(); // 订单号
+        var refundNum = generateOutTradeNo(order.getNum()); // 生成退款单号
 
         // 退款请求参数
         Map<String, Object> request = new HashMap<>();
+        request.put("transaction_id", payment.getTransactionId());
+
         request.put("out_trade_no", tradeNum);  // 原支付订单号
         request.put("out_refund_no", refundNum); // 退款单号
-        request.put("reason", "用户申请退款"); // 退款原因
-        var total = order.getAmountTotal();
+        request.put("reason", refundDTO.getReason()); // 退款原因
+        var refundAmount = order.getAmountTotal();
 
 
         Map<String, Object> amount = new HashMap<>();
-        amount.put("refund", total); // 退款金额（分）
-        amount.put("total", total);  // 订单总金额（分）
+        amount.put("refund", refundAmount); // 退款金额（分）
+        amount.put("total", refundAmount);  // 订单总金额（分）
         amount.put("currency", "CNY");
         request.put("amount", amount);
-
-        request.put("notify_url", "https://yourdomain.com/refund/notify"); // 退款回调
+        request.put("notify_url", "https://local.c.api.yoohoo.cn/client/wechat-pay/refund/notify"); // 退款回调
 
         WebClient webClient = WebClient.builder()
                 .baseUrl("https://api.mch.weixin.qq.com")
@@ -200,6 +203,9 @@ public class WeChatPayService {
                     responseMap.put("status", res.get("status").toString());
                     responseMap.put("refund_id", res.get("refund_id").toString());
                     responseMap.put("out_refund_no", refundNum);
+                    responseMap.put("refund_amount", refundAmount.toString());
+
+                    responseMap.put("transaction_id", res.get("transaction_id").toString());
                     return responseMap;
                 })
                 .doOnError(error -> {

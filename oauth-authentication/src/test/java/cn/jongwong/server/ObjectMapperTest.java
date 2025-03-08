@@ -1,6 +1,5 @@
-package cn.jongwong.server.config;
+package cn.jongwong.server;
 
-import cn.jongwong.server.OauthAuthenticationApplication;
 import cn.jongwong.server.util.response.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

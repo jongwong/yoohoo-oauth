@@ -2,7 +2,7 @@ import React from "react";
 
 import Layout from "../../component/Layout";
 import { Button, Empty, Image, Space, Tab, Tabs, Toast } from "@antmjs/vantui";
-import { View } from "@tarojs/components";
+import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import dayjs from "dayjs";
 import { getFormatWeekdays } from "@/utils/date";
@@ -12,6 +12,7 @@ import { generateFileUrl, getNoDataUrl } from "@/utils/file";
 import { useGetState } from "ahooks";
 import Taro from "@tarojs/taro";
 import { EOrderStatus, StatusMap } from "@/pages/order/constants";
+import { divide } from "@/utils/number";
 
 const Profile: React.FC = () => {
   const [currentStatus, setCurrentStatus, getCurrentStatus] = useGetState<
@@ -49,7 +50,7 @@ const Profile: React.FC = () => {
   const renderActions = (orderItem) => {
     if (orderItem?.status === EOrderStatus.PendingPayment) {
       return (
-        <Space direction={"horizontal"}>
+        <Space direction={"vertical"}>
           <Button
             size={"small"}
             onClick={() => {
@@ -75,7 +76,7 @@ const Profile: React.FC = () => {
     }
     if (orderItem?.status === EOrderStatus.PendingDelivery) {
       return (
-        <Space direction={"horizontal"}>
+        <Space direction={"vertical"}>
           <Button
             type={"primary"}
             size={"small"}
@@ -157,6 +158,7 @@ const Profile: React.FC = () => {
                     <View className={styles.orderItemStatus}>
                       {StatusMap[orderItem.status]}
                     </View>
+
                     <View className={styles.orderItemTime}>
                       {dayjs(orderItem.created_at).format("YYYY/MM/DD HH:mm ")}
                       {getFormatWeekdays(orderItem.created_at)}
@@ -172,6 +174,20 @@ const Profile: React.FC = () => {
                         {/* 商品图片 */}
                       </View>
                     ))}
+                  </View>
+                  <View className={"mb-8"}>
+                    <Space
+                      className={"w-1-1"}
+                      direction={"vertical"}
+                      align={"end"}
+                    >
+                      <View style={{ fontSize: 18 }}>
+                        <Text style={{ fontSize: 14, color: "#666666" }}>
+                          实付款 ￥
+                        </Text>
+                        <Text>￥{divide(orderItem?.amount_total, 100)}</Text>
+                      </View>
+                    </Space>
                   </View>
 
                   {/* 底部部分 */}

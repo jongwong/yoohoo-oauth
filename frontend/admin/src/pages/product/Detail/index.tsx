@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import http from '@/utils/http';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ContentLayout, OssUploadProps, ProxyWrapped } from '@yoo/component';
+import { ContentLayout, OssUpload, OssUploadProps, ProxyWrapped } from '@yoo/component';
 import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
 import {
 	EProductArchivedStatus,
@@ -16,6 +16,7 @@ import { PAGES_PRODUCT_DETAIL_URL } from '@/pages/product/pages';
 import { transformUrlByRoutePath } from '@/utils/url';
 import CategorySearchSelect from '@/component/business/CategorySelect';
 import { transformToFields } from '@/utils/transform';
+import ImgCrop from 'antd-img-crop';
 
 const ProductDetail: React.FC = () => {
 	const params = useParams();
@@ -47,6 +48,25 @@ const ProductDetail: React.FC = () => {
 		setDetailData({ ...res?.data });
 		forceUpdate();
 		return res;
+	};
+
+	const renderImageEdit = (t: any, r: any) => {
+		return (
+			<ProxyWrapped>
+				{(op: any) => (
+					<ImgCrop rotationSlider>
+						<OssUpload
+							multiple
+							listType={'picture-card'}
+							{...op}
+							onChange={(e: any) => {
+								op?.onChange?.(e);
+							}}
+							value={Array.isArray(op?.value) ? op?.value : []}></OssUpload>
+					</ImgCrop>
+				)}
+			</ProxyWrapped>
+		);
 	};
 
 	// Fields definition, similar to coupon style
@@ -107,6 +127,7 @@ const ProductDetail: React.FC = () => {
 			name: 'main_image',
 			fieldProps: { maxCount: 1 } as OssUploadProps,
 			valueType: EDefaultValueType.Image,
+			renderFormItem: renderImageEdit,
 		},
 		{
 			label: '缩略图',
@@ -115,6 +136,7 @@ const ProductDetail: React.FC = () => {
 				maxCount: 1,
 			} as OssUploadProps,
 			valueType: EDefaultValueType.Image,
+			renderFormItem: renderImageEdit,
 		},
 		{
 			label: '轮播图',

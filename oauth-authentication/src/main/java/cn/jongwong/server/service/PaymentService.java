@@ -1,5 +1,6 @@
 package cn.jongwong.server.service;
 
+import cn.jongwong.server.common.AutoCreatedField;
 import cn.jongwong.server.common.AutoUpdatedField;
 import cn.jongwong.server.entity.PaymentVO;
 import cn.jongwong.server.repository.PaymentRepository;
@@ -14,9 +15,13 @@ public class PaymentService {
     private PaymentRepository paymentRepository;
 
     Mono<PaymentVO> update(@AutoUpdatedField PaymentVO data) {
-        System.out.printf("-------data-------%s%n", data);
+        return paymentRepository.save(data);
+    }
+
+    public Mono<PaymentVO> insert(@AutoCreatedField @AutoUpdatedField PaymentVO data) {
         return paymentRepository.insert(data);
     }
+
 
     Mono<PaymentVO> findOneById(String id) {
         return paymentRepository.findById(id);

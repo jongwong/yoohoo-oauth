@@ -28,7 +28,7 @@ public class UserInfoController {
     @GetMapping("/coupons")
     public Mono<Response<List<UserCouponsRO>>> getUserCoupons() {
 
-        return userService.getCurrentUser()
+        return userService.getCurrentUserReactive()
                 .flatMap(u -> userCouponsService.getUserCouponsByUserId(u.getId()).collectList()).map(Response::ok);
 
     }

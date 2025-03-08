@@ -6,17 +6,21 @@ import { Button, Tag } from "@antmjs/vantui";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration"; // 引入 duration 插件
 import relativeTime from "dayjs/plugin/relativeTime";
+import { divide } from "@/utils/number";
 
 // 使用插件
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
-function getTimeRemainingShort(endTime) {
+function getTimeRemainingShort(startTime, endTime) {
   const now = dayjs(); // 当前时间
   const end = dayjs(endTime); // 结束时间
-
+  const start = dayjs(startTime); // 结束时间
   if (end.isBefore(now)) {
     return "已结束"; // 如果结束时间早于当前时间，返回“已结束”
+  }
+  if (start.isBefore(now)) {
+    return "未开始"; // 如果结束时间早于当前时间，返回“已结束”
   }
 
   const diff = dayjs.duration(end.diff(now)); // 计算时间差
@@ -40,6 +44,7 @@ type ProductCardItemProps = {
   onGotoOrderSubmit: () => void;
   data?: {
     sold_quantity: number;
+    time_group_start: number;
     time_group_end: number;
     group_required_count?: number;
     id?: string;
@@ -60,8 +65,16 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
     return Math.ceil(num / 10) * 10;
   }
 
-  const getEndTime = (): string => {
-    return getTimeRemainingShort(data?.time_group_end);
+  const getEndTime = (): string | undefined => {
+    const val = getTimeRemainingShort(
+      data?.time_group_start,
+      data?.time_group_end
+    );
+
+    if (["已结束", "未开始"].includes(val)) {
+      return val;
+    }
+    return val + "后结束";
   };
   return (
     <View className={styles.card}>
@@ -82,7 +95,7 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
 
           <View className={styles.InfoDesc}>
             <Text>已拼{roundUpToMultiple(data?.sold_quantity || 0)}+份</Text>
-            <Text>{getEndTime()}后结束</Text>
+            <Text>{getEndTime()}</Text>
           </View>
 
           <View className={styles.tagBox}>
@@ -103,12 +116,12 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
           <View className={styles.priceContainer}>
             <Text className={styles.price}>
               <Text style={{ fontSize: "12px" }}>￥</Text>
-              {finalPrice}
+              {divide(finalPrice, 100)}
             </Text>
             {originalPrice ? (
               <Text className={styles.originalPrice}>
                 <Text style={{ fontSize: "12px" }}>￥</Text>
-                {originalPrice}
+                {divide(originalPrice, 100)}
               </Text>
             ) : undefined}
           </View>

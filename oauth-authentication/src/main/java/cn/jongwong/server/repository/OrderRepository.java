@@ -11,5 +11,6 @@ public interface OrderRepository extends GenericReactiveRepository<OrderVO, Stri
     // 根据订单ID查找订单
     Mono<OrderVO> findById(String orderId);
 
-
+    // 根据订单ID查找订单
+    Mono<OrderVO> findByNum(String num);
 }

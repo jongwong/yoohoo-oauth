@@ -89,7 +89,7 @@ public class ProductService {
     @Transactional
     public Mono<ProductVO> updateProductWithImages(String id, ProductVO updatedProductVO) {
         return productRepository.findById(id)
-                .flatMap(existingProduct -> updateProductCodeIfNeeded(existingProduct))
+                .flatMap(this::updateProductCodeIfNeeded)
                 .flatMap(existingProduct -> updateProductInfoAndImages(id, updatedProductVO, existingProduct))
                 .as(transactionalOperator::transactional);
     }
@@ -182,7 +182,7 @@ public class ProductService {
                 })
                 .flatMap(updatedProduct ->
                         // 获取当前用户ID，并构建新的商品数据
-                        userService.getCurrentUserId()
+                        userService.getCurrentUserReactiveId()
                                 .map(userId -> updatedProduct.toBuilder()
                                         .createdAt(LocalDateTime.now())
                                         .updatedAt(LocalDateTime.now())
@@ -196,6 +196,7 @@ public class ProductService {
     }
 
 
+    @Transactional
     public Mono<ProductVO> update(String productId, ProductVO productVO) {
         productVO.setId(productId);
         if (productVO.getArchivedStatus() != ProductArchivedStatus.DRAFT.getCode()) {

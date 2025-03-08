@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -142,7 +143,7 @@ public class UserServiceImpl implements UserService {
      *
      * @return 当前用户的 ID，如果没有认证的用户则返回 "系统用户"
      */
-    public Mono<String> getCurrentUserId() {
+    public Mono<String> getCurrentUserReactiveId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
@@ -154,16 +155,27 @@ public class UserServiceImpl implements UserService {
         return Mono.just("系统用户");  // 如果没有认证的用户，返回一个默认值
     }
 
-    public Mono<CurrentAuthenticationUserRO> getCurrentUser() {
-
-        return ReactiveSecurityContextHolder.getContext().map(c -> c.getAuthentication()).flatMap(authentication -> {
+    public Mono<CurrentAuthenticationUserRO> getCurrentUserReactive() {
+        return ReactiveSecurityContextHolder.getContext().map(SecurityContext::getAuthentication).flatMap(authentication -> {
             if (authentication != null && authentication instanceof JwtCodeAuthenticationToken) {
                 return Mono.just(((JwtCodeAuthenticationToken) authentication).getCurrentUser());  // 返回用户的用户名作为 ID
             }
 
-            return Mono.empty();
+            return Mono.error(new Exception("未找到用户"));
 
-        });
+        }).switchIfEmpty(Mono.error(new Exception("未找到用户")));
+
+
+    }
+
+    public CurrentAuthenticationUserRO getCurrentUser() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication instanceof JwtCodeAuthenticationToken) {
+            return ((JwtCodeAuthenticationToken) authentication).getCurrentUser();  // 返回用户的用户名作为 ID
+        }
+
+        return null;
 
 
     }

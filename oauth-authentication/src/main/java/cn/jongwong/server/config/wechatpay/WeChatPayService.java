@@ -1,5 +1,6 @@
 package cn.jongwong.server.config.wechatpay;
 
+import cn.jongwong.server.config.wechatpay.util.AesUtil;
 import cn.jongwong.server.config.wechatpay.util.AuthorizationUtils;
 import cn.jongwong.server.entity.OrderVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,14 +9,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
+import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import static cn.jongwong.server.config.wechatpay.util.AuthorizationUtils.generatePaySign;
 
@@ -32,25 +36,30 @@ public class WeChatPayService {
     private static String certPath = "/Users/jongwong/IdeaProjects/yoohoo-oauth/cert/apiclient_cert.pem";
     private static String appId = "wx4b90fea0e7b2a714";
     private static String publicKeyId = "PUB_KEY_ID_0117040063532025021400298900001527";
-    private static String notifyUrl = "https://test.yoohoo.cn";
+    private static String notifyUrl = "https://local.c.api.yoohoo.cn/client/wechat-pay/notify/payment";
     private static String openId = "owoZV7KyzmktjTlKSqiR1Ama5aYg";
+
 
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    public static String generateOutTradeNo(String orderId) {
+        int randomNum = 10000 + new Random().nextInt(90000); // 生成5位随机数
+        return orderId + "-" + randomNum;
+    }
 
-    public Mono<HashMap<String, String>> createJsApiOrder(String curOpenId, OrderVO oder) {
-
-        System.out.printf("-------curOpenId-------%s%n", curOpenId);
+    public Mono<HashMap<String, String>> createJsApiOrder(String curOpenId, OrderVO order) {
+        var tradeNum = generateOutTradeNo(order.getNum());
         // 创建请求参数
         Map<String, Object> request = new HashMap<>();
         request.put("appid", appId);
         request.put("mchid", mchId);
+
         request.put("description", "Image形象店-深圳腾大-QQ公仔");
-        request.put("out_trade_no", "1217752501201407033233368018");
+        request.put("out_trade_no", tradeNum);
         request.put("time_expire", "2018-06-08T10:34:56+08:00");
-        request.put("attach", "自定义数据说明");
+//        request.put("attach", "{\"order_id\":\"" + oder.getId() + "\"}");
         request.put("notify_url", notifyUrl);
         request.put("goods_tag", "WXG");
         request.put("support_fapiao", false);
@@ -108,17 +117,12 @@ public class WeChatPayService {
         map.put("package", authorizationInfo.get("package")); // 这里 keyNumber 代表 prepay_id
         map.put("sign_type", authorizationInfo.get("sign_type")); // 或 "HMAC-SHA256"，请确认你的签名类型
         map.put("pay_sign", authorizationInfo.get("pay_sign"));
+
         return webClient.post()
                 .uri("https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi")
                 .header("Authorization", stringToSign)
                 .bodyValue(request)
                 .retrieve()
-                .onStatus(status -> {
-
-                    return status.is4xxClientError() || status.is5xxServerError();
-                }, response -> {
-                    return response.createException();
-                })
                 .bodyToMono(Map.class)
                 .map(res -> {
                     var prepayId = res.get("prepay_id").toString();
@@ -139,6 +143,68 @@ public class WeChatPayService {
 
                 });
 
+    }
+
+
+    public Mono<HashMap<String, String>> refundJsApiOrder(String curOpenId, OrderVO order) {
+        var tradeNum = generateOutTradeNo(order.getNum()); // 订单号
+        var refundNum = "R" + tradeNum; // 生成退款单号
+
+        // 退款请求参数
+        Map<String, Object> request = new HashMap<>();
+        request.put("out_trade_no", tradeNum);  // 原支付订单号
+        request.put("out_refund_no", refundNum); // 退款单号
+        request.put("reason", "用户申请退款"); // 退款原因
+        var total = order.getAmountTotal();
+
+
+        Map<String, Object> amount = new HashMap<>();
+        amount.put("refund", total); // 退款金额（分）
+        amount.put("total", total);  // 订单总金额（分）
+        amount.put("currency", "CNY");
+        request.put("amount", amount);
+
+        request.put("notify_url", "https://yourdomain.com/refund/notify"); // 退款回调
+
+        WebClient webClient = WebClient.builder()
+                .baseUrl("https://api.mch.weixin.qq.com")
+                .defaultHeader("Accept", "application/json")
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+
+        var authorizationInfo = new HashMap<String, String>();
+
+        try {
+            var body = objectMapper.writeValueAsString(request);
+            var privateKeyPem = readPrivateKeyFromFile(privateKeyPath);
+
+            // 生成 v3 版本的 Authorization 签名
+            authorizationInfo = AuthorizationUtils.buildAuthorizationInfo(
+                    mchId, privateKeyPem, merchantSerialNumber, "POST", "/v3/refund/domestic/refunds", body
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String stringToSign = authorizationInfo.get("authorization");
+        var responseMap = new HashMap<String, String>();
+
+        return webClient.post()
+                .uri("/v3/refund/domestic/refunds") // 退款 API 地址
+                .header("Authorization", stringToSign)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(res -> {
+                    responseMap.put("status", res.get("status").toString());
+                    responseMap.put("refund_id", res.get("refund_id").toString());
+                    responseMap.put("out_refund_no", refundNum);
+                    return responseMap;
+                })
+                .doOnError(error -> {
+                    System.err.println("退款请求失败：" + error.getMessage());
+                });
     }
 
 
@@ -180,5 +246,67 @@ public class WeChatPayService {
         return privateKey;
     }
 
+    // 加载微信支付公钥
+    public Mono<PublicKey> loadPublicKey() {
+        return Mono.fromCallable(() -> {
+            // 加载公钥
+            String keyContent = new String(Files.readAllBytes(Paths.get(publicKeyPath)), StandardCharsets.UTF_8);
+            keyContent = keyContent.replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .replaceAll("\\s", "");
+
+            byte[] decoded = Base64.getDecoder().decode(keyContent);
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return keyFactory.generatePublic(spec);
+        });
+    }
+
+    // 构造验签串
+    public String buildVerifyString(String timestamp, String nonce, String body) {
+        return timestamp + "\n" + nonce + "\n" + body + "\n";
+    }
+
+    // 使用公钥验证签名
+    public Mono<Boolean> verifyWithPublicKey(String signature, String verifyString, PublicKey publicKey) {
+        return Mono.fromCallable(() -> {
+            // Base64 解码签名
+            byte[] signatureBytes = Base64.getDecoder().decode(signature);
+
+            // 使用公钥验证签名
+            Signature rsa = Signature.getInstance("SHA256withRSA");
+            rsa.initVerify(publicKey);
+            rsa.update(verifyString.getBytes(StandardCharsets.UTF_8));
+
+            // 验证签名
+            return rsa.verify(signatureBytes);
+        });
+    }
+
+    // 验证签名的整体方法
+    public Mono<Boolean> validateSignature(String signature, String timestamp, String nonce, String body) {
+        return loadPublicKey()
+                .flatMap(publicKey -> {
+                    // 构造验签串
+                    String verifyString = buildVerifyString(timestamp, nonce, body);
+                    // 验证签名
+                    return verifyWithPublicKey(signature, verifyString, publicKey);
+                });
+    }
+
+
+    public String handlePaymentCallback(String ciphertext, String associatedData, String nonce) throws GeneralSecurityException, IOException {
+        // 假设 apiV3Key 是 Base64 编码的字符串，需要解码成字节数组
+        byte[] apiV3KeyBytes = apiKey.getBytes(StandardCharsets.UTF_8); // 解码 Base64 编码的密钥
+
+        // 将相关参数转换为字节数组
+        byte[] associatedDataBytes = associatedData.getBytes(StandardCharsets.UTF_8);
+        byte[] nonceBytes = nonce.getBytes(StandardCharsets.UTF_8); // 如果 nonce 是 Base64 编码的
+
+        // 创建 AesUtil 实例并解密
+        String decryptedData = AesUtil.decryptToString(apiV3KeyBytes, associatedDataBytes, nonceBytes, ciphertext);
+
+        return decryptedData;
+    }
 
 }

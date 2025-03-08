@@ -18,13 +18,13 @@ public class OrderSubmitDTO {
     private String openId;
 
     @Schema(description = "配送费")
-    private BigDecimal amountDelivery;
+    private Integer amountDelivery;
 
     @Schema(description = "优惠金额")
-    private BigDecimal amountDiscount;
+    private Integer amountDiscount;
 
     @Schema(description = "商品金额")
-    private BigDecimal amountProduct;
+    private Integer amountProduct;
 
     @Schema(description = "商品列表")
     private List<OrderProductItemDTO> products;

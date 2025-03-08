@@ -9,6 +9,7 @@ import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
 import cn.jongwong.server.entity.OrderItemVO;
 import cn.jongwong.server.entity.OrderVO;
+import cn.jongwong.server.entity.PaymentVO;
 import cn.jongwong.server.enums.OrderItemTypeEnum;
 import cn.jongwong.server.enums.OrderStatusEnum;
 import cn.jongwong.server.enums.PaymentStatusEnum;
@@ -24,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +69,7 @@ public class OrderService {
 
     public Mono<OrderVO> insert(OrderVO data) {
 
-        return userService.getCurrentUser().flatMap((u) -> {
+        return userService.getCurrentUserReactive().flatMap((u) -> {
             data.setCreatedByName(u.getName());
             data.setCreatedBy(u.getId());
             data.setCreatedAt(LocalDateTime.now());
@@ -79,7 +79,7 @@ public class OrderService {
 
     @Transactional
     public Mono<OrderVO> cancelById(String id) {
-        return userService.getCurrentUser().flatMap((u) -> orderRepository.findById(id).map(order -> {
+        return userService.getCurrentUserReactive().flatMap((u) -> orderRepository.findById(id).map(order -> {
             if (order.getStatus() != OrderStatusEnum.PENDING_PAYMENT.getCode()) {
                 throw new RuntimeException("订单状态不正确");
             }
@@ -145,24 +145,45 @@ public class OrderService {
     }
 
     @Transactional
+    public Mono<OrderVO> findOneByOrderNum(String orderNum) {
+        return orderRepository.findByNum(orderNum)
+                .flatMap(order -> {
+
+                    paymentService.findByOrderId(order.getId()).map(payment -> {
+                        order.setPaymentAt(payment.getPaymentAt());
+                        return order;
+                    });
+                    var items = orderItemRepository.findAllByDSL(sql -> sql.eq("num", orderNum));
+                    return items.collectList().map(orderItems -> {
+                        order.setItems(orderItems);
+                        return order;
+                    });
+                });
+
+    }
+
+    @Transactional
     public Mono<OrderVO> submit(OrderSubmitDTO data) {
 
-        return createBusinessOrder(data)
-                .flatMap(order -> weChatPayService.createJsApiOrder(data.getOpenId(), order).map(re -> {
-                    order.setPrepayInfo(re);
-                    return order;
-                }));
+        return createBusinessOrder(data);
     }
 
     @Transactional
     public Mono<OrderVO> payOrder(OrderPayDTO data) {
-
         return findOneByOrderId(data.getOrderId())
                 .flatMap(order -> {
-
-                    System.out.printf("-------order-------%s%n", order);
                     return weChatPayService.createJsApiOrder(data.getOpenId(), order).map(re -> {
-                        System.out.printf("-------re-------%s%n", re);
+                        order.setPrepayInfo(re);
+                        return order;
+                    });
+                });
+    }
+
+    @Transactional
+    public Mono<OrderVO> refund(OrderPayDTO data) {
+        return findOneByOrderId(data.getOrderId())
+                .flatMap(order -> {
+                    return weChatPayService.createJsApiOrder(data.getOpenId(), order).map(re -> {
                         order.setPrepayInfo(re);
                         return order;
                     });
@@ -171,23 +192,45 @@ public class OrderService {
 
 
     @Transactional
+    public Mono<OrderVO> finishPayment(String orderNum, String transactionId) {
+
+        return orderRepository.findByNum(orderNum).flatMap(order -> {
+            order.setStatus(OrderStatusEnum.PENDING_DELIVERY.getCode());
+            var now = LocalDateTime.now();
+            order.setPaymentAt(now);
+            return paymentService.findByOrderId(order.getId()).map(payment -> {
+                payment.setUpdatedAt(now);
+                payment.setTransactionId(transactionId);
+                payment.setStatus(PaymentStatusEnum.PAYMENT_SUCCESS.getCode());
+                return payment;
+            }).flatMap(paymentService::update).map(e -> order).flatMap(this::update);
+        }).doOnError(e -> {
+            e.printStackTrace();
+        });
+    }
+
+
+
+    @Transactional
     public Mono<OrderVO> createBusinessOrder(OrderSubmitDTO data) {
         var now = LocalDateTime.now();
         String orderNum = String.valueOf(SnowflakeIdUtils.generateId());
-        System.out.printf("-------orderNum-------%s%n", orderNum);
 
         var order = OrderVO.builder().id(UUID.randomUUID().toString())
                 .deliveryPointId(data.getDeliveryPointId())
                 .deliveryPointName(data.getDeliveryPointName())
                 .num(orderNum)
+                .createdAt(now)
                 .deliveryPointAddress(data.getDeliveryPointAddress())
                 .status(OrderStatusEnum.PENDING_PAYMENT.getCode())
                 .build();
         MapperUtil.merge(order, data);
 
 
-        return userService.getCurrentUser().flatMap(u -> {
+        return userService.getCurrentUserReactive().flatMap(u -> {
             order.setUserId(u.getId());
+            order.setCreatedBy(u.getId());
+            order.setCreatedByName(u.getName());
             return Mono.just(order);
         }).flatMap(o -> {
 
@@ -203,14 +246,18 @@ public class OrderService {
 
 
             return productsMono.collectList().map(re -> {
-                var total = re.stream()
-                        .map(p -> p.getPrice().multiply(BigDecimal.valueOf(data.getProducts().stream()
+                int total = re.stream()
+                        .mapToInt(p -> p.getPrice() * data.getProducts().stream()
                                 .filter(it -> it.getGroupProductId().equals(p.getId()))
-                                .findFirst().get().getCount())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                if (total.compareTo(data.getAmountProduct()) != 0) {
+                                .findFirst()
+                                .map(it -> it.getCount())
+                                .orElse(0)) // 避免空指针异常
+                        .sum();
+
+                if (total != data.getAmountProduct()) {
                     throw new RuntimeException("商品金额不匹配");
                 }
+
                 re.forEach(p -> {
                     OrderProductItemDTO find = data.getProducts().stream()
                             .filter(it -> it.getId().equals(p.getId()))
@@ -265,9 +312,10 @@ public class OrderService {
 
 
                 return couponsService.findById(userCoupon.getCouponsId()).map(coupons -> {
-                    if (coupons.getDiscountAmount().compareTo(data.getAmountDiscount()) != 0) {
+                    if (!coupons.getDiscountAmount().equals(data.getAmountDiscount())) {
                         throw new RuntimeException("优惠券金额不匹配");
                     }
+
 
                     if (coupons.getDisable().equals(1)) {
                         throw new RuntimeException("优惠券已停用");
@@ -289,7 +337,7 @@ public class OrderService {
                         OrderItemVO item = OrderItemVO.builder()
                                 .orderId(savedOrder.getId())
                                 .type(OrderItemTypeEnum.PRODUCT.getCode())
-                                .amount(product.getPrice().multiply(BigDecimal.valueOf(product.getCount())))
+                                .amount(product.getPrice() * product.getCount())
                                 .productId(product.getId())
                                 .productCode(product.getCode())
                                 .productName(product.getName())
@@ -310,6 +358,19 @@ public class OrderService {
                             }
                     );
                 }
-        );
+        ).flatMap(savedOrder -> {
+            var payment = PaymentVO.builder()
+                    .id(UUID.randomUUID().toString())
+                    .orderId(savedOrder.getId())
+                    .createdAt(savedOrder.getCreatedAt())
+                    .createdBy(savedOrder.getCreatedBy())
+                    .createdByName(savedOrder.getCreatedByName())
+                    .amount(savedOrder.getAmountTotal())
+                    .status(PaymentStatusEnum.PENDING_PAYMENT.getCode())
+                    .build();
+            return paymentService.insert(payment).map(p -> {
+                return savedOrder;
+            });
+        });
     }
 }

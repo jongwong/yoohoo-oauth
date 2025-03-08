@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 @Schema(description = "订单商品明细")
 @Data
 @NoArgsConstructor
@@ -28,7 +26,7 @@ public class OrderProductItemDTO {
     private String imageUrl;
 
     @Schema(description = "商品价格")
-    private BigDecimal price;
+    private Integer price;
 
     @Schema(description = "商品数量")
     private Integer count;

@@ -76,8 +76,17 @@ const Profile: React.FC = () => {
     if (orderItem?.status === EOrderStatus.PendingDelivery) {
       return (
         <Space direction={"horizontal"}>
-          <Button type={"primary"} size={"small"}>
-            确认收货
+          <Button
+            type={"primary"}
+            size={"small"}
+            onClick={(e) => {
+              Taro.navigateTo({
+                url: `/pages/order/refund/index?id=${orderItem?.id}`,
+              });
+              e.stopPropagation();
+            }}
+          >
+            退款
           </Button>
         </Space>
       );

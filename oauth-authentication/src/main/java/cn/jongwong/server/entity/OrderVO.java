@@ -96,7 +96,6 @@ public class OrderVO {
     @Schema(description = "订单明细")
     private List<OrderItemVO> items;
 
-    @Transient
     @Schema(description = "支付时间")
     private LocalDateTime paymentAt;
 

@@ -27,7 +27,7 @@ public class ProductImageService {
         }
 
         // 先获取当前用户 ID
-        return userService.getCurrentUserId()
+        return userService.getCurrentUserReactiveId()
                 .flatMap(userId -> {
 
                     // 查找是否已经存在相同的图片（根据商品ID和URL）

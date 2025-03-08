@@ -30,13 +30,13 @@ public class CouponsVO {
     private Integer type; // Coupon type (0: Discount, 1: Cash Voucher, 2: Percentage Discount)
 
     @Schema(description = "折扣金额（现金券或满减券）")
-    private BigDecimal discountAmount; // Discount amount (cash voucher or full discount)
+    private Integer discountAmount; // Discount amount (cash voucher or full discount)
 
     @Schema(description = "折扣百分比 (百分比折扣券, 如 10 表示 10%)")
     private BigDecimal discountPercentage; // Discount percentage (for percentage discount)
 
     @Schema(description = "使用的最低消费金额")
-    private BigDecimal minSpend = BigDecimal.ZERO; // Minimum spend amount
+    private Integer minSpend; // Minimum spend amount
 
     @Schema(description = "折扣上限 (针对百分比折扣)")
     private BigDecimal maxDiscount; // Max discount for percentage discount

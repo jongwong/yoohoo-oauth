@@ -13,6 +13,7 @@ import classNames from "classnames";
 import useRequest from "@/hooks/useRequest";
 import CouponsPicker from "@/pages/order/create/components/CouponsPicker";
 import { useUpdate } from "ahooks";
+import { transformMoney } from "@/utils/number";
 
 const OrderCreate: React.FC = () => {
   const router = useRouter();
@@ -153,25 +154,21 @@ const OrderCreate: React.FC = () => {
     const val = getFormatValue();
     const res = await request.post(`/client/order/submit`, {
       ...val,
-      open_id: wx.getStorageSync("userInfo")?.open_id,
+      open_id: wx.getStorageSync("open_id"),
     });
-    if (res.success) {
-      Taro.navigateTo({
-        url: `/pages/order/detail/index?id=${res.data.id}`,
-      });
-    }
 
     if (res.success) {
-      const data = res.data; // 假设返回的数据在 resp.data
-
-      Taro.requestPayment({
+      const data: Record<string, string> = res?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
+      wx.requestPayment({
         timeStamp: data.timestamp,
-        nonceStr: data.nonceStr,
-        package: data.prepayId,
-        signType: "RSA",
-        paySign: data.sign,
+        nonceStr: data.nonce_str,
+        package: data.package,
+        signType: "RSA" as any,
+        paySign: data.pay_sign,
         success: (res) => {
-          console.log(res);
+          Taro.navigateTo({
+            url: `/pages/order/detail/index?id=${res.data.id}`,
+          });
         },
         fail: (e) => {
           console.log(e);
@@ -194,7 +191,7 @@ const OrderCreate: React.FC = () => {
           <View className={styles.footer}>
             <View className={styles.footerPrice}>
               <Text className={"text-12"}>￥</Text>
-              {getFormatValue()?.amount_total}
+              {transformMoney(getFormatValue()?.amount_total)}
             </View>
             <Button
               type="primary"
@@ -261,7 +258,7 @@ const OrderCreate: React.FC = () => {
 
                 <Text className={styles.productPrice}>
                   <Text className={"text-12"}>￥</Text>
-                  {productData?.price}
+                  {transformMoney(productData?.price)}
                 </Text>
               </View>
               <View>
@@ -277,7 +274,16 @@ const OrderCreate: React.FC = () => {
             trigger={"none"}
           >
             <Text className={"text-12"}>￥</Text>
-            {deliveryFee}
+            {/*deliveryFee等于0 显示删除线的样式*/}
+
+            <Text
+              style={{
+                color: deliveryFee === 0 ? "#666666" : "none",
+                textDecoration: deliveryFee === 0 ? "line-through" : "none",
+              }}
+            >
+              {deliveryFee ? transformMoney(deliveryFee) : "免配送费"}
+            </Text>
           </FormItem>
           <FormItem
             label={
@@ -319,7 +325,7 @@ const OrderCreate: React.FC = () => {
             trigger={"none"}
           >
             <Text className={"text-12"}>￥</Text>
-            {getFormatValue()?.amount_total}
+            {transformMoney(getFormatValue()?.amount_total)}
           </FormItem>
         </View>
       </Layout>

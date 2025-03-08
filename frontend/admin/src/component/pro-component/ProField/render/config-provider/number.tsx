@@ -5,6 +5,8 @@ import { InputNumber } from 'antd';
 import { getDefaultPlaceHolder, PlaceHolderType } from '../../render/formatRenderUtil';
 import { ElementOf } from '../../../types';
 import { isNumber } from 'lodash';
+import { ProxyWrapped } from '@yoo/component';
+import { divide, multiply } from '@/utils/number';
 
 export const DefaultNumberValueTypeEnum = {
 	Money: 'money',
@@ -41,15 +43,25 @@ const defaultNumberValueTypeMap = {
 			if (!isNumber(t)) {
 				return undefined;
 			}
-			const str = `￥${formatNumberToThousands(t.toFixed(2))}`;
+			const num = divide(t, 100);
+			const str = isNumber(num) ? `￥${formatNumberToThousands(num.toFixed(2))}` : num;
 			return <span className={t < 0 ? 'text-red' : undefined}>{str}</span>;
 		},
 		renderFormItem: (_t: any, _r: any, opts: any) => {
 			return (
-				<InputNumber
-					{...numberPrecision2Config}
-					placeholder={getDefaultPlaceHolder(opts.field, PlaceHolderType.Input)}
-				/>
+				<ProxyWrapped>
+					{cfg => (
+						<InputNumber
+							{...numberPrecision2Config}
+							placeholder={getDefaultPlaceHolder(opts.field, PlaceHolderType.Input)}
+							value={isNumber(cfg.value) ? divide(cfg.value, 100) : undefined}
+							onChange={(e: any) => {
+								// 变成整数onchange
+								cfg.onChange?.(isNumber(e) ? Math.floor(multiply(e, 100)) : e);
+							}}
+						/>
+					)}
+				</ProxyWrapped>
 			);
 		},
 	},

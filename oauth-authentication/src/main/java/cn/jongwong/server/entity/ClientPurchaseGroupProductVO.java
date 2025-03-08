@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -47,7 +46,7 @@ public class ClientPurchaseGroupProductVO {
 
 
     @Schema(description = "商品价格")
-    private BigDecimal price;
+    private Integer price;
 
     @Schema(description = "商品类别名称")
     private String categoryName;

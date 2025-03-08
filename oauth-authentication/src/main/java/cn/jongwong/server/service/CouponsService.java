@@ -36,7 +36,7 @@ public class CouponsService {
     public Mono<CouponsVO> createCoupon(CouponsVO data) {
 
 
-        return userService.getCurrentUserId()
+        return userService.getCurrentUserReactiveId()
                 .map(userId -> data.toBuilder()
                         .createdAt(LocalDateTime.now())
                         .status(CouponsStatus.DRAFT.getCode())

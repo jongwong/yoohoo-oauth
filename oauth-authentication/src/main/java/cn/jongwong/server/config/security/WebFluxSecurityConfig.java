@@ -49,6 +49,7 @@ public class WebFluxSecurityConfig {
             "/client/wechat/decrypt-phone",
             "/client/wechat/register",
             "/admin/hello",
+            "/client/wechat-pay/notify/payment"
     };
 
     @Autowired

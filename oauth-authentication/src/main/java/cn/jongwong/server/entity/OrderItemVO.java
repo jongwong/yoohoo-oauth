@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -30,7 +29,7 @@ public class OrderItemVO {
     private Integer type;
 
     @Schema(description = "金额")
-    private BigDecimal amount;
+    private Integer amount;
 
     @Schema(description = "商品数量")
     private Integer count;

@@ -31,7 +31,7 @@ public class ClientConsigneeController {
     @GetMapping()
     public Mono<Response<List<ConsigneeVO>>> getAllConsignee() {
 
-        return userService.getCurrentUser().flatMap(u -> {
+        return userService.getCurrentUserReactive().flatMap(u -> {
             ConsigneeVO data = new ConsigneeVO();
             data.setUserId(u.getId());
             Example<ConsigneeVO> example = Example.of(data, ExampleMatcher.matching()

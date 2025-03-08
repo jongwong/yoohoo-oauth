@@ -9,7 +9,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -49,10 +48,10 @@ public class ProductVO {
     private String shortDescription;
 
     @Schema(description = "商品价格")
-    private BigDecimal price;
+    private Integer price;
 
     @Schema(description = "商品成本价格")
-    private BigDecimal costPrice;
+    private Integer costPrice;
 
     @Schema(description = "商品的库存单位（SKU）")
     private String sku;

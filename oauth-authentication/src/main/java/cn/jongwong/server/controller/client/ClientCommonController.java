@@ -1,6 +1,7 @@
 package cn.jongwong.server.controller.client;
 
 
+import cn.jongwong.server.config.wechatpay.WeChatPayService;
 import cn.jongwong.server.dto.order.OrderPayDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.OrderVO;
@@ -8,17 +9,22 @@ import cn.jongwong.server.service.OrderService;
 import cn.jongwong.server.service.UserService;
 import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wechat.pay.java.core.notification.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 @RestController()
 @RequestMapping("/client")
 public class ClientCommonController {
 
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private OrderService orderService;
@@ -27,10 +33,14 @@ public class ClientCommonController {
     private UserService userService;
 
 
+    @Autowired
+    private WeChatPayService weChatPayService;
+
+
     // 获取最近的配送点
     @GetMapping("/delivery/fee")
     public Mono<Response<Double>> getDeliveryFee() {
-        var fee = 1.5;
+        var fee = 0.0;
         // String 转成 浮点数
         return Mono.just(fee).map(Response::ok);
     }
@@ -48,12 +58,12 @@ public class ClientCommonController {
 
     @GetMapping("/order/user")
     public Mono<PageResponse<OrderVO>> queryByUser(@RequestParam(required = false) Integer status) {
-        return userService.getCurrentUser().flatMap(u -> orderService.queryByUserId(1, 10, u.getId(), status)).map(PageResponse::success);
+        return userService.getCurrentUserReactive().flatMap(u -> orderService.queryByUserId(1, 10, u.getId(), status)).map(PageResponse::success);
     }
 
     @GetMapping("/order/{id}")
     public Mono<Response<OrderVO>> queryByUser(@PathVariable(required = true) String id) {
-        return userService.getCurrentUser().flatMap(u -> orderService.findOneByOrderId(id).map(Response::success));
+        return userService.getCurrentUserReactive().flatMap(u -> orderService.findOneByOrderId(id).map(Response::success));
     }
 
     @PostMapping("/order/{id}/cancel")
@@ -61,35 +71,58 @@ public class ClientCommonController {
         return orderService.cancelById(id).map(Response::ok);
     }
 
+
     @PostMapping("/wechat-pay/notify/payment")
-    public Flux<ResponseEntity<String>> paymentNotify(ServerWebExchange exchange) {
-        return exchange.getRequest().getBody()
-                .flatMap(dataBuffer -> {
-                    // 将 DataBuffer 转换为字节数组
-                    byte[] body = new byte[dataBuffer.readableByteCount()];
-                    dataBuffer.read(body);
+    public Mono<ResponseEntity<?>> verifySignature(
+            @RequestHeader("Wechatpay-Signature") String signature,
+            @RequestHeader("Wechatpay-Timestamp") String timestamp,
+            @RequestHeader("Wechatpay-Nonce") String nonce,
+            @RequestBody String body
+    ) {
+        return weChatPayService.validateSignature(signature, timestamp, nonce, body)
+                .flatMap(isValid -> {
+                    if (isValid) {
+                        try {
+                            var callback = objectMapper.readValue(body, Notification.class);
 
-                    // 将字节数组转为字符串（微信回调的 XML 数据）
-                    String notifyData = new String(body);
-                    System.out.printf("-------notifyData-------%s%n", notifyData);  // 可以换成更合适的日志记录
+                            var source = callback.getResource();
+                            var reStr = weChatPayService.handlePaymentCallback(source.getCiphertext(), source.getAssociatedData(), source.getNonce());
 
-                    // 处理回调业务逻辑，比如签名验证等（这里简化了）
-                    boolean isValid = validateNotifyData(notifyData); // 假设有一个验证签名的方法
-                    if (!isValid) {
-                        // 签名验证失败，返回失败响应
-                        return Mono.just(ResponseEntity.status(400)
-                                .body("<xml><return_code>FAIL</return_code><return_msg>签名失败</return_msg></xml>"));
+                            var result = objectMapper.readValue(reStr, Map.class);
+                            String transactionId = (String) result.get("transaction_id");
+
+                            String outTradeNo = (String) result.get("out_trade_no");
+                            var tradeState = result.get("trade_state");
+                            if (tradeState.equals("SUCCESS")) {
+                                // 使用 split 方法分割字符串
+                                String[] parts = outTradeNo.split("-");
+
+                                // 获取分割后的第一个部分
+                                String num = parts[0];
+                                return orderService.finishPayment(num, transactionId).map(ResponseEntity::ok);
+
+                            }
+
+                            return Mono.error(new Exception("Payment failed."));
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return Mono.error(e);
+                        }
+
+//
                     }
-
-                    // 根据回调内容判断支付结果
-                    return Mono.just(ResponseEntity.ok("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>"));
-                });
+                    var re = ResponseEntity.status(400).body("Verification failed.");
+                    return Mono.just(re);
+                })
+                .onErrorReturn(ResponseEntity.status(500).body("Verification error."));
     }
 
-    private boolean validateNotifyData(String notifyData) {
-        // 这里可以对接收到的数据进行签名验证，返回 true 或 false
-        return true;
-    }
+//    @PostMapping("/order/refund")
+//    public Mono<Response<OrderVO>> refundOrder(@RequestBody OrderPayDTO data) {
+//        return orderService.submit(data).map(Response::ok);
+//    }
+
 
 
 }

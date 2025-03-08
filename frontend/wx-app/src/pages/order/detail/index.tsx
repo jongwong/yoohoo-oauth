@@ -1,20 +1,24 @@
 import React from "react";
 import Layout from "@/component/Layout";
-import { useRouter } from "@tarojs/taro";
+import Taro, { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
-import { Button, Cell, Form } from "@antmjs/vantui";
+import { Button, Cell, Field, Form } from "@antmjs/vantui";
 import Image from "@/component/Image";
 import { generateFileUrl } from "@/utils/file";
 import classNames from "classnames";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
-import { formatSortTime } from "@/utils/date";
-import { EOrderStatus } from "@/pages/order/constants";
+import { EOrderStatus, StatusMap } from "@/pages/order/constants";
+import dayjs from "dayjs";
+import { transformMoney } from "@/utils/number";
 
-const OrderCreate: React.FC = () => {
+const OrderCreate: React.FC<{
+  pageType?: "refund" | "create";
+}> = ({ pageType = "create" }) => {
   const router = useRouter();
 
+  const isRefund = pageType === "refund";
   const form = Form.useForm();
   // 请求产品列表数据
   const { loading, data: orderData } = useRequest(
@@ -40,7 +44,6 @@ const OrderCreate: React.FC = () => {
 
     if (res.success) {
       const data: Record<string, string> = res?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
-      console.log("=====data=====", data);
       wx.requestPayment({
         timeStamp: data.timestamp,
         nonceStr: data.nonce_str,
@@ -48,7 +51,9 @@ const OrderCreate: React.FC = () => {
         signType: "RSA" as any,
         paySign: data.pay_sign,
         success: (res) => {
-          console.log(res);
+          Taro.navigateTo({
+            url: `/pages/order/detail/index?id=${res.data.id}`,
+          });
         },
         fail: (e) => {
           console.log(e);
@@ -56,16 +61,28 @@ const OrderCreate: React.FC = () => {
       });
     }
   };
-
-  return (
-    <Layout
-      loading={loading}
-      footer={
-        orderData?.status === EOrderStatus.PendingPayment ? (
-          <View className={styles.footer}>
+  const renderFooter = () => {
+    if (isRefund) {
+      return (
+        <View className={styles.footer}>
+          <Button
+            type="primary"
+            block
+            size={"small"}
+            onClick={() => submitHandle()}
+          >
+            申请退款
+          </Button>
+        </View>
+      );
+    }
+    if (orderData?.status === EOrderStatus.PendingPayment) {
+      return (
+        <View className={styles.footer}>
+          <>
             <View className={styles.footerPrice}>
               <Text className={"text-12"}>￥</Text>
-              {orderData?.amount_total || 0}
+              {transformMoney(orderData?.amount_total || 0)}
             </View>
             <Button
               type="primary"
@@ -76,28 +93,42 @@ const OrderCreate: React.FC = () => {
             >
               立即支付
             </Button>
-          </View>
-        ) : undefined
-      }
-    >
-      <View className={styles.areaCard}>
-        <View>
-          <View className={styles.areaCardLocationTitle}>
-            {orderData?.delivery_point_name}
-          </View>
-          <View className={styles.areaCardLocationDesc}>
-            {orderData?.delivery_point_address}
-          </View>
+          </>
         </View>
-        <View className={"mt-16"}>
-          <View className={styles.areaCardLocationTitle}>收货人</View>
-          <View className={styles.areaCardLocationDesc}>
-            {orderData
-              ? orderData?.consignee_name + " " + orderData?.consignee_mobile
-              : "--"}
-          </View>
-        </View>
+      );
+    }
+  };
+
+  const renderFee = () => {
+    return (
+      <View className={classNames("mt-16", styles.card)} style={{ padding: 0 }}>
+        <Cell
+          title="配送费"
+          value={
+            orderData?.amount_delivery
+              ? `￥${transformMoney(orderData?.amount_delivery || 0)}`
+              : "免配送费"
+          }
+        ></Cell>
+        <Cell
+          title="优惠券"
+          value={
+            orderData?.amount_discount
+              ? `-￥${transformMoney(orderData?.amount_discount || 0)}`
+              : "无"
+          }
+        ></Cell>
+
+        <Cell
+          title="实付"
+          value={`￥${transformMoney(orderData?.amount_total || 0)}`}
+        ></Cell>
       </View>
+    );
+  };
+
+  const renderProduct = () => {
+    return (
       <View className={classNames("mt-16", styles.card)}>
         {orderData?.items.map((item) => (
           <View className={styles.productCard}>
@@ -116,7 +147,7 @@ const OrderCreate: React.FC = () => {
 
                 <Text className={styles.productPrice}>
                   <Text className={"text-12"}>￥</Text>
-                  {item?.amount}
+                  {transformMoney(item?.amount)}
                 </Text>
               </View>
               <View>
@@ -126,25 +157,75 @@ const OrderCreate: React.FC = () => {
           </View>
         ))}
       </View>
-      <View className={classNames("mt-16", styles.card)} style={{ padding: 0 }}>
-        {orderData?.amount_delivery ? (
-          <Cell
-            title="配送费"
-            value={`￥${orderData?.amount_delivery || 0}`}
-          ></Cell>
-        ) : null}
-        <Cell
-          title="优惠券"
-          value={`-￥${orderData?.amount_discount || 0}`}
-        ></Cell>
+    );
+  };
+  if (isRefund) {
+    return (
+      <Layout loading={loading} footer={renderFooter()}>
+        <View
+          className={styles.card}
+          style={{
+            marginBottom: 16,
+          }}
+        >
+          <View className={"mb-8"} style={{ fontSize: 16 }}>
+            {StatusMap[orderData?.status]}
+          </View>
+          {renderProduct()}
+          {renderFee()}
+          <Field
+            label="多行输入"
+            type="textarea"
+            placeholder="请输入内容"
+            autosize
+            rows={3} // 设置默认显示的行数
+            maxLength={200} // 可选，设置最大输入长度
+            showWordLimit
+          />
+        </View>
+      </Layout>
+    );
+  }
 
-        <Cell title="实付" value={`￥${orderData?.amount_total || 0}`}></Cell>
+  return (
+    <Layout loading={loading} footer={renderFooter()}>
+      <View
+        className={styles.card}
+        style={{
+          marginBottom: 16,
+        }}
+      >
+        <View className={"mb-8"} style={{ fontSize: 16 }}>
+          {StatusMap[orderData?.status]}
+        </View>
       </View>
 
+      <View className={styles.areaCard}>
+        <View>
+          <View className={styles.areaCardLocationTitle}>
+            {orderData?.delivery_point_name}
+          </View>
+          <View className={styles.areaCardLocationDesc}>
+            {orderData?.delivery_point_address}
+          </View>
+        </View>
+        <View className={"mt-16"}>
+          <View className={styles.areaCardLocationTitle}>收货人</View>
+          <View className={styles.areaCardLocationDesc}>
+            {orderData
+              ? orderData?.consignee_name + " " + orderData?.consignee_mobile
+              : "--"}
+          </View>
+        </View>
+      </View>
+
+      {renderProduct()}
+
+      {renderFee()}
       <View className={classNames("mt-16", styles.card)} style={{ padding: 0 }}>
         <Cell
           title="创建时间"
-          value={formatSortTime(orderData?.created_at)}
+          value={dayjs(orderData?.created_at).format("YYYY-MM-DD HH:mm")}
         ></Cell>
 
         {orderData?.status !== EOrderStatus.PendingPayment &&
@@ -153,7 +234,7 @@ const OrderCreate: React.FC = () => {
             title="支付时间"
             value={
               orderData?.payment_at
-                ? formatSortTime(orderData?.payment_at)
+                ? dayjs(orderData?.payment_at).format("YYYY-MM-DD HH:mm")
                 : "--"
             }
           ></Cell>

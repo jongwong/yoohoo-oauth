@@ -81,7 +81,7 @@ const useCheckLogin = () => {
               ...userRes?.data,
             };
             wx.setStorageSync("userInfo", userInfo);
-            console.log("=====_data=====", _data);
+
             wx.setStorageSync("open_id", _data?.open_id);
 
             Taro.switchTab({

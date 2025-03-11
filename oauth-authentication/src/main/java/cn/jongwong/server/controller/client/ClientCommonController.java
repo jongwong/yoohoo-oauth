@@ -1,22 +1,31 @@
 package cn.jongwong.server.controller.client;
 
 
+import cn.jongwong.server.config.oss.OssService;
 import cn.jongwong.server.config.wechatpay.WeChatPayService;
 import cn.jongwong.server.dto.order.OrderPayDTO;
 import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.OrderVO;
+import cn.jongwong.server.service.GroupAdminService;
 import cn.jongwong.server.service.OrderService;
 import cn.jongwong.server.service.UserService;
 import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wechat.pay.java.core.notification.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController()
@@ -33,11 +42,63 @@ public class ClientCommonController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private GroupAdminService groupAdminService;
 
     @Autowired
     private WeChatPayService weChatPayService;
 
 
+    @Autowired
+    private OssService ossService;
+
+
+    @PostMapping("/oss/upload")
+    public Mono<Map<String, String>> upload(@RequestPart("file") Mono<FilePart> filePartMono,
+                                            @RequestPart("path") String filePath) {
+
+        // 1️⃣ 先异步获取临时凭证
+        return Mono.fromSupplier(ossService::getTemporaryCredentials)
+                .flatMap(credentials -> {
+                    if (credentials == null || credentials.isEmpty()) {
+                        return Mono.error(new RuntimeException("获取 OSS 临时凭证失败"));
+                    }
+
+                    // 解析 OSS 临时凭证
+                    String bucketName = credentials.get("bucketName");
+                    String region = credentials.get("region");
+                    String accessKeyId = credentials.get("accessKeyId");
+                    String accessKeySecret = credentials.get("accessKeySecret");
+                    String securityToken = credentials.get("securityToken");
+                    String host = credentials.get("host"); // 例如：https://yoohoo-oss.oss-cn-shanghai.aliyuncs.com
+
+                    // 2️⃣ 处理文件上传
+                    return filePartMono.flatMap(filePart ->
+                            DataBufferUtils.join(filePart.content()) // 直接获取完整数据
+                                    .flatMap(buffer -> Mono.fromCallable(() -> {
+                                        // 3️⃣ 上传文件到 OSS
+                                        try (InputStream inputStream = buffer.asInputStream()) {
+                                            OSS ossClient = new OSSClientBuilder().build(
+                                                    "oss-" + region + ".aliyuncs.com",
+                                                    accessKeyId,
+                                                    accessKeySecret,
+                                                    securityToken
+                                            );
+                                            ossClient.putObject(bucketName, filePath, inputStream);
+                                            ossClient.shutdown(); // 关闭客户端
+
+                                            // 4️⃣ 生成 URL 并返回
+                                            String fileUrl = host + "/" + filePath;
+                                            Map<String, String> response = new HashMap<>();
+                                            response.put("url", fileUrl);
+                                            response.put("fileName", filePath);
+                                            return response;
+                                        }
+                                    }))
+                                    .subscribeOn(Schedulers.boundedElastic()) // 让上传操作在独立线程池执行
+                    );
+                });
+    }
     // 获取最近的配送点
     @GetMapping("/delivery/fee")
     public Mono<Response<Double>> getDeliveryFee() {
@@ -170,7 +231,6 @@ public class ClientCommonController {
     public Mono<Response<OrderVO>> refundOrder(@RequestBody OrderRefundDTO data) {
         return orderService.refund(data).map(Response::ok);
     }
-
 
 
 }

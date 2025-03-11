@@ -1,14 +1,14 @@
 package cn.jongwong.server.util.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
 public class PageResponse<T> extends Response<List<T>> {
     private static final long serialVersionUID = 1L;  // 添加 serialVersionUID
 

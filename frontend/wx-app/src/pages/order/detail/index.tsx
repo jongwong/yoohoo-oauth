@@ -12,6 +12,7 @@ import request from "@/utils/request";
 import { EOrderStatus, StatusMap } from "@/pages/order/constants";
 import dayjs from "dayjs";
 import { transformMoney } from "@/utils/number";
+import { gotoPayPageResult, gotoPayRefundResult } from "@/pages/order/utils";
 
 const OrderCreate: React.FC<{
   pageType?: "refund" | "create";
@@ -21,6 +22,7 @@ const OrderCreate: React.FC<{
   const isRefund = pageType === "refund";
   const [hasValidError, setHasValidError] = useState(false);
 
+  const [saveLoading, setSaveLoading] = useState(false);
   const [refundReason, setRefundReason] = useState("");
   const form = Form.useForm();
   // 请求产品列表数据
@@ -39,13 +41,19 @@ const OrderCreate: React.FC<{
       },
     }
   );
-  const submitHandle = async () => {
-    const res = await request.post(`/client/order/pay/submit`, {
-      open_id: wx.getStorageSync("open_id"),
-      order_id: orderData?.id,
-    });
 
-    if (res.success) {
+  const submitHandle = async () => {
+    setSaveLoading(true);
+    const res = await request
+      .post(`/client/order/pay/submit`, {
+        open_id: wx.getStorageSync("open_id"),
+        order_id: orderData?.id,
+      })
+      .finally(() => {
+        setSaveLoading(false);
+      });
+
+    if (res?.success) {
       const data: Record<string, string> = res?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
       wx.requestPayment({
         timeStamp: data.timestamp,
@@ -53,20 +61,17 @@ const OrderCreate: React.FC<{
         package: data.package,
         signType: "RSA" as any,
         paySign: data.pay_sign,
-        success: (res) => {
-          Taro.navigateTo({
-            url: `/pages/order/detail/index?id=${res.data.id}`,
-          });
+        success: () => {
+          gotoPayPageResult(true);
         },
-        fail: (e) => {
-          console.log(e);
+        fail: () => {
+          gotoPayPageResult(false);
         },
       });
     }
   };
 
   const refundHandle = async () => {
-    console.log("=====refundReason=====", refundReason);
     if (!refundReason?.trim()?.length) {
       setHasValidError(true);
       return Taro.showToast({
@@ -74,13 +79,19 @@ const OrderCreate: React.FC<{
         icon: "none",
       });
     }
-    const res = await request.post(`/client/order/refund`, {
-      reason: refundReason,
-      open_id: wx.getStorageSync("open_id"),
-      order_id: orderData?.id,
-    });
-
-    console.log("=====res=====", res);
+    setSaveLoading(true);
+    const res = await request
+      .post(`/client/order/refund`, {
+        reason: refundReason,
+        open_id: wx.getStorageSync("open_id"),
+        order_id: orderData?.id,
+      })
+      .finally(() => {
+        setSaveLoading(false);
+      });
+    if (res?.success) {
+      gotoPayRefundResult(true);
+    }
   };
   const renderFooter = () => {
     if (isRefund) {
@@ -196,7 +207,6 @@ const OrderCreate: React.FC<{
             value={refundReason}
             onChange={(e) => {
               const val = e?.detail;
-              console.log("=====val=====", val);
               setHasValidError(!!val?.trim());
               setRefundReason(val);
             }}
@@ -217,7 +227,7 @@ const OrderCreate: React.FC<{
   }
 
   return (
-    <Layout loading={loading} footer={renderFooter()}>
+    <Layout loading={loading || saveLoading} footer={renderFooter()}>
       <View
         className={styles.card}
         style={{

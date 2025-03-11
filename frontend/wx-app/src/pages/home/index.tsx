@@ -5,6 +5,8 @@ import { Image, Progress, Swiper, SwiperItem } from "@antmjs/vantui";
 import classNames from "classnames";
 import Taro from "@tarojs/taro";
 import Layout from "../../component/Layout";
+import UseRequest from "@/hooks/useRequest";
+import request from "@/utils/request";
 
 const Index: React.FC = () => {
   const [current, setCurrent] = useState(0);
@@ -13,8 +15,17 @@ const Index: React.FC = () => {
     "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/swiper/2.png",
   ];
 
+  const { loading: permissionLoading, runAsync: fetchAdminPermission } =
+    UseRequest(
+      () => {
+        return request.get("/client/admin/group/permission/check");
+      },
+      {
+        manual: true,
+      }
+    );
   return (
-    <Layout edge={"none"}>
+    <Layout edge={"none"} loading={permissionLoading}>
       <View className={styles.container}>
         {/* 轮播图组件 */}
         <Swiper
@@ -82,6 +93,14 @@ const Index: React.FC = () => {
         <View className={styles.pickupBox}>
           {/* 企业入口 */}
           <View
+            onClick={async () => {
+              const res = await fetchAdminPermission();
+              if (res?.success) {
+                Taro.navigateTo({
+                  url: "/pages/admin/group/list/index",
+                });
+              }
+            }}
             className={classNames(styles.deliveryItem, styles.enterpriseItem)}
           >
             <View className={styles.deliveryTitle}>企业</View>

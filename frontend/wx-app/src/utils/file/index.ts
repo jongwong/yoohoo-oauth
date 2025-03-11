@@ -3,7 +3,6 @@ export const generateFileUrl = (
   fallback: boolean = false
 ): string | undefined => {
   const domain = "https://yoohoo-oss.oss-cn-shanghai.aliyuncs.com"; // 这里是你的 OSS 域名
-
   if (!filePath) {
     return fallback ? getFallbackImageUrl() : "";
   }

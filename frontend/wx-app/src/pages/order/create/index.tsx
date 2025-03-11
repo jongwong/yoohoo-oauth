@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Layout from "@/component/Layout";
 import request from "@/utils/request";
-import Taro, { useRouter } from "@tarojs/taro";
+import { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import { Button, Form, FormItem, Icon, Tag } from "@antmjs/vantui";
@@ -14,6 +14,7 @@ import useRequest from "@/hooks/useRequest";
 import CouponsPicker from "@/pages/order/create/components/CouponsPicker";
 import { useUpdate } from "ahooks";
 import { transformMoney } from "@/utils/number";
+import { gotoPayPageResult } from "@/pages/order/utils";
 
 const OrderCreate: React.FC = () => {
   const router = useRouter();
@@ -21,6 +22,7 @@ const OrderCreate: React.FC = () => {
   const [currentConsignee, setCurrentConsignee] = useState();
   const form = Form.useForm();
   const forceUpdate = useUpdate();
+  const [saveLoading, setSaveLoading] = useState(false);
   // 请求产品列表数据
   const { loading: productLoading, data: productData } = useRequest(
     async () => {
@@ -152,29 +154,44 @@ const OrderCreate: React.FC = () => {
 
   const submitHandle = async () => {
     const val = getFormatValue();
-    const res = await request.post(`/client/order/submit`, {
-      ...val,
-      open_id: wx.getStorageSync("open_id"),
-    });
-
-    if (res.success) {
-      const data: Record<string, string> = res?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
-      wx.requestPayment({
-        timeStamp: data.timestamp,
-        nonceStr: data.nonce_str,
-        package: data.package,
-        signType: "RSA" as any,
-        paySign: data.pay_sign,
-        success: (res) => {
-          Taro.navigateTo({
-            url: `/pages/order/detail/index?id=${res.data.id}`,
-          });
-        },
-        fail: (e) => {
-          console.log(e);
-        },
+    setSaveLoading(true);
+    const res = await request
+      .post(`/client/order/submit`, {
+        ...val,
+        open_id: wx.getStorageSync("open_id"),
+      })
+      .catch((e) => {
+        setSaveLoading(false);
       });
+
+    if (res?.success) {
+      const resPay = await request
+        .post(`/client/order/pay/submit`, {
+          open_id: wx.getStorageSync("open_id"),
+          order_id: res?.data?.id,
+        })
+        .catch((e) => {
+          setSaveLoading(false);
+        });
+
+      if (resPay?.success) {
+        const data: Record<string, string> = resPay?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
+        wx.requestPayment({
+          timeStamp: data.timestamp,
+          nonceStr: data.nonce_str,
+          package: data.package,
+          signType: "RSA" as any,
+          paySign: data.pay_sign,
+          success: (res) => {
+            gotoPayPageResult(true);
+          },
+          fail: (e) => {
+            gotoPayPageResult(true);
+          },
+        });
+      }
     }
+    setSaveLoading(false);
   };
 
   return (
@@ -185,7 +202,8 @@ const OrderCreate: React.FC = () => {
           areaLoading ||
           consigneeLoading ||
           couponsLoading ||
-          deliveryFeeLoading
+          deliveryFeeLoading ||
+          saveLoading
         }
         footer={
           <View className={styles.footer}>
@@ -193,6 +211,7 @@ const OrderCreate: React.FC = () => {
               <Text className={"text-12"}>￥</Text>
               {transformMoney(getFormatValue()?.amount_total)}
             </View>
+
             <Button
               type="primary"
               block

@@ -7,7 +7,10 @@ import cn.jongwong.server.dto.order.OrderPayDTO;
 import cn.jongwong.server.dto.order.OrderProductItemDTO;
 import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
-import cn.jongwong.server.entity.*;
+import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
+import cn.jongwong.server.entity.OrderItemVO;
+import cn.jongwong.server.entity.OrderVO;
+import cn.jongwong.server.entity.PaymentVO;
 import cn.jongwong.server.enums.OrderItemTypeEnum;
 import cn.jongwong.server.enums.OrderStatusEnum;
 import cn.jongwong.server.enums.PaymentStatusEnum;
@@ -189,37 +192,6 @@ public class OrderService {
                     return e;
                 }).flatMap((p) -> {
                     return findOneByOrderId(data.getOrderId());
-                }).flatMap((order) -> {
-                    var p = payment.get();
-                    if (p == null) {
-                        return Mono.error(new Exception("支付记录不存在"));
-
-                    }
-
-                    return weChatPayService.refundJsApiOrder(order, payment.get(), data).flatMap(re -> {
-                        var transactionId = re.get("transaction_id");
-                        var outRefundNo = re.get("out_refund_no");
-                        var refundAmountStr = re.get("refund_amount");
-                        // 转成int
-                        var refundAmount = Integer.parseInt(refundAmountStr);
-
-                        var refund = RefundVO.builder()
-                                .id(UUID.randomUUID().toString())
-                                .orderId(data.getOrderId())
-                                .amount(refundAmount)
-                                .paymentMethod(1)
-                                .status(10)
-                                .refundAt(now)
-                                .transactionId(transactionId)
-                                .transactionNo(outRefundNo)
-                                .createdAt(now)
-                                .createdBy(order.getCreatedBy())
-                                .createdByName(order.getCreatedByName())
-                                .build();
-                        return refundService.insert(refund).map((e) -> order);
-                    });
-
-
                 })
                 .map(order -> {
                     order.setStatus(OrderStatusEnum.REFUND_IN_PROGRESS.getCode());
@@ -227,6 +199,30 @@ public class OrderService {
                 }).flatMap(this::update);
 
     }
+//
+//        return weChatPayService.refundJsApiOrder(order, payment.get(), data).flatMap(re -> {
+//        var transactionId = re.get("transaction_id");
+//        var outRefundNo = re.get("out_refund_no");
+//        var refundAmountStr = re.get("refund_amount");
+//        // 转成int
+//        var refundAmount = Integer.parseInt(refundAmountStr);
+//
+//        var refund = RefundVO.builder()
+//                .id(UUID.randomUUID().toString())
+//                .orderId(data.getOrderId())
+//                .amount(refundAmount)
+//                .paymentMethod(1)
+//                .status(10)
+//                .refundAt(now)
+//                .transactionId(transactionId)
+//                .transactionNo(outRefundNo)
+//                .createdAt(now)
+//                .createdBy(order.getCreatedBy())
+//                .createdByName(order.getCreatedByName())
+//                .build();
+//        return refundService.insert(refund).map((e) -> order);
+//    });
+//
 
     @Transactional
     public Mono<OrderVO> finishRefund(String orderNum, String outTradeNo, String transactionId) {

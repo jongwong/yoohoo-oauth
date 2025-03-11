@@ -1,5 +1,6 @@
 export default defineAppConfig({
-  entryPagePath: "pages/index/index",
+  entryPagePath: "pages/admin/group/list/index",
+
   pages: [
     "pages/index/index",
     "pages/home/index",
@@ -11,6 +12,9 @@ export default defineAppConfig({
     "pages/profile/index",
     "pages/registration/index",
     "pages/login/index",
+    "pages/status-page/index",
+    "pages/admin/group/list/index",
+    "pages/admin/group/detail/index",
   ],
   permission: {
     "scope.userLocation": {

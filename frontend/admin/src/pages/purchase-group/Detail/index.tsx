@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { ContentLayout, ProxyWrapped } from '@yoo/component';
+import { ContentLayout, OssUpload, ProxyWrapped } from '@yoo/component';
 import {
 	EDefaultValueType,
 	ProEditTable,
@@ -29,6 +29,7 @@ import { RangePickerProps } from 'antd/es/date-picker';
 import dayjs from 'dayjs';
 import { transformToFields } from '@/utils/transform';
 import DeliveryTimeRangePicker from '@/pages/purchase-group/component/DeliveryTimeRangePicker';
+import ImgCrop from 'antd-img-crop';
 
 const RangesTimeComponent: React.FC = () => {
 	return <div>oo</div>;
@@ -74,8 +75,18 @@ const Detail: React.FC = () => {
 		const res = await getPurchaseGroupById(groupId).finally(() => {
 			setLoading(false);
 		});
-		form.setFieldsValue({ ...res?.data });
-		setDetailData({ ...res?.data });
+
+		const val = res?.data || {};
+		val.img_url = val.img_url
+			? [
+					{
+						url: val?.img_url,
+						name: val?.img_url,
+					},
+			  ]
+			: undefined;
+		form.setFieldsValue({ ...val });
+		setDetailData({ ...val });
 		setEditable(false);
 		forceUpdate();
 		return res;
@@ -84,6 +95,25 @@ const Detail: React.FC = () => {
 	const generateName = (addressName = '', time?: number) => {
 		// 地址名称 + 送餐时间的日期加小时
 		return addressName + dayjs(time).format('YYYYMMDDHH');
+	};
+
+	const renderImageEdit = (t: any, r: any) => {
+		return (
+			<ProxyWrapped>
+				{(op: any) => (
+					<ImgCrop rotationSlider>
+						<OssUpload
+							multiple
+							listType={'picture-card'}
+							{...op}
+							onChange={(e: any) => {
+								op?.onChange?.(e);
+							}}
+							value={Array.isArray(op?.value) ? op?.value : []}></OssUpload>
+					</ImgCrop>
+				)}
+			</ProxyWrapped>
+		);
 	};
 	const fields: ProFormItemsFieldType[] = [
 		{
@@ -248,11 +278,19 @@ const Detail: React.FC = () => {
 				);
 			},
 		},
+		{
+			label: '团购图片',
+			name: 'img_url',
+			valueType: EDefaultValueType.Image,
+			renderFormItem: renderImageEdit,
+		},
 	];
 
 	const saveHandle = async () => {
 		await form.validateFields();
 		const val = form.getFieldsValue(true);
+
+		val.img_url = val?.img_url?.[0]?.url;
 		setLoading(true);
 		const fn = groupId ? updatePurchaseGroup(groupId, val) : createPurchaseGroup(val);
 		const res = await fn.finally(() => {

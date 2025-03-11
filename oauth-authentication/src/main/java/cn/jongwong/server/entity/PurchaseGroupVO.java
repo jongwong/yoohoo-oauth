@@ -28,6 +28,11 @@ public class PurchaseGroupVO {
     @NotNull(message = "名称不能为空")
     private String name;
 
+
+    @Schema(description = "团购图片")
+    private String imgUrl;
+
+
     @Schema(description = "配送点ID")
     @NotNull(message = "配送不能为空")
     private String distributionPointId;

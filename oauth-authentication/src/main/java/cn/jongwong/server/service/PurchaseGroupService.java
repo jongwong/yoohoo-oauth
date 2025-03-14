@@ -9,12 +9,13 @@ import cn.jongwong.server.repository.PurchaseGroupRepository;
 import cn.jongwong.server.util.response.EntityUtils;
 import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @Service
 public class PurchaseGroupService {
@@ -29,55 +30,67 @@ public class PurchaseGroupService {
     private ProductRepository productRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
     R2dbcEntityTemplate r2dbcEntityTemplate;
 
     @Autowired
     private PurchaseGroupProductRepository purchaseGroupProductRepository;
 
 
+    @Transient
     public Mono<PurchaseGroupVO> update(PurchaseGroupVO data) {
 
 
         EntityUtils.ensureIdExists(data);
 
-        // 显式事务控制
-        return transactionalOperator.transactional(
-                purchaseGroupRepository.save(data)  // 保存团购信息
-                        .flatMap(updatedGroup -> {
+        return userService.getCurrentUserReactive().map((u) -> {
+                    data.setCreatedBy(u.getId());
+                    data.setCreatedByName(u.getName());
+                    data.setCreatedAt(LocalDateTime.now());
+                    return data;
+                }).flatMap((d) -> purchaseGroupRepository.save(d))
+                .flatMap(updatedGroup -> {
 
-                            // 设置purchaseGroupId
-                            var products = data.getProducts();
-                            products.forEach(product -> {
-                                product.setPurchaseGroupId(data.getId());
-                            });
+                    // 设置purchaseGroupId
+                    var products = data.getProducts();
+                    products.forEach(product -> {
+                        product.setPurchaseGroupId(data.getId());
+                    });
 
 
-                            return purchaseGroupProductRepository.saveRefAll(products)  // 保存商品信息
-                                    .collectList()
-                                    .then(Mono.just(updatedGroup)); // 返回更新后的团购信息
-                        })
-        );
+                    return purchaseGroupProductRepository.saveRefAll(products)  // 保存商品信息
+                            .collectList()
+                            .then(Mono.just(updatedGroup)); // 返回更新后的团购信息
+                });
     }
 
+    @Transient
     public Mono<PurchaseGroupVO> create(@AutoCreatedField PurchaseGroupVO data) {
 
-        // 显式事务控制
-        return transactionalOperator.transactional(
-                purchaseGroupRepository.insert(data)  // 保存团购信息
-                        .flatMap(updatedGroup -> {
+        return userService.getCurrentUserReactive().map((u) -> {
+            data.setCreatedBy(u.getId());
+            data.setCreatedByName(u.getName());
+            data.setCreatedAt(LocalDateTime.now());
+            return data;
+        }).flatMap((d) -> purchaseGroupRepository.insert(d)).flatMap(updatedGroup -> {
 
-                            // 设置purchaseGroupId
-                            var products = data.getProducts();
-                            products.forEach(product -> {
-                                product.setPurchaseGroupId(data.getId());
-                            });
+            // 设置purchaseGroupId
+            var products = data.getProducts();
+            products.forEach(product -> {
+                product.setPurchaseGroupId(data.getId());
+            });
 
 
-                            return purchaseGroupProductRepository.saveRefAll(products)  // 保存商品信息
-                                    .collectList()
-                                    .then(Mono.just(updatedGroup)); // 返回更新后的团购信息
-                        })
-        );
+            return purchaseGroupProductRepository.saveRefAll(products)  // 保存商品信息
+                    .collectList()
+                    .then(Mono.just(updatedGroup)); // 返回更新后的团购信息
+        });
+
     }
     public Mono<PurchaseGroupVO> findById(String id) {
         // 合并purchaseGroupRepository  purchaseGroupProductRepository
@@ -99,14 +112,23 @@ public class PurchaseGroupService {
                 })
 
                 .flatMap((e) -> {
+                    var ids = e.getProducts().stream().map(PurchaseGroupProductVO::getProductId).toList();
                     // products 批量查商品找到商品名称和商code
-                    return productRepository.findAllById(e.getProducts().stream().map(PurchaseGroupProductVO::getProductId).collect(Collectors.toList()))
+                    return productService.findByIdsWithImage(ids)
                             .collectList()
                             .map(list -> {
                                 e.getProducts().forEach(product -> {
                                     list.stream().filter(p -> p.getId().equals(product.getProductId())).findFirst().ifPresent(p -> {
                                         product.setProductName(p.getName());
                                         product.setProductCode(p.getCode());
+                                        product.setPrice(p.getPrice());
+
+                                        if (p.getMainImage() != null && !p.getMainImage().isEmpty()) {
+                                            var findImage = p.getMainImage().get(0);
+
+                                            product.setImageUrl(findImage.getUrl());
+                                        }
+
                                     });
                                 });
                                 return e;

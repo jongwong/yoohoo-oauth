@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Cell, Empty, Loading, Popup, Search } from "@antmjs/vantui";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
+import { Cell, Empty, Popup, Search } from "@antmjs/vantui";
 import { Input, ScrollView, View } from "@tarojs/components";
+import { useDebounceFn } from "ahooks";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -19,19 +20,24 @@ export type SearchSelectProps<T = any> = {
   value?: string;
   onChange?: (value: any) => void;
   searchKeyword?: string;
+  optionRender?: (item: any) => React.ReactNode;
+  renderInput?: (opt: { open: () => void }) => ReactNode;
 };
 
 const SearchSelect: React.FC<SearchSelectProps> = ({
   request,
+  renderInput,
   params = {},
   loadInitialOptions,
-  triggerMode = "search",
+  triggerMode = "open",
   searchKeyword = "name",
+  optionRender,
   fieldNames = { label: "label", value: "value", key: "key" },
   value,
   onChange,
 }) => {
-  const [searchString, setSearchString] = useState("");
+  const [searchString, _setSearchString] = useState("");
+  const searchStringRef = useRef("");
   const [data, setData] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [total, setTotal] = useState(-1);
@@ -54,6 +60,11 @@ const SearchSelect: React.FC<SearchSelectProps> = ({
     });
   }, [value]);
 
+  const setSearchString = (val: string) => {
+    searchStringRef.current = val;
+    _setSearchString(val);
+  };
+
   // **请求数据**
   const fetchData = async (reset = false) => {
     if (loading || (!reset && !hasMore.current)) return;
@@ -65,9 +76,8 @@ const SearchSelect: React.FC<SearchSelectProps> = ({
         ...params,
         page: _page,
         size: DEFAULT_PAGE_SIZE,
-        [searchKeyword]: searchString,
+        [searchKeyword]: searchStringRef.current || undefined,
       });
-
       setData(reset ? response.data : [...data, ...response.data]);
       setTotal(response.total);
       setPage(_page + 1);
@@ -76,73 +86,100 @@ const SearchSelect: React.FC<SearchSelectProps> = ({
       setLoading(false);
     }
   };
+  const { run: handleSearch } = useDebounceFn(
+    (val) => {
+      setSearchString(val);
+      setPage(1);
+      fetchData(true);
+    },
+    { wait: 300 }
+  );
 
-  // **搜索**
-  const handleSearch = (value) => {
-    setSearchString(value);
-    setPage(1);
-    fetchData(true);
-  };
-
-  // **触发模式**
-  useEffect(() => {
+  const initFetch = () => {
     if (triggerMode === "init" && !initialized.current) {
       initialized.current = true;
       fetchData(true);
     }
+  };
+  // **触发模式**
+  useEffect(() => {
+    initFetch();
   }, []);
 
   // **滚动加载**
   const handleScroll = (event) => {
     const { scrollTop, scrollHeight, clientHeight } = event.detail;
     if (scrollTop + clientHeight >= scrollHeight - 50) {
-      fetchData();
+      fetchData(false);
     }
   };
-
+  const open = () => {
+    if (triggerMode === "open") {
+      if (!initialized.current) {
+        initialized.current = true;
+        fetchData(true);
+      }
+    }
+    setPopupVisible(true);
+  };
   return (
     <>
-      <Input
-        value={selected ? selected[fieldNames.label] : ""}
-        placeholder="点击搜索"
-        onClick={() => setPopupVisible(true)}
-      />
+      {renderInput ? (
+        renderInput({ open })
+      ) : (
+        <Input
+          value={selected ? selected[fieldNames.label] : ""}
+          placeholder="请选择"
+          onClick={() => open()}
+        />
+      )}
       <Popup
         show={popupVisible}
         onClose={() => setPopupVisible(false)}
         round
         position="bottom"
+        style={{ height: "80vh" }}
       >
-        <View style={{ padding: "10px" }}>
+        {/* 顶部搜索框 - 固定 */}
+        <View
+          style={{
+            position: "sticky",
+            top: 0,
+            backgroundColor: "#fff",
+            zIndex: 10,
+          }}
+        >
           <Search
             placeholder="请输入关键字"
             value={searchString}
-            onChange={(e) => handleSearch(e.detail)}
+            onChange={(e) => {
+              handleSearch(e.detail);
+            }}
           />
         </View>
-        <ScrollView
-          scrollY
-          style={{ maxHeight: "400px" }}
-          onScroll={handleScroll}
-        >
-          {data.length ? (
-            data.map((item) => (
-              <Cell
-                key={item[fieldNames.key]}
-                title={item[fieldNames.label]}
-                onClick={() => {
-                  setSelected(item);
-                  onChange?.(item);
-                  setPopupVisible(false);
-                }}
-              />
-            ))
-          ) : loading ? (
-            <Loading />
-          ) : (
-            <Empty description="暂无数据" />
-          )}
-        </ScrollView>
+
+        <View>
+          {/* 可滚动内容区域 */}
+          <ScrollView scrollY onScroll={handleScroll}>
+            {data.length ? (
+              data.map((item) => (
+                <Cell
+                  key={item[fieldNames.key]}
+                  title={
+                    optionRender ? optionRender(item) : item[fieldNames.label]
+                  }
+                  onClick={() => {
+                    setSelected(item);
+                    onChange?.(item);
+                    setPopupVisible(false);
+                  }}
+                />
+              ))
+            ) : (
+              <Empty description="暂无数据" />
+            )}
+          </ScrollView>
+        </View>
       </Popup>
     </>
   );

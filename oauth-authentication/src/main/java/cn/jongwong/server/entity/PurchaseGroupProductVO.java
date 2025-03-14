@@ -28,8 +28,6 @@ public class PurchaseGroupProductVO {
     private Integer maxStock;
 
 
-    @Schema(description = "商品已售数量")
-    private Integer soldQuantity;
 
 
     @Schema(description = "商品ID")
@@ -42,5 +40,18 @@ public class PurchaseGroupProductVO {
     @Schema(description = "商品名称")
     @Transient
     private String productName;
+
+
+    @Schema(description = "商品价格")
+    @Transient
+    private Integer price;
+
+    @Schema(description = "商品折扣价")
+    private Integer discountPrice;
+
+
+    @Schema(description = "商品图片")
+    @Transient
+    private String imageUrl;
 
 }

@@ -11,6 +11,8 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 @Data
@@ -111,4 +113,15 @@ public class ProductVO {
 
     @Schema(description = "更新时间")
     private LocalDateTime updatedAt;
+
+
+    public List<ProductImageVO> getThumbnailImage() {
+        return thumbnailImage == null ? List.of() :
+                thumbnailImage.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    public void setThumbnailImage(List<ProductImageVO> thumbnailImage) {
+        this.thumbnailImage = thumbnailImage == null ? List.of() :
+                thumbnailImage.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    }
 }

@@ -9,7 +9,7 @@ import {
 	ProFormItemsFieldType,
 } from '@yoo/pro-component';
 import { useUpdate } from 'ahooks';
-import { Button, Card, DatePicker, Form, message, Space, Typography } from 'antd';
+import { Button, Card, DatePicker, Form, Image, message, Space, Typography } from 'antd';
 
 import ProductSearchSelect from '@/component/business/ProductSearchSelect';
 import { GlobalEnableTypeMap } from '@/constant/common';
@@ -30,6 +30,7 @@ import dayjs from 'dayjs';
 import { transformToFields } from '@/utils/transform';
 import DeliveryTimeRangePicker from '@/pages/purchase-group/component/DeliveryTimeRangePicker';
 import ImgCrop from 'antd-img-crop';
+import { generateFileUrl } from '@/utils/file';
 
 const RangesTimeComponent: React.FC = () => {
 	return <div>oo</div>;
@@ -418,21 +419,42 @@ const Detail: React.FC = () => {
 									dataIndex: 'product_id',
 									formItemProps: {
 										rules: [{ required: true }],
+										getValueFromEvent: (e, op) => {
+											console.log('=====op=====', op);
+											return e;
+										},
 									},
 									renderFormItem: (t, r) => {
-										return <ProductSearchSelect />;
+										return <ProductSearchSelect className={'w-1-1'} />;
 									},
 									render: (t, r) => {
 										return [r.product_code, r.product_name].join(':');
 									},
-									width: '50%',
+									width: '20%',
 								},
+								{
+									title: '商品图片',
+									dataIndex: 'image_url',
+									editable: false,
+									visible: !editable,
+									width: '20%',
+									render: (t, r) => {
+										return <Image width={80} height={80} src={generateFileUrl(t)} />;
+									},
+								},
+
 								{
 									title: '最大库存',
 									dataIndex: 'max_stock',
+									width: editable ? '40%' : '40%',
 									valueType: EDefaultValueType.PositiveInteger,
 								},
-
+								{
+									title: '折扣价',
+									dataIndex: 'discount_price',
+									width: '20%',
+									valueType: EDefaultValueType.Money,
+								},
 								{
 									title: '操作',
 									dataIndex: '_action',

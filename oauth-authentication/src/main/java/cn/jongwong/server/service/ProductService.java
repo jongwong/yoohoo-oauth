@@ -6,9 +6,11 @@ import cn.jongwong.server.entity.ProductImageVO;
 import cn.jongwong.server.entity.ProductVO;
 import cn.jongwong.server.enums.coupons.CouponsStatus;
 import cn.jongwong.server.enums.product.ProductArchivedStatus;
+import cn.jongwong.server.enums.product.ProductImageType;
 import cn.jongwong.server.repository.ProductImageRepository;
 import cn.jongwong.server.repository.ProductRepository;
 import cn.jongwong.server.util.response.Page;
+import cn.jongwong.server.util.response.PageResponse;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
@@ -228,6 +230,51 @@ public class ProductService {
 
     }
 
+    public Mono<Page<ProductVO>> searchWithImage(String name, String status, int page, int size) {
+
+
+        return productRepository.findPageByDSL(page, size, (sql) -> {
+
+            var groupString = """
+                    COALESCE(
+                            JSON_ARRAYAGG(
+                                    IF(p_img.id IS NOT NULL,
+                                       JSON_OBJECT(
+                                               'id', p_img.id,
+                                               'url', p_img.url,
+                                               'name', p_img.name
+                                       ),
+                                       NULL
+                                    )
+                            ),
+                            JSON_ARRAY()
+                    ) AS thumbnail_image
+                    """;
+
+            return sql.as("p").field(groupString, true).like("name", name)
+                    .eq("status", status)
+                    .withJoin(t -> t.left()
+
+                            .table("tb_product_images p_img")
+                            .on("p.id = p_img.product_id  AND p_img.image_type =  " + ProductImageType.THUMBNAIL.getCode()));
+
+        }).map(pageData -> {
+            List<ProductVO> userResList = pageData.getData().stream()
+                    .map(user -> MapperUtil.mapFields(user, ProductVO.class))
+                    .toList();
+
+            return new Page<>(
+                    userResList,
+                    pageData.getTotal(),
+                    pageData.getPage(),
+                    pageData.getSize()
+            );
+        });
+
+
+    }
+
+
     public Mono<ProductVO> reject(String id, String rejectionReason) {
         return productRepository.findById(id)
                 .map(couponsVO -> {
@@ -279,11 +326,67 @@ public class ProductService {
         return productRepository.findAllByIdIn(ids);
     }
 
-    public Flux<ProductVO> findByGroupIds(List<String> ids) {
+    public Flux<ProductVO> findByIdsWithImage(List<String> ids) {
         if (ids == null) {
             return Flux.empty();
         }
-        return productRepository.findAllByIdIn(ids);
+        return productRepository.findAllByIdIn(ids).flatMap(e -> productImageRepository.findByProductId(e.getId())
+                .collectList()
+                .map(imgList -> {
+                    // 按 imageType 归类
+                    Map<Integer, List<ProductImageVO>> groupedImages = new HashMap<>();
+                    for (ProductImageVO img : imgList) {
+                        groupedImages.computeIfAbsent(img.getImageType(), k -> new ArrayList<>()).add(img);
+                    }
+
+                    e.setMainImage(findImageByType(groupedImages, 1));
+                    e.setThumbnailImage(findImageByType(groupedImages, 2));
+                    e.setCarouselImages(findImageByType(groupedImages, 3));
+                    e.setOtherImages(findImageByType(groupedImages, 4));
+
+                    return e;
+                }));
     }
+
+
+    public Mono<PageResponse<ProductVO>> searchProductWithImage(String name, String status, int page, int size) {
+        return search(name, status, page, size)
+                .flatMap(e -> {
+                    List<String> ids = e.getData().stream().map(ProductVO::getId).toList();
+
+                    return productImageService.findAllByProductIdIn(ids)
+                            .collectList()
+                            .map(imgList -> {
+                                // 按 productId 分组
+                                Map<String, List<ProductImageVO>> imageMap = new HashMap<>();
+                                for (ProductImageVO img : imgList) {
+                                    imageMap.computeIfAbsent(img.getProductId(), k -> new ArrayList<>()).add(img);
+                                }
+
+
+                                // 组装商品和图片
+                                List<ProductVO> updatedProducts = e.getData().stream().map(product -> {
+                                    ProductVO newProduct = product.toBuilder().build();
+                                    List<ProductImageVO> productImages = imageMap.getOrDefault(product.getId(), new ArrayList<>());
+                                    // 按 imageType 归类
+                                    Map<Integer, List<ProductImageVO>> groupedImages = new HashMap<>();
+                                    for (ProductImageVO img : productImages) {
+                                        groupedImages.computeIfAbsent(img.getImageType(), k -> new ArrayList<>()).add(img);
+                                    }
+
+                                    newProduct.setMainImage(findImageByType(groupedImages, 1));
+                                    newProduct.setThumbnailImage(findImageByType(groupedImages, 2));
+                                    newProduct.setCarouselImages(findImageByType(groupedImages, 3));
+                                    newProduct.setOtherImages(findImageByType(groupedImages, 4));
+
+                                    return newProduct;
+                                }).toList();
+
+                                // 返回新的 PageResponse
+                                return new PageResponse<ProductVO>(0, "", updatedProducts, e.getTotal());
+                            });
+                });
+    }
+
 
 }

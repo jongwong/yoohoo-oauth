@@ -28,6 +28,7 @@ const ProEditTable: React.FC<ProEditTableProps> = props => {
 							label={undefined}
 							{...column}
 							name={itemName}
+							_isTable
 							allEditable={editable}
 							getRecord={() => r}
 							getArgs={e => {

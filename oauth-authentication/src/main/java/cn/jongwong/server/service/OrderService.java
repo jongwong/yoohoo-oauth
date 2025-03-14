@@ -328,10 +328,10 @@ public class OrderService {
                             throw new RuntimeException("商品上架状态不能为" + ProductListedStatus.fromCode(p.getListedStatus()).getDescription());
                         }
 
-                        var leftover = p.getMaxStock() - p.getSoldQuantity();
-                        if (leftover < find.getCount()) {
-                            throw new RuntimeException("商品库存不足");
-                        }
+//                        var leftover = p.getMaxStock() - p.getSoldQuantity();
+//                        if (leftover < find.getCount()) {
+//                            throw new RuntimeException("商品库存不足");
+//                        }
 
                         if (p.getPrice().compareTo(find.getPrice()) != 0) {
                             throw new RuntimeException("价格已经发生变化，请重新刷新页面数据");

@@ -22,7 +22,7 @@ public class PurchaseGroupProductService {
             "pgp.purchase_group_id",
             "pgp.product_id",
             "pgp.max_stock",
-            "pgp.sold_quantity",
+            "pgp.discount_price",
             "p.id AS product_id",
             "p.code AS product_code",
             "p.name as product_name",
@@ -52,7 +52,7 @@ public class PurchaseGroupProductService {
                         .column("pgp.purchase_group_id")
                         .column("pgp.product_id")
                         .column("pgp.max_stock")
-                        .column("pgp.sold_quantity")
+                        .column("pgp.discount_price")
                         .column("p.code")
                         .column("p.name")
                         .column("p.price")

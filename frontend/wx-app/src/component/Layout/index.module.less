@@ -9,9 +9,9 @@
 
   background: transparent;
   font-size: 14px;
-
-  overflow: scroll;
+  overflow: auto; /* 改为 auto，防止超出时出现滚动 */
   position: relative;
+  flex: 1; /* 让它填充整个可用区域 */
 }
 
 .yo-layout-wrapper {
@@ -27,7 +27,11 @@
 }
 
 .yo-layout-footer {
+  background: #fff; /* 确保底部背景色，防止透明 */
+  padding-bottom: env(safe-area-inset-bottom); /* 适配 iPhone 底部安全区域 */
+  z-index: 10; /* 确保在最上层 */
 }
 
 .yo-layout-has-footer {
+  //padding-bottom: calc(16px + env(safe-area-inset-bottom)); /* 避免内容被遮挡 */
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import request from "@/utils/request";
 import SearchSelect, { SearchSelectProps } from "@/component/SearchSelect";
+import { View } from "@tarojs/components";
 
 type DistributionPointSelectProps = Omit<SearchSelectProps, "request">;
 const DistributionPointSelect: React.FC<DistributionPointSelectProps> = (
@@ -14,9 +15,9 @@ const DistributionPointSelect: React.FC<DistributionPointSelectProps> = (
         label: "name",
         value: "id",
       }}
-      placeholder={"请输入商品名称或者编码"}
+      placeholder={"请输入地址"}
       optionRender={(e) => {
-        return e.label;
+        return <View>{e?.name}</View>;
       }}
       loadInitialOptions={async (e) => {
         const res = await getProductBatchAll({ ids: e as string[] });

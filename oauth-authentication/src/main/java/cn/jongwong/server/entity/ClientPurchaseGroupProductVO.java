@@ -24,14 +24,10 @@ public class ClientPurchaseGroupProductVO {
     @Schema(description = "团购ID")
     private String purchaseGroupId;
 
-    @Schema(description = "团购商品关联ID")
-    private String groupProductId;
 
     @Schema(description = "商品团购最大库存")
     private Integer maxStock;
 
-    @Schema(description = "已售数量")
-    private Integer soldQuantity;
 
     // 商品相关信息
     @Schema(description = "商品编号")

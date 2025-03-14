@@ -4,7 +4,10 @@ import cn.jongwong.server.entity.ProductImageVO;
 import cn.jongwong.server.repository.ProductImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Service
 public class ProductImageService {
@@ -18,6 +21,11 @@ public class ProductImageService {
     // 根据商品ID和图片URL查找图片
     public Mono<ProductImageVO> findByProductIdAndUrl(String productId, String url) {
         return productImageRepository.findByProductIdAndUrl(productId, url);
+    }
+
+
+    public Flux<ProductImageVO> findAllByProductIdIn(List<String> ids) {
+        return productImageRepository.findAllByProductIdIn(ids);
     }
 
     public Mono<ProductImageVO> save(ProductImageVO image, String productId) {

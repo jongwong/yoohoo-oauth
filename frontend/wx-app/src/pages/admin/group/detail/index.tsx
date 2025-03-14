@@ -1,23 +1,67 @@
 import Layout from "@/component/Layout";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
 import { useRouter } from "@tarojs/taro";
-import { Form, FormItem, Image } from "@antmjs/vantui";
-import { Input, Textarea } from "@tarojs/components";
+import {
+  Button,
+  Cell,
+  Divider,
+  Form,
+  FormItem,
+  Image,
+  ImageViewer,
+  Toast,
+} from "@antmjs/vantui";
+import { Input, Text, Textarea, View } from "@tarojs/components";
 import ProxyWrapped from "@/component/ProxyWrapped";
 import DistributionPointSelect from "@/pages/admin/group/detail/DistributionPointSelect";
 import TimePicker from "@/pages/admin/group/detail/TimePicker";
 import dayjs from "dayjs";
 import { generateFileUrl } from "@/utils/file";
 import OssUpload from "@/component/OssUpload";
+import ProductSelect from "@/pages/admin/group/detail/ProductSelect";
+import { useUpdate } from "ahooks";
+import { divide, multiply } from "@/utils/number";
+import { cloneDeep, isNumber, uniqueId } from "lodash-es";
+import {
+  createPurchaseGroup,
+  updatePurchaseGroup,
+} from "@/pages/admin/group/detail/service";
+import { EMPTY_TEXT } from "@/constant";
 
 const Index: React.FC = () => {
   const router = useRouter();
   const form = Form.useForm();
-  const [readonly, setReadonly] = useState(false);
-  const { runAsync: fetchGroupData, data: groupDetailData } = useRequest(
+
+  const [detailData, setDetailData] = useState({});
+  const [saveLoading, setSaveLoading] = useState(false);
+  const groupId = router.params?.id;
+  const [readonly, setReadonly] = useState(true);
+
+  const [productList, setProductList] = useState([]);
+  const [formUidKey, setFormUidKey] = useState("");
+
+  const getFormatData = (data) => {
+    const val = cloneDeep(data || {});
+    val.img_url = val.img_url
+      ? [
+          {
+            url: val?.img_url,
+            name: val?.img_url,
+          },
+        ]
+      : undefined;
+    return val;
+  };
+  const historyDataRef = useRef();
+  const forceUpdate = useUpdate();
+  const {
+    runAsync: fetchGroupData,
+    data: groupDetailData,
+    loading,
+  } = useRequest(
     () => {
       return request.get(`/client/admin/group/${router.params?.id}`, {
         params: {},
@@ -27,18 +71,11 @@ const Index: React.FC = () => {
       refreshDeps: [router.params?.id],
       ready: !!router.params?.id,
       onSuccess: (res) => {
-        const val = res?.data || {};
-        val.img_url = val.img_url
-          ? [
-              {
-                url: val?.img_url,
-                name: val?.img_url,
-              },
-            ]
-          : undefined;
+        const data = getFormatData(res?.data);
 
-        form.setFields(val);
-        form.setFieldsValue("img_url", val.img_url);
+        setDetailData(data);
+        setProductList(data.products);
+        setFormUidKey(uniqueId());
         return res?.data;
       },
     }
@@ -46,26 +83,251 @@ const Index: React.FC = () => {
   const formatTime = (e?: number) => {
     return e ? dayjs(e).format("YYYY-MM-DD HH:mm:ss") : "--";
   };
+  const onRemove = (idx: number) => {
+    const old = productList || [];
+
+    const newList = old.filter((item, index) => index !== idx);
+    setProductList(newList);
+    forceUpdate();
+  };
+
+  const formatAmount = (e) => {
+    return isNumber(e) ? String(divide(e, 100)) : undefined;
+  };
+
+  useEffect(() => {
+    setReadonly(!!groupId);
+  }, [groupId]);
+  const renderProductItem = (item, idx) => {
+    return (
+      <View
+        style={{
+          marginBottom: "12px",
+          borderRadius: "8px",
+          backgroundColor: "#f8f8f8",
+          position: "relative",
+        }}
+      >
+        {/* 商品标题 */}
+        <Cell
+          title={`${item.product_name}`}
+          titleStyle={{
+            fontSize: "18px",
+          }}
+          isLink={false}
+          renderExtra={
+            <View style={{ textAlign: "right", marginTop: "10px" }}>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => onRemove(idx)}
+                plain
+              >
+                删除
+              </Button>
+            </View>
+          }
+        />
+
+        <FormItem
+          label="商品图片"
+          name={["products", idx, "image_url"]}
+          trigger="onInput"
+          valueFormat={(e) => e.detail.value}
+        >
+          <ProxyWrapped>
+            {(cfg) => (
+              <Image
+                src={generateFileUrl(item?.image_url)}
+                width={60}
+                height={60}
+                onClick={() =>
+                  ImageViewer.show({
+                    list: [generateFileUrl(item?.image_url)],
+                    currentIndex: 0,
+                  })
+                }
+              />
+            )}
+          </ProxyWrapped>
+        </FormItem>
+
+        <FormItem
+          label="原价"
+          name={["products", idx, "price"]}
+          trigger="onInput"
+          valueFormat={(e) => e.detail.value}
+        >
+          <ProxyWrapped>
+            {(cfg) => (
+              <Text>
+                {isNumber(item?.price) ? formatAmount(item?.price) : EMPTY_TEXT}
+              </Text>
+            )}
+          </ProxyWrapped>
+        </FormItem>
+        <FormItem
+          label="折扣价"
+          name={["products", idx, "discount_price"]}
+          trigger="onInput"
+          valueFormat={(e) => e.detail.value}
+        >
+          {readonly ? (
+            <ProxyWrapped>
+              {(cfg) => (
+                <Text>
+                  {isNumber(item?.discount_price)
+                    ? formatAmount(item?.discount_price)
+                    : EMPTY_TEXT}
+                </Text>
+              )}
+            </ProxyWrapped>
+          ) : (
+            <ProxyWrapped>
+              {(cfg) => (
+                <Input
+                  type={"number"}
+                  placeholder={"请输入折扣价"}
+                  value={formatAmount(item.discount_price)}
+                  onInput={(e) => {
+                    const val = Number(e.detail.value);
+                    item.discount_price = isNumber(val)
+                      ? multiply(val, 100)
+                      : undefined;
+
+                    setProductList((old) => {
+                      old[idx] = item;
+                      return old;
+                    });
+                  }}
+                />
+              )}
+            </ProxyWrapped>
+          )}
+        </FormItem>
+
+        <FormItem
+          label="最大库存"
+          name={["products", idx, "max_stock"]}
+          trigger="onInput"
+          valueFormat={(e) => e.detail.value}
+        >
+          {readonly ? (
+            <ProxyWrapped>
+              {(cfg) => (
+                <Text>
+                  {isNumber(item?.price) ? item?.max_stock : EMPTY_TEXT}
+                </Text>
+              )}
+            </ProxyWrapped>
+          ) : (
+            <ProxyWrapped>
+              {(cfg) => (
+                <Input
+                  value={item.max_stock}
+                  onInput={(e) => {
+                    const val = Number(e.detail.value);
+                    item.max_stock = val;
+
+                    setProductList((old) => {
+                      old[idx] = item;
+                      return old;
+                    });
+                  }}
+                  type={"number"}
+                  placeholder={"请输入数量"}
+                />
+              )}
+            </ProxyWrapped>
+          )}
+        </FormItem>
+
+        {/* 分隔线（用于多个商品之间的间隔） */}
+        <Divider />
+      </View>
+    );
+  };
+  console.log("=====detailData=====", detailData);
   return (
     <Layout
       edge={"none"}
-      // footer={
-      //   <View>
-      //     <Button
-      //       type="primary"
-      //       block
-      //       size={"small"}
-      //       onClick={async () => {
-      //         form.submit((errs, val) => {});
-      //       }}
-      //     >
-      //       申请退款
-      //     </Button>
-      //   </View>
-      // }
+      loading={loading || saveLoading}
+      footer={
+        <View style={{ padding: "10px" }}>
+          {readonly ? (
+            <>
+              <Button
+                type="primary"
+                block
+                onClick={async () => {
+                  historyDataRef.current = detailData;
+                  setProductList(detailData.products);
+                  form.setFields(detailData);
+
+                  setReadonly(false);
+                }}
+              >
+                编辑
+              </Button>
+            </>
+          ) : (
+            <View style={{ display: "flex", gap: "10px" }}>
+              <Button
+                type="primary"
+                plain
+                hairline
+                block
+                onClick={async () => {
+                  const val = historyDataRef.current;
+                  form.resetFields();
+                  form.setFields(val);
+                  historyDataRef.current = undefined;
+                  setReadonly(true);
+                  setFormUidKey(uniqueId());
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                type="primary"
+                block
+                onClick={async () => {
+                  form.validateFields(async () => {
+                    const val = form.getFieldsValue();
+                    val.products = productList;
+                    val.img_url = val?.img_url?.[0]?.url;
+                    console.log("=====val=====", val);
+                    const fn = groupId
+                      ? updatePurchaseGroup(groupId, val)
+                      : createPurchaseGroup(val);
+
+                    const res = await fn.finally(() => {
+                      setSaveLoading(false);
+                    });
+                    console.log("=====res=====", res);
+                    if (res.success) {
+                      Toast.success({
+                        children: "保存成功",
+                        duration: 2000,
+                      });
+                    }
+                  });
+                }}
+              >
+                保存
+              </Button>
+            </View>
+          )}
+        </View>
+      }
     >
       <view style={{ padding: "16px", backgroundColor: "#fff" }}>
-        <Form form={form} className={"w-1-1"}>
+        <Form
+          form={form}
+          key={formUidKey}
+          initialValues={detailData}
+          className={"w-1-1"}
+        >
           <FormItem
             label="团购名称"
             name="name"
@@ -76,7 +338,7 @@ const Index: React.FC = () => {
             valueFormat={(e) => e.detail.value}
           >
             {readonly ? (
-              <ProxyWrapped>{(cfg) => cfg?.value}</ProxyWrapped>
+              <ProxyWrapped>{(cfg) => cfg?.value || EMPTY_TEXT}</ProxyWrapped>
             ) : (
               <Input placeholder="请输入团购名称" className={"w-1-1"} />
             )}
@@ -93,7 +355,9 @@ const Index: React.FC = () => {
           >
             {readonly ? (
               <ProxyWrapped>
-                {(cfg) => groupDetailData?.distribution_point_name}
+                {(cfg) =>
+                  groupDetailData?.distribution_point_name || EMPTY_TEXT
+                }
               </ProxyWrapped>
             ) : (
               <DistributionPointSelect />
@@ -110,9 +374,9 @@ const Index: React.FC = () => {
             valueFormat={(e) => e.detail.value}
           >
             {readonly ? (
-              <ProxyWrapped>{(cfg) => cfg?.value}</ProxyWrapped>
+              <ProxyWrapped>{(cfg) => cfg?.value || EMPTY_TEXT}</ProxyWrapped>
             ) : (
-              <Textarea />
+              <Textarea maxlength={200} autoHeight />
             )}
           </FormItem>
 
@@ -124,7 +388,11 @@ const Index: React.FC = () => {
             valueFormat={(e) => e.detail.value}
           >
             {readonly ? (
-              <ProxyWrapped>{(cfg) => cfg?.value}</ProxyWrapped>
+              <ProxyWrapped>
+                {(cfg) => (
+                  <Text>{isNumber(cfg?.value) ? cfg?.value : EMPTY_TEXT}</Text>
+                )}
+              </ProxyWrapped>
             ) : (
               <Input type={"number"} />
             )}
@@ -140,7 +408,9 @@ const Index: React.FC = () => {
             }
           >
             {readonly ? (
-              <ProxyWrapped>{(cfg) => formatTime(cfg?.value)}</ProxyWrapped>
+              <ProxyWrapped>
+                {(cfg) => (cfg?.value ? formatTime(cfg?.value) : EMPTY_TEXT)}
+              </ProxyWrapped>
             ) : (
               <TimePicker />
             )}
@@ -153,7 +423,9 @@ const Index: React.FC = () => {
             valueFormat={(e) => dayjs(e.detail.value).endOf("minute").valueOf()}
           >
             {readonly ? (
-              <ProxyWrapped>{(cfg) => formatTime(cfg?.value)}</ProxyWrapped>
+              <ProxyWrapped>
+                {(cfg) => (cfg?.value ? formatTime(cfg?.value) : EMPTY_TEXT)}
+              </ProxyWrapped>
             ) : (
               <TimePicker />
             )}
@@ -168,7 +440,9 @@ const Index: React.FC = () => {
             }
           >
             {readonly ? (
-              <ProxyWrapped>{(cfg) => formatTime(cfg?.value)}</ProxyWrapped>
+              <ProxyWrapped>
+                {(cfg) => (cfg?.value ? formatTime(cfg?.value) : EMPTY_TEXT)}
+              </ProxyWrapped>
             ) : (
               <TimePicker />
             )}
@@ -181,15 +455,18 @@ const Index: React.FC = () => {
             valueFormat={(e) => dayjs(e.detail.value).endOf("minute").valueOf()}
           >
             {readonly ? (
-              <ProxyWrapped>{(cfg) => formatTime(cfg?.value)}</ProxyWrapped>
+              <ProxyWrapped>
+                {(cfg) => (cfg?.value ? formatTime(cfg?.value) : EMPTY_TEXT)}
+              </ProxyWrapped>
             ) : (
               <TimePicker />
             )}
           </FormItem>
           <FormItem
-            label="团购图片"
+            label="团购封面图片"
             name="img_url"
             required
+            mutiLevel
             valueFormat={(e) => {
               return e;
             }}
@@ -201,7 +478,13 @@ const Index: React.FC = () => {
                   <Image
                     width={100}
                     height={100}
-                    src={generateFileUrl(groupDetailData?.img_url[0]?.url)}
+                    src={generateFileUrl(detailData?.img_url?.[0]?.url)}
+                    onClick={() =>
+                      ImageViewer.show({
+                        list: [generateFileUrl(detailData?.img_url?.[0]?.url)],
+                        currentIndex: 0,
+                      })
+                    }
                   />
                 )}
               </ProxyWrapped>
@@ -213,6 +496,47 @@ const Index: React.FC = () => {
               </ProxyWrapped>
             )}
           </FormItem>
+          {productList?.map((item, index) => renderProductItem(item, index))}
+          <FormItem
+            name="products"
+            mutiLevel
+            label="复杂数据"
+            style={{ display: "none" }}
+          />
+
+          {!readonly ? (
+            <View>
+              <ProductSelect
+                onChange={(item) => {
+                  const old: any[] = productList || [];
+                  setProductList([
+                    ...old,
+                    {
+                      product_id: item.id,
+                      product_name: item.name,
+                      product_code: item.code,
+                      price: item.price,
+                      image_url: item.thumbnail_image?.[0]?.url,
+                    } as any,
+                  ]);
+                  forceUpdate();
+                }}
+                renderInput={({ open }) => (
+                  <Button
+                    type="primary"
+                    hairline
+                    plain
+                    icon={"add"}
+                    block
+                    onClick={() => open()}
+                    style={{ marginBottom: "10px" }}
+                  >
+                    添加商品
+                  </Button>
+                )}
+              />
+            </View>
+          ) : null}
         </Form>
       </view>
     </Layout>

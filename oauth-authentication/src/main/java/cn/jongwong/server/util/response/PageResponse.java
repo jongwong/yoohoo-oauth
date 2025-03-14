@@ -1,14 +1,12 @@
 package cn.jongwong.server.util.response;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 
 @Data
-@NoArgsConstructor
 public class PageResponse<T> extends Response<List<T>> {
     private static final long serialVersionUID = 1L;  // 添加 serialVersionUID
 
@@ -16,6 +14,10 @@ public class PageResponse<T> extends Response<List<T>> {
     private String message;
     private List<T> data;
     private Long total;
+
+    public PageResponse() {
+        super();
+    }
 
     public PageResponse(int code, String message, List<T> data, Long total) {
         super(code, message, data);

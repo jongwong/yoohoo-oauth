@@ -146,9 +146,10 @@ const post = <T = any, U = any>(
 
 const put = <T = any, U = any>(
   url: string,
+  data: Partial<T>,
   config: RequestOption<T, U> = {}
 ) => {
-  const { params, data, ...rest } = config;
+  const { params, ...rest } = config;
   return request({
     // @ts-ignore
     url: getFormatUrl(url, params),

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Form, FormInstance } from 'antd';
+import { Form, FormInstance, FormItemProps } from 'antd';
 import { get, isNumber, take } from 'lodash';
 
 import { formatRenderFun } from '../ProField/render/formatRenderUtil';
@@ -12,6 +12,7 @@ type ProFieldProps<T = any> = {
 	value: any;
 	name: any;
 	index?: number;
+	_isTable?: boolean;
 } & BaseFormProFieldType<T>;
 const InerProField: React.FC<
 	ProFieldProps & {
@@ -19,6 +20,7 @@ const InerProField: React.FC<
 		getArgs?: (e: boolean) => any;
 		getValue?: () => any;
 		_needLayout?: boolean;
+		_isTable?: boolean;
 	}
 > = props => {
 	const {
@@ -27,6 +29,7 @@ const InerProField: React.FC<
 		fieldProps,
 		editable = false,
 		name,
+		_isTable,
 		index,
 		getArgs,
 		_allEditable,
@@ -128,6 +131,7 @@ const ProField: React.FC<
 	| {
 			fieldFunc: (r: any, form: FormInstance) => ProFieldProps;
 			getRecord?: () => any;
+			_isTable?: boolean;
 			getArgs?: (e: boolean) => any;
 			allEditable?: boolean;
 			_needLayout?: boolean;
@@ -145,11 +149,20 @@ const ProField: React.FC<
 	const render = (field: any) => {
 		const formatField = getTransformField(field);
 		const { editable = true } = formatField;
+		const rawProps = _props?.formItemProps || {};
+		const _formItemProps: FormItemProps = props?._isTable
+			? {
+					...rawProps,
+					labelCol: { span: 0 },
+					wrapperCol: { span: 24 },
+			  }
+			: { ...rawProps };
 		return (
 			<InerProField
 				{...formatField}
 				editable={editable && _allEditable}
 				_allEditable={_allEditable}
+				formItemProps={_formItemProps}
 			/>
 		);
 	};

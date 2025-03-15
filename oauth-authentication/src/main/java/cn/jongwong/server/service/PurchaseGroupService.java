@@ -13,6 +13,7 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -53,7 +54,14 @@ public class PurchaseGroupService {
                     data.setCreatedByName(u.getName());
                     data.setCreatedAt(LocalDateTime.now());
                     return data;
-                }).flatMap((d) -> purchaseGroupRepository.save(d))
+                }).flatMap((newData) -> purchaseGroupRepository.findById(newData.getId()).map(oldGroup -> {
+                    newData.setCreatedAt(oldGroup.getCreatedAt());
+                    newData.setCreatedBy(oldGroup.getCreatedBy());
+                    newData.setStatus(oldGroup.getStatus());
+                    newData.setEnable(oldGroup.getEnable());
+                    newData.setCreatedByName(oldGroup.getCreatedByName());
+                    return newData;
+                })).flatMap((d) -> purchaseGroupRepository.save(d))
                 .flatMap(updatedGroup -> {
 
                     // 设置purchaseGroupId
@@ -161,6 +169,31 @@ public class PurchaseGroupService {
                         .withJoin(t -> t.left()
                                 .table("tb_distribution_points d")
                                 .on("p.distribution_point_id = d.id")));
+
+
+    }
+
+    public Mono<Page<PurchaseGroupVO>> clientSearch(String name, Integer enable, Integer page, Integer size) {
+
+
+        return purchaseGroupRepository.findPageByDSL(page, size, sql ->
+                        sql.as("p")
+                                .column("d.name as distribution_point_name")
+                                .column("d.address as distribution_point_address")
+                                .eq("enable", enable).like("name", name)
+                                .withJoin(t -> t.left()
+                                        .table("tb_distribution_points d")
+                                        .on("p.distribution_point_id = d.id")))
+
+                .flatMap(pageData -> {
+                    // setImageUrl
+                    Flux<PurchaseGroupVO> flux = Flux.fromIterable(pageData.getData()).flatMap(e -> findById(e.getId()));
+                    return flux.collectList().map(list -> {
+                        pageData.setData(list);
+                        return pageData;
+                    });
+                })
+                ;
 
 
     }

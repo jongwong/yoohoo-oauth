@@ -1,6 +1,6 @@
 import Layout from "@/component/Layout";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
 import { useRouter } from "@tarojs/taro";
@@ -30,6 +30,7 @@ import {
   updatePurchaseGroup,
 } from "@/pages/admin/group/detail/service";
 import { EMPTY_TEXT } from "@/constant";
+import InputNumber from "@/component/InputNumber";
 
 const Index: React.FC = () => {
   const router = useRouter();
@@ -38,11 +39,15 @@ const Index: React.FC = () => {
   const [detailData, setDetailData] = useState({});
   const [saveLoading, setSaveLoading] = useState(false);
   const groupId = router.params?.id;
-  const [readonly, setReadonly] = useState(true);
+  const [readonly, setReadonly] = useState(false);
 
-  const [productList, setProductList] = useState([]);
+  const productListRef = useRef([]);
+  const [productList, _setProductList] = useState([]);
   const [formUidKey, setFormUidKey] = useState("");
-
+  const setProductList = (e) => {
+    productListRef.current = e;
+    _setProductList(e);
+  };
   const getFormatData = (data) => {
     const val = cloneDeep(data || {});
     val.img_url = val.img_url
@@ -95,9 +100,6 @@ const Index: React.FC = () => {
     return isNumber(e) ? String(divide(e, 100)) : undefined;
   };
 
-  useEffect(() => {
-    setReadonly(!!groupId);
-  }, [groupId]);
   const renderProductItem = (item, idx) => {
     return (
       <View
@@ -169,8 +171,7 @@ const Index: React.FC = () => {
         <FormItem
           label="折扣价"
           name={["products", idx, "discount_price"]}
-          trigger="onInput"
-          valueFormat={(e) => e.detail.value}
+          trigger="onChange"
         >
           {readonly ? (
             <ProxyWrapped>
@@ -185,20 +186,19 @@ const Index: React.FC = () => {
           ) : (
             <ProxyWrapped>
               {(cfg) => (
-                <Input
-                  type={"number"}
+                <InputNumber
+                  precision={2}
                   placeholder={"请输入折扣价"}
                   value={formatAmount(item.discount_price)}
-                  onInput={(e) => {
-                    const val = Number(e.detail.value);
+                  onChange={(e) => {
+                    const val = e;
                     item.discount_price = isNumber(val)
                       ? multiply(val, 100)
                       : undefined;
 
-                    setProductList((old) => {
-                      old[idx] = item;
-                      return old;
-                    });
+                    const old = productListRef.current;
+                    old[idx] = item;
+                    setProductList(cloneDeep(old));
                   }}
                 />
               )}
@@ -227,12 +227,12 @@ const Index: React.FC = () => {
                   value={item.max_stock}
                   onInput={(e) => {
                     const val = Number(e.detail.value);
+
                     item.max_stock = val;
 
-                    setProductList((old) => {
-                      old[idx] = item;
-                      return old;
-                    });
+                    const old = productListRef.current;
+                    old[idx] = item;
+                    setProductList(cloneDeep(old));
                   }}
                   type={"number"}
                   placeholder={"请输入数量"}
@@ -247,7 +247,6 @@ const Index: React.FC = () => {
       </View>
     );
   };
-  console.log("=====detailData=====", detailData);
   return (
     <Layout
       edge={"none"}
@@ -272,22 +271,22 @@ const Index: React.FC = () => {
             </>
           ) : (
             <View style={{ display: "flex", gap: "10px" }}>
-              <Button
-                type="primary"
-                plain
-                hairline
-                block
-                onClick={async () => {
-                  const val = historyDataRef.current;
-                  form.resetFields();
-                  form.setFields(val);
-                  historyDataRef.current = undefined;
-                  setReadonly(true);
-                  setFormUidKey(uniqueId());
-                }}
-              >
-                取消
-              </Button>
+              {/*<Button*/}
+              {/*  type="primary"*/}
+              {/*  plain*/}
+              {/*  hairline*/}
+              {/*  block*/}
+              {/*  onClick={async () => {*/}
+              {/*    const val = historyDataRef.current;*/}
+              {/*    form.resetFields();*/}
+              {/*    form.setFields(val);*/}
+              {/*    historyDataRef.current = undefined;*/}
+              {/*    setReadonly(true);*/}
+              {/*    setFormUidKey(uniqueId());*/}
+              {/*  }}*/}
+              {/*>*/}
+              {/*  取消*/}
+              {/*</Button>*/}
               <Button
                 type="primary"
                 block
@@ -296,7 +295,6 @@ const Index: React.FC = () => {
                     const val = form.getFieldsValue();
                     val.products = productList;
                     val.img_url = val?.img_url?.[0]?.url;
-                    console.log("=====val=====", val);
                     const fn = groupId
                       ? updatePurchaseGroup(groupId, val)
                       : createPurchaseGroup(val);
@@ -304,7 +302,6 @@ const Index: React.FC = () => {
                     const res = await fn.finally(() => {
                       setSaveLoading(false);
                     });
-                    console.log("=====res=====", res);
                     if (res.success) {
                       Toast.success({
                         children: "保存成功",
@@ -496,7 +493,9 @@ const Index: React.FC = () => {
               </ProxyWrapped>
             )}
           </FormItem>
-          {productList?.map((item, index) => renderProductItem(item, index))}
+          {productListRef.current?.map((item, index) =>
+            renderProductItem(item, index)
+          )}
           <FormItem
             name="products"
             mutiLevel

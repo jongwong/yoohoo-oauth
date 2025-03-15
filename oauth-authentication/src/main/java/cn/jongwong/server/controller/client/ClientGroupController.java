@@ -54,7 +54,7 @@ public class ClientGroupController {
                                                            @RequestParam(required = false) Integer enable,
                                                            @RequestParam(required = true) int page,
                                                            @RequestParam(required = true) int size) {
-        return purchaseGroupService.search(name, enable, page, size).map(PageResponse::success);
+        return purchaseGroupService.clientSearch(name, enable, page, size).map(PageResponse::success);
 
 
     }

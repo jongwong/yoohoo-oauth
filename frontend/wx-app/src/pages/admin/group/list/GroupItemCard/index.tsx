@@ -1,10 +1,11 @@
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import React from "react";
-import { Cell, CellGroup } from "@antmjs/vantui";
+import { Grid, GridItem, Image } from "@antmjs/vantui";
 import dayjs from "dayjs";
 import { PurchaseGroupStatusMap } from "@/constant/purchase-group";
 import Tag from "@/component/Tag";
+import { generateFileUrl } from "@/utils/file";
 
 const GroupItemCard: React.FC<{
   item: Record<string, any>;
@@ -19,26 +20,37 @@ const GroupItemCard: React.FC<{
       }}
     >
       <View className={styles.cardHeader}>
-        <Text className={styles.title}>{item.name}</Text>
-        <Tag status={statusMap?.status as any}>{statusMap?.text}</Tag>
+        <View className={"w-1-1 flex justify-between"}>
+          <Text className={styles.title}>{item.name}</Text>
+
+          <Tag className={"mr-8"} status={statusMap?.status as any}>
+            {statusMap?.text}
+          </Tag>
+        </View>
       </View>
-      <CellGroup>
-        <Cell title="配送点" value={item.distribution_point_name} />
-
-        <Cell
-          title="开始时间"
-          value={dayjs(item.time_start).format("YYYY.MM.DD HH:mm")}
-        />
-        <Cell
-          title="结束时间"
-          value={dayjs(item.time_end).format("YYYY.MM.DD HH:mm")}
-        />
-
-        <Cell
-          title="配送开始时间"
-          value={dayjs(item.time_delivery_start).format("YYYY.MM.DD HH:mm")}
-        />
-      </CellGroup>
+      <View>
+        <Text className={"text-grey"}>
+          {dayjs(item.time_delivery_start).format("M月DD日")}
+        </Text>
+      </View>
+      <View>
+        <View>
+          <Grid columnNum="4" border={false}>
+            {item?.products
+              ?.filter((_, idx) => idx < 4)
+              .map((productItem: any) => (
+                <GridItem key={productItem?.id}>
+                  <Image
+                    style={{ borderRadius: "8px", overflow: "hidden" }}
+                    src={generateFileUrl(productItem?.image_url)}
+                    width={"80px"}
+                    height={"80px"}
+                  />
+                </GridItem>
+              ))}
+          </Grid>
+        </View>
+      </View>
     </View>
   );
 };

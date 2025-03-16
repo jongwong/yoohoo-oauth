@@ -41,9 +41,6 @@ public class ClientPurchaseGroupProductVO {
     private String productName;
 
 
-    @Schema(description = "商品价格")
-    private Integer price;
-
     @Schema(description = "商品类别名称")
     private String categoryName;
 

@@ -41,10 +41,13 @@ public class PurchaseGroupProductVO {
     @Transient
     private String productName;
 
-
-    @Schema(description = "商品价格")
+    @Schema(description = "商品价")
     @Transient
     private Integer price;
+
+    @Schema(description = "市场价")
+    @Transient
+    private Integer marketPrice;
 
     @Schema(description = "商品折扣价")
     private Integer discountPrice;
@@ -53,5 +56,9 @@ public class PurchaseGroupProductVO {
     @Schema(description = "商品图片")
     @Transient
     private String imageUrl;
+
+    @Schema(description = "是否有多个SKU")
+    @Transient
+    private Integer hasMultipleSku;
 
 }

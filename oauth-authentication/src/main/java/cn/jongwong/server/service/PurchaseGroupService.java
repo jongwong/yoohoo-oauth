@@ -104,7 +104,8 @@ public class PurchaseGroupService {
         // 合并purchaseGroupRepository  purchaseGroupProductRepository
 
 
-        return purchaseGroupRepository.findOneByDSL(id, sql -> sql.as("p").column("d.name as distribution_point_name")
+        return purchaseGroupRepository.findOneByDSL(id, sql -> sql.as("p")
+                        .column("d.name as distribution_point_name")
                         .column("d.address as distribution_point_address")
 
                         .withJoin(t -> t.left()
@@ -122,7 +123,7 @@ public class PurchaseGroupService {
                 .flatMap((e) -> {
                     var ids = e.getProducts().stream().map(PurchaseGroupProductVO::getProductId).toList();
                     // products 批量查商品找到商品名称和商code
-                    return productService.findByIdsWithImage(ids)
+                    return productService.findByIds(ids)
                             .collectList()
                             .map(list -> {
                                 e.getProducts().forEach(product -> {
@@ -130,12 +131,9 @@ public class PurchaseGroupService {
                                         product.setProductName(p.getName());
                                         product.setProductCode(p.getCode());
                                         product.setPrice(p.getPrice());
-
-                                        if (p.getMainImage() != null && !p.getMainImage().isEmpty()) {
-                                            var findImage = p.getMainImage().get(0);
-
-                                            product.setImageUrl(findImage.getUrl());
-                                        }
+                                        product.setHasMultipleSku(p.getHasMultipleSku());
+                                        product.setMarketPrice(p.getMarketPrice());
+                                        product.setImageUrl(p.getThumbnailImage().getUrl());
 
                                     });
                                 });

@@ -11,7 +11,7 @@ import ProField from '../ProField';
 import './index.less';
 
 const ProEditTable: React.FC<ProEditTableProps> = props => {
-	const { name, editable = false, onInitRowData, columns, ...rest } = props;
+	const { name, editable = false, hideAddButton, onInitRowData, columns, ...rest } = props;
 
 	const form = Form.useFormInstance();
 	const operationsRef = useRef<any>();
@@ -25,9 +25,9 @@ const ProEditTable: React.FC<ProEditTableProps> = props => {
 					const fieldName = [...getKeyList(name), ...itemName];
 					return (
 						<ProField
-							label={undefined}
 							{...column}
 							name={itemName}
+							label={''}
 							_isTable
 							allEditable={editable}
 							getRecord={() => r}
@@ -51,7 +51,7 @@ const ProEditTable: React.FC<ProEditTableProps> = props => {
 		.filter(e => e.visible !== false);
 
 	const renderFooter = (add: any, newIdx: number) => {
-		return editable ? (
+		return editable && !hideAddButton ? (
 			<Button
 				type={'dashed'}
 				block

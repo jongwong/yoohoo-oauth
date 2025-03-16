@@ -301,17 +301,17 @@ public class OrderService {
 
 
             return productsMono.collectList().map(re -> {
-                int total = re.stream()
-                        .mapToInt(p -> p.getPrice() * data.getProducts().stream()
-                                .filter(it -> it.getGroupProductId().equals(p.getId()))
-                                .findFirst()
-                                .map(it -> it.getCount())
-                                .orElse(0)) // 避免空指针异常
-                        .sum();
-
-                if (total != data.getAmountProduct()) {
-                    throw new RuntimeException("商品金额不匹配");
-                }
+//                int total = re.stream()
+//                        .mapToInt(p -> p.getPrice() * data.getProducts().stream()
+//                                .filter(it -> it.getGroupProductId().equals(p.getId()))
+//                                .findFirst()
+//                                .map(it -> it.getCount())
+//                                .orElse(0)) // 避免空指针异常
+//                        .sum();
+//
+//                if (total != data.getAmountProduct()) {
+//                    throw new RuntimeException("商品金额不匹配");
+//                }
 
                 re.forEach(p -> {
                     OrderProductItemDTO find = data.getProducts().stream()
@@ -333,9 +333,9 @@ public class OrderService {
 //                            throw new RuntimeException("商品库存不足");
 //                        }
 
-                        if (p.getPrice().compareTo(find.getPrice()) != 0) {
-                            throw new RuntimeException("价格已经发生变化，请重新刷新页面数据");
-                        }
+//                        if (p.getPrice().compareTo(find.getPrice()) != 0) {
+//                            throw new RuntimeException("价格已经发生变化，请重新刷新页面数据");
+//                        }
                     }
 
                 });

@@ -7,6 +7,9 @@ export const deleteProductById = (id: string) => {
 export const getProductById = (id: string) => {
 	return http.get('/admin/product/' + id);
 };
+export const getArchivedProductById = (id: string) => {
+	return http.get('/admin/product/archived/' + id);
+};
 
 export const getProductPage = (params: Record<string, any>) => {
 	return http.get('/admin/product', { params });

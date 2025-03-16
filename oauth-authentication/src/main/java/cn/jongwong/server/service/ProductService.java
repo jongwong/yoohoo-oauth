@@ -2,16 +2,12 @@ package cn.jongwong.server.service;
 
 import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.QueryBuilder;
-import cn.jongwong.server.entity.ProductImageVO;
 import cn.jongwong.server.entity.ProductVO;
-import cn.jongwong.server.enums.coupons.CouponsStatus;
 import cn.jongwong.server.enums.product.ProductArchivedStatus;
-import cn.jongwong.server.enums.product.ProductImageType;
 import cn.jongwong.server.repository.ProductImageRepository;
 import cn.jongwong.server.repository.ProductRepository;
-import cn.jongwong.server.util.response.Page;
+import cn.jongwong.server.repository.ProductSkuRepository;
 import cn.jongwong.server.util.response.PageResponse;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
@@ -21,8 +17,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ProductService {
@@ -45,121 +41,34 @@ public class ProductService {
 
     @Autowired
     private TransactionalOperator transactionalOperator;
+    @Autowired
+    private ProductSkuRepository productSkuRepository;
 
-    // 获取商品信息与相关图片
-    public Mono<ProductVO> getProductWithImagesById(String id) {
-        Mono<ProductVO> baseProduct = productRepository.findById(id);
-        Flux<ProductImageVO> imagesFlux = productImageRepository.findByProductId(id);
-
-        return baseProduct.zipWith(imagesFlux.collectList(), (productVO, images) -> {
-            ProductVO newProductVO = productVO.toBuilder().build();
-            Map<Integer, List<ProductImageVO>> groupedImages = images.stream()
-                    .collect(Collectors.groupingBy(ProductImageVO::getImageType));
-
-            newProductVO.setMainImage(findImageByType(groupedImages, 1));
-            newProductVO.setThumbnailImage(findImageByType(groupedImages, 2));
-            newProductVO.setCarouselImages(findImageByType(groupedImages, 3));
-            newProductVO.setOtherImages(findImageByType(groupedImages, 4));
-
-            return newProductVO;
-        });
-    }
-
-    private List<ProductImageVO> findImageByType(Map<Integer, List<ProductImageVO>> groupedImages, int type) {
-        return Optional.ofNullable(groupedImages.get(type)).orElse(Collections.emptyList());
-    }
-
-    // 合并商品图片
-    public List<ProductImageVO> getImageGroup(ProductVO productVO) {
-        List<ProductImageVO> allImages = new ArrayList<>();
-        addImageGroup(allImages, productVO.getMainImage(), 1);
-        addImageGroup(allImages, productVO.getThumbnailImage(), 2);
-        addImageGroup(allImages, productVO.getCarouselImages(), 3);
-        addImageGroup(allImages, productVO.getOtherImages(), 4);
-        return allImages;
-    }
-
-    private void addImageGroup(List<ProductImageVO> allImages, List<ProductImageVO> imageList, int type) {
-        if (imageList != null) {
-            imageList.forEach(image -> {
-                image.setImageType(type);
-                allImages.add(image);
-            });
-        }
-    }
-
-    @Transactional
-    public Mono<ProductVO> updateProductWithImages(String id, ProductVO updatedProductVO) {
-        return productRepository.findById(id)
-                .flatMap(this::updateProductCodeIfNeeded)
-                .flatMap(existingProduct -> updateProductInfoAndImages(id, updatedProductVO, existingProduct))
-                .as(transactionalOperator::transactional);
-    }
-
-    private Mono<ProductVO> updateProductCodeIfNeeded(ProductVO existingProduct) {
-        if (existingProduct.getCode() == null) {
-            return productRepository.findProductWithMaxCode()
-                    .flatMap(product -> {
-                        int newCode = (product != null && product.getCode() != null) ? product.getCode() + 1 : 1;
-                        existingProduct.setCode(newCode);
-                        return productRepository.save(existingProduct);
-                    });
-        }
-        return Mono.just(existingProduct);
-    }
-
-    private Mono<ProductVO> updateProductInfoAndImages(String id, ProductVO updatedProductVO, ProductVO existingProductVO) {
-        BeanUtils.copyProperties(updatedProductVO, existingProductVO);
-        List<ProductImageVO> imagesToSave = getImageGroup(updatedProductVO);
-
-        return productImageRepository.findByProductId(id)
-                .collectList()
-                .flatMap(existingImages -> deleteAndSaveImages(existingImages, imagesToSave, id, existingProductVO));
-    }
-
-    private Mono<ProductVO> deleteAndSaveImages(List<ProductImageVO> existingImages, List<ProductImageVO> newImages,
-                                                String productId, ProductVO updatedProductVO) {
-        List<ProductImageVO> imagesToDelete = findImagesToDelete(existingImages, newImages);
-        return productImageRepository.deleteAll(imagesToDelete)
-                .then(productRepository.save(updatedProductVO))
-                .flatMap(savedProduct -> saveNewImages(newImages, productId, savedProduct));
-    }
-
-    private List<ProductImageVO> findImagesToDelete(List<ProductImageVO> existingImages, List<ProductImageVO> newImages) {
-        return existingImages.stream()
-                .filter(existingImage -> newImages.stream().noneMatch(newImage -> areProductAndUrlEqual(newImage, existingImage)))
-                .collect(Collectors.toList());
-    }
-
-    private Mono<ProductVO> saveNewImages(List<ProductImageVO> newImages, String productId, ProductVO savedProduct) {
-        return Flux.fromIterable(newImages)
-                .flatMap(image -> productImageService.save(image, productId))
-                .then(Mono.just(savedProduct));
-    }
-
-    public boolean areProductAndUrlEqual(ProductImageVO newImage, ProductImageVO existingImage) {
-        return Objects.equals(newImage.getProductId(), existingImage.getProductId()) &&
-                Objects.equals(newImage.getUrl(), existingImage.getUrl());
-    }
 
     // 提交审核
     @Transactional
-    public Mono<ProductVO> submit(String id, ProductVO data) {
-        return productRepository.findById(id)
-                .flatMap(existingProduct -> {
-                    if (isSubmitAble(existingProduct)) {
-                        var updatedProduct = data.toBuilder()
-                                .id(id)
+    public Mono<ProductVO> submit(String productId, ProductVO productVO) {
+        return productRepository.findById(productId).flatMap((old) -> {
+                    if (isSubmitAble(old)) {
+                        var newP = productVO.toBuilder()
+                                .id(productId)
                                 .archivedStatus(ProductArchivedStatus.REVIEWING.getCode())
                                 .updatedAt(LocalDateTime.now())
                                 .build();
-                        return productRepository.save(updatedProduct)
-                                .flatMap(savedProduct -> updateProductWithImages(id, savedProduct).thenReturn(savedProduct));
+                        return Mono.just(newP);
                     } else {
-                        return Mono.error(new IllegalStateException("优惠券状态不允许提交审核"));
+                        return Mono.error(new IllegalStateException("该状态不允许提交审核"));
                     }
-                })
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("优惠券未找到")));
+
+                }).flatMap(this::update)
+                .flatMap(p -> productSkuRepository.deleteAllByProductId(productId))
+                .then(Mono.defer(() -> {
+                    var skus = productVO.getSkus().stream().map(sku -> {
+                        sku.setProductId(productId);
+                        return sku;
+                    }).toList();
+                    return productSkuRepository.saveRefAll(skus).collectList();
+                })).flatMap(p -> findById(productId));
     }
 
     private boolean isSubmitAble(ProductVO product) {
@@ -184,13 +93,12 @@ public class ProductService {
                 })
                 .flatMap(updatedProduct ->
                         // 获取当前用户ID，并构建新的商品数据
-                        userService.getCurrentUserReactiveId()
-                                .map(userId -> updatedProduct.toBuilder()
+                        userService.getCurrentUserReactive()
+                                .map(u -> updatedProduct.toBuilder()
                                         .createdAt(LocalDateTime.now())
                                         .updatedAt(LocalDateTime.now())
-                                        .status(CouponsStatus.DRAFT.getCode())
-                                        .createdBy(userId)
-                                        .updatedBy(userId)
+                                        .createdBy(u.getId())
+                                        .createdByName(u.getName())
                                         .id(UUID.randomUUID().toString())
                                         .build())
                                 .flatMap(productRepository::insert)
@@ -198,16 +106,42 @@ public class ProductService {
     }
 
 
-    @Transactional
-    public Mono<ProductVO> update(String productId, ProductVO productVO) {
-        productVO.setId(productId);
-        if (productVO.getArchivedStatus() != ProductArchivedStatus.DRAFT.getCode()) {
-            return Mono.error(new IllegalStateException("只能保存草稿状态的商品"));
-        }
-        return updateProductWithImages(productId, productVO);
+    private Mono<ProductVO> update(ProductVO productVO) {
+        return userService.getCurrentUserReactive().map(u -> {
+            productVO.setUpdatedBy(u.getId());
+            productVO.setUpdatedByName(u.getName());
+            productVO.setUpdatedAt(LocalDateTime.now());
+            return productVO;
+        }).flatMap(productRepository::save);
     }
 
-    public Mono<Page<ProductVO>> search(String name, String status, int page, int size) {
+    @Transactional
+    public Mono<ProductVO> save(String productId, ProductVO productVO) {
+        productVO.setId(productId);
+
+        return productRepository.findById(productId).flatMap((old) -> {
+                    if (old.getArchivedStatus() != ProductArchivedStatus.DRAFT.getCode()) {
+                        return Mono.error(new IllegalStateException("只能保存草稿状态的商品"));
+                    }
+                    productVO.setArchivedStatus(ProductArchivedStatus.DRAFT.getCode());
+                    productVO.setListedStatus(old.getListedStatus());
+
+                    return Mono.just(productVO);
+
+                }).flatMap(this::update)
+                .flatMap(p -> productSkuRepository.deleteAllByProductId(productId))
+                .then(Mono.defer(() -> {
+                    var skus = productVO.getSkus().stream().map(sku -> {
+                        sku.setProductId(productId);
+                        return sku;
+                    }).toList();
+                    return productSkuRepository.saveRefAll(skus).collectList();
+                })).flatMap(p -> findById(productId));
+
+    }
+
+
+    public Mono<PageResponse<ProductVO>> search(String name, String status, int page, int size) {
 
 
         return new QueryBuilder<>(r2dbcEntityTemplate, ProductVO.class)
@@ -219,60 +153,15 @@ public class ProductService {
                             .map(user -> MapperUtil.mapFields(user, ProductVO.class))
                             .toList();
 
-                    return new Page<>(
+                    return new PageResponse<>(
                             userResList,
-                            pageData.getTotal(),
-                            pageData.getPage(),
-                            pageData.getSize()
+                            pageData.getTotal()
                     );
                 });
 
 
     }
 
-    public Mono<Page<ProductVO>> searchWithImage(String name, String status, int page, int size) {
-
-
-        return productRepository.findPageByDSL(page, size, (sql) -> {
-
-            var groupString = """
-                    COALESCE(
-                            JSON_ARRAYAGG(
-                                    IF(p_img.id IS NOT NULL,
-                                       JSON_OBJECT(
-                                               'id', p_img.id,
-                                               'url', p_img.url,
-                                               'name', p_img.name
-                                       ),
-                                       NULL
-                                    )
-                            ),
-                            JSON_ARRAY()
-                    ) AS thumbnail_image
-                    """;
-
-            return sql.as("p").field(groupString, true).like("name", name)
-                    .eq("status", status)
-                    .withJoin(t -> t.left()
-
-                            .table("tb_product_images p_img")
-                            .on("p.id = p_img.product_id  AND p_img.image_type =  " + ProductImageType.THUMBNAIL.getCode()));
-
-        }).map(pageData -> {
-            List<ProductVO> userResList = pageData.getData().stream()
-                    .map(user -> MapperUtil.mapFields(user, ProductVO.class))
-                    .toList();
-
-            return new Page<>(
-                    userResList,
-                    pageData.getTotal(),
-                    pageData.getPage(),
-                    pageData.getSize()
-            );
-        });
-
-
-    }
 
 
     public Mono<ProductVO> reject(String id, String rejectionReason) {
@@ -303,7 +192,7 @@ public class ProductService {
                         throw new IllegalStateException("仅审核中的商品可以被审核通过");
                     }
                 })
-                .flatMap(productRepository::save)
+                .flatMap(this::update)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("商品未找到")));
     }
 
@@ -326,66 +215,21 @@ public class ProductService {
         return productRepository.findAllByIdIn(ids);
     }
 
-    public Flux<ProductVO> findByIdsWithImage(List<String> ids) {
-        if (ids == null) {
-            return Flux.empty();
-        }
-        return productRepository.findAllByIdIn(ids).flatMap(e -> productImageRepository.findByProductId(e.getId())
-                .collectList()
-                .map(imgList -> {
-                    // 按 imageType 归类
-                    Map<Integer, List<ProductImageVO>> groupedImages = new HashMap<>();
-                    for (ProductImageVO img : imgList) {
-                        groupedImages.computeIfAbsent(img.getImageType(), k -> new ArrayList<>()).add(img);
-                    }
+    public Mono<ProductVO> findById(String id) {
 
-                    e.setMainImage(findImageByType(groupedImages, 1));
-                    e.setThumbnailImage(findImageByType(groupedImages, 2));
-                    e.setCarouselImages(findImageByType(groupedImages, 3));
-                    e.setOtherImages(findImageByType(groupedImages, 4));
-
-                    return e;
-                }));
+        return productRepository.findById(id);
     }
 
+    public Mono<ProductVO> findByIdWithSku(String id) {
 
-    public Mono<PageResponse<ProductVO>> searchProductWithImage(String name, String status, int page, int size) {
-        return search(name, status, page, size)
-                .flatMap(e -> {
-                    List<String> ids = e.getData().stream().map(ProductVO::getId).toList();
-
-                    return productImageService.findAllByProductIdIn(ids)
-                            .collectList()
-                            .map(imgList -> {
-                                // 按 productId 分组
-                                Map<String, List<ProductImageVO>> imageMap = new HashMap<>();
-                                for (ProductImageVO img : imgList) {
-                                    imageMap.computeIfAbsent(img.getProductId(), k -> new ArrayList<>()).add(img);
-                                }
-
-
-                                // 组装商品和图片
-                                List<ProductVO> updatedProducts = e.getData().stream().map(product -> {
-                                    ProductVO newProduct = product.toBuilder().build();
-                                    List<ProductImageVO> productImages = imageMap.getOrDefault(product.getId(), new ArrayList<>());
-                                    // 按 imageType 归类
-                                    Map<Integer, List<ProductImageVO>> groupedImages = new HashMap<>();
-                                    for (ProductImageVO img : productImages) {
-                                        groupedImages.computeIfAbsent(img.getImageType(), k -> new ArrayList<>()).add(img);
-                                    }
-
-                                    newProduct.setMainImage(findImageByType(groupedImages, 1));
-                                    newProduct.setThumbnailImage(findImageByType(groupedImages, 2));
-                                    newProduct.setCarouselImages(findImageByType(groupedImages, 3));
-                                    newProduct.setOtherImages(findImageByType(groupedImages, 4));
-
-                                    return newProduct;
-                                }).toList();
-
-                                // 返回新的 PageResponse
-                                return new PageResponse<ProductVO>(0, "", updatedProducts, e.getTotal());
-                            });
-                });
+        return productRepository.findById(id).flatMap(productVO -> {
+            var skus = productSkuRepository.findAllByProductId(id).collectList();
+            return Mono.zip(Mono.just(productVO), skus).map(tuple -> {
+                var product = tuple.getT1();
+                product.setSkus(tuple.getT2());
+                return product;
+            });
+        });
     }
 
 

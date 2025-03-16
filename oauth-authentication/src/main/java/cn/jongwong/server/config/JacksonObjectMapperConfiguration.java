@@ -1,9 +1,13 @@
 package cn.jongwong.server.config;
 
+import cn.jongwong.server.config.covert.FileDeserializer;
+import cn.jongwong.server.config.covert.FileSerializer;
+import cn.jongwong.server.dto.common.FileVO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -56,8 +60,18 @@ public class JacksonObjectMapperConfiguration {
             }
         });
 
+
         // 启用时间序列化为时间戳
         objectMapper.registerModule(javaTimeModule);
+
+
+        // 1️⃣ 创建 Jackson 模块
+        SimpleModule customModule = new SimpleModule();
+        // 2️⃣ 注册 FileVO 的序列化和反序列化器
+        customModule.addSerializer(FileVO.class, new FileSerializer());
+        customModule.addDeserializer(FileVO.class, new FileDeserializer());
+
+        objectMapper.registerModule(customModule);
 
         return objectMapper;
     }

@@ -26,7 +26,6 @@ public class PurchaseGroupProductService {
             "p.id AS product_id",
             "p.code AS product_code",
             "p.name as product_name",
-            "p.price",
             "p.listed_status",
             "p.archived_status",
             "p.category_name",
@@ -55,7 +54,6 @@ public class PurchaseGroupProductService {
                         .column("pgp.discount_price")
                         .column("p.code")
                         .column("p.name")
-                        .column("p.price")
 
 
                         .column("p.listed_status")

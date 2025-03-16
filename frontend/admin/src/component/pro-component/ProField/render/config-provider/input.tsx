@@ -9,6 +9,7 @@ import { EMPTY_TEXT } from '../../../constant';
 import ProxyWrapped from '../../../ProxyWrapped';
 import { ElementOf } from '../../../types';
 import { OssUpload } from '@yoo/component';
+import { isArray } from 'lodash';
 
 export const DefaultInputValueTypeEnum = {
 	Input: 'input',
@@ -70,9 +71,9 @@ const defaultInputValueTypeMap: {} = {
 				</ProxyWrapped>
 			);
 		},
-		render: (e: any) => {
-			const val = Array.isArray(e) ? e : [];
-			return val?.length ? <OssUpload readonly value={val} multiple /> : null;
+		render: (t: any) => {
+			const val = isArray(t) ? t : [t];
+			return t?.length || t?.url ? <OssUpload readonly value={t} multiple /> : null;
 		},
 	},
 	[DefaultInputValueTypeEnum.Image]: {
@@ -92,9 +93,9 @@ const defaultInputValueTypeMap: {} = {
 				</ProxyWrapped>
 			);
 		},
-		render: (e: any) => {
-			const val = Array.isArray(e) ? e : [];
-			return val?.length ? (
+		render: (t: any) => {
+			const val = isArray(t) ? t : [t];
+			return t?.length || t?.url ? (
 				<OssUpload value={val} listType={'picture-card'} readonly multiple />
 			) : null;
 		},

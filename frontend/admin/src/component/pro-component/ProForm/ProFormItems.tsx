@@ -21,6 +21,7 @@ const ProFormItems: React.FC<ProFormItemsProps> = props => {
 					allEditable={editable}
 					{...(it as any)}
 					fieldFunc={isFunction(it) ? it : undefined}
+					{...rest}
 				/>
 			))}
 		</div>

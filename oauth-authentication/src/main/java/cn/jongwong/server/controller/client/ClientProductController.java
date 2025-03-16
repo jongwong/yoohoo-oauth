@@ -2,13 +2,14 @@ package cn.jongwong.server.controller.client;
 
 import cn.jongwong.server.dto.product.CommonBatchDTO;
 import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
+import cn.jongwong.server.entity.ProductSkuVO;
 import cn.jongwong.server.entity.ProductVO;
 import cn.jongwong.server.enums.GlobalEnableTypeEnum;
 import cn.jongwong.server.enums.product.ProductListedStatus;
 import cn.jongwong.server.enums.product.ProductStatus;
 import cn.jongwong.server.enums.product.PurchaseGroupStatus;
-import cn.jongwong.server.service.ProductImageService;
 import cn.jongwong.server.service.ProductService;
+import cn.jongwong.server.service.ProductSkuService;
 import cn.jongwong.server.service.product.PurchaseGroupProductService;
 import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
@@ -30,8 +31,10 @@ public class ClientProductController {
 
     @Autowired
     private ProductService productService;
+
+
     @Autowired
-    private ProductImageService productImageService;
+    private ProductSkuService productSkuService;
 
     @GetMapping("/client/group/product")
     public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryGroupProduct(
@@ -78,12 +81,12 @@ public class ClientProductController {
     }
 
     @GetMapping("/client/product")
-    public Mono<cn.jongwong.server.util.response.PageResponse<ProductVO>> searchProduct(@RequestParam(required = false) String name, @RequestParam(required = true) int page, @RequestParam(required = true) int size) { // 每页大小
+    public Mono<PageResponse<ProductVO>> searchProduct(@RequestParam(required = false) String name, @RequestParam(required = true) int page, @RequestParam(required = true) int size) { // 每页大小
 
 
         String status = ProductStatus.LISTED.getCode() + "";
 
-        return productService.searchProductWithImage(name, status, page, size);
+        return productService.search(name, status, page, size);
     }
 
 
@@ -91,5 +94,22 @@ public class ClientProductController {
     public Mono<Response<List<ProductVO>>> getProductListByIds(@RequestBody CommonBatchDTO data) {
         return productService.findByIds(data.getIds()).collectList().map(Response::success);
     }
+
+    @GetMapping("/client/product/sku/{id}")
+    public Mono<Response<List<ProductSkuVO>>> findAllSkuBProductId(@PathVariable String id) { // 每页大小
+
+
+        return productSkuService.findAllByProductId(id).collectList().map(Response::ok);
+    }
+
+    @GetMapping("/client/product/{id}")
+    public Mono<Response<ProductVO>> findByProductId(@PathVariable String id) { // 每页大小
+
+
+        return productService.findById(id).map(Response::ok);
+    }
+
+
+
 
 }

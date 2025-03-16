@@ -19,6 +19,14 @@ public class PageResponse<T> extends Response<List<T>> {
         super();
     }
 
+    public PageResponse(List<T> data, Long total) {
+        super(200, "", data);
+        this.code = 200;
+        this.message = "";
+        this.data = data;
+        this.total = total;
+    }
+
     public PageResponse(int code, String message, List<T> data, Long total) {
         super(code, message, data);
         this.code = code;

@@ -76,14 +76,20 @@ const getBase64 = (file: any): Promise<string> =>
 		reader.onerror = error => reject(error);
 	});
 
+type FileType = {
+	url: string;
+	uid?: string;
+	name: string;
+};
 export type OssUploadProps = UploadProps & {
 	readonly?: boolean;
-	value?: any; // 成功上传的文件列表
+	value?: FileType[]; // 成功上传的文件列表
 	onChange?: (fileList: any[]) => void; // 更新成功文件列表的回调
 };
 
 const OssUpload: React.FC<OssUploadProps> = props => {
 	const { readonly, value, maxCount, onChange, ...rest } = props;
+
 	const clientRef = useRef<any>();
 	const [fileList, setFileList] = useState<any[]>([]); // 本地管理文件列表（包含成功和失败）
 	const [previewOpen, setPreviewOpen] = useState(false);
@@ -177,11 +183,17 @@ const OssUpload: React.FC<OssUploadProps> = props => {
 		return OssStore.credentials;
 	};
 
+	const getFormatValue = () => {
+		if (value) {
+			return Array.isArray(value) ? value : [value];
+		}
+		return [];
+	};
 	const renderChild = () => {
 		if (readonly) {
 			return null;
 		}
-		if (isNumber(maxCount) && value?.length >= maxCount) {
+		if (isNumber(maxCount) && getFormatValue().length >= maxCount) {
 			return null;
 		}
 		if (props?.listType === 'picture-card') {
@@ -192,9 +204,11 @@ const OssUpload: React.FC<OssUploadProps> = props => {
 	};
 
 	useEffect(() => {
+		const _val = value || [];
+
 		setFileList(old => {
 			// 创建一个新的文件列表，合并 old 和 value，按照 value 的顺序处理
-			const updatedFileList = value.map(newFile => {
+			const updatedFileList = getFormatValue().map(newFile => {
 				// 查找 old 中是否已经有这个文件
 				const matchingOldFile = old.find(item => {
 					return item.uid === newFile.uid || getPathname(item.url) === getPathname(newFile.url);

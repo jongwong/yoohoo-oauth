@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController()
-@RequestMapping("/client/admin/group")
+@RequestMapping("/client")
 public class ClientGroupController {
 
 
@@ -38,7 +38,7 @@ public class ClientGroupController {
     private PurchaseGroupService purchaseGroupService;
 
 
-    @GetMapping("/permission/check")
+    @GetMapping("/admin/group/permission/check")
     public Mono<Response<Boolean>> refundOrder() {
         return userService.getCurrentUserReactive().flatMap(u -> groupAdminService.getAdminsByUserId(u.getId()).collectList().map(admins -> {
             if (!admins.isEmpty()) {
@@ -49,7 +49,7 @@ public class ClientGroupController {
         }));
     }
 
-    @GetMapping
+    @GetMapping("/admin/group")
     public Mono<PageResponse<PurchaseGroupVO>> searchGroup(@RequestParam(required = false) String name,
                                                            @RequestParam(required = false) Integer enable,
                                                            @RequestParam(required = true) int page,
@@ -60,7 +60,7 @@ public class ClientGroupController {
     }
 
 
-    @GetMapping("/{id}")
+    @GetMapping("/group/{id}")
     public Mono<Response<PurchaseGroupVO>> findById(@PathVariable String id) {
         return purchaseGroupService.findById(id)
                 .map(Response::success)

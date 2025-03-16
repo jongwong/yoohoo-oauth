@@ -31,7 +31,7 @@ export type BaseEditTableProFieldType<T = any> = Omit<
 	visible?: boolean; // 是否隐藏
 
 	render?: (t: any, r: T, idx: number, opt: BaseTableOptionType<T>) => ReactNode;
-	renderFormItem?: (t: any, r: T, idx: number, opt: BaseTableOptionType<T>) => ReactNode;
+	renderFormItem?: (t: any, r: T, opt: BaseTableOptionType<T>) => ReactNode;
 } & Omit<TableColumnType, 'render'>;
 
 export type BaseFormProFieldFuncType<T = any> =

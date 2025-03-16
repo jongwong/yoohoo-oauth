@@ -1,0 +1,110 @@
+.card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+  margin: 12px 0;
+  padding: 10px;
+}
+
+.image {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 12px;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.priceRow {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.priceContainer {
+  display: inline-flex;
+  flex-direction: row;
+}
+
+.price {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ff5722;
+}
+
+.originalPrice {
+  font-size: 12px;
+  text-decoration: line-through;
+  color: #999;
+  margin-left: 4px;
+  margin-top: 4px;
+}
+
+.addToCartBtn {
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: start;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  font-weight: bold;
+  display: flex;
+  position: relative;
+
+  color: #8bc34a;
+}
+
+.subToCartBtn {
+  width: 24px;
+  height: 24px;
+  padding: 6px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  color: #8bc34a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cartBtns {
+  gap: 2px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.InfoDesc {
+  margin: 4px 0;
+
+  flex: 1;
+  font-size: 12px;
+  color: #777;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+}
+
+.tagBox {
+}

@@ -68,7 +68,6 @@ public class WeChatPayService {
         request.put("amount", Map.of("total", 1, "currency", "CNY"));
         request.put("payer", Map.of("openid", curOpenId));
         request.put("detail", Map.of(
-                "cost_price", 608800,
                 "invoice_id", "微信123",
                 "goods_detail", new Object[]{
                         Map.of(

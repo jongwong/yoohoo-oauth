@@ -1,5 +1,6 @@
 package cn.jongwong.server.entity;
 
+import cn.jongwong.server.dto.common.FileVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +12,6 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 @Data
@@ -49,18 +48,12 @@ public class ProductVO {
     @Schema(description = "商品简短描述")
     private String shortDescription;
 
-    @Schema(description = "商品价格")
+    @Schema(description = "价格价(sku中最低的市场价)")
     private Integer price;
 
-    @Schema(description = "商品成本价格")
-    private Integer costPrice;
+    @Schema(description = "市场价(sku中最低的市场价)")
+    private Integer marketPrice;
 
-    @Schema(description = "商品的库存单位（SKU）")
-    private String sku;
-
-    @Transient
-    @Schema(description = "商品状态")
-    private Integer status;
 
     @Schema(description = "SEO优化的标题")
     private String metaTitle;
@@ -80,21 +73,6 @@ public class ProductVO {
     @Schema(description = "审核拒绝原因")
     private String rejectionReason;
 
-    @Transient
-    @Schema(description = "商品主图")
-    private List<ProductImageVO> mainImage;
-
-    @Transient
-    @Schema(description = "商品缩略图")
-    private List<ProductImageVO> thumbnailImage;
-
-    @Transient
-    @Schema(description = "商品轮播图")
-    private List<ProductImageVO> carouselImages;
-
-    @Transient
-    @Schema(description = "商品其他图片")
-    private List<ProductImageVO> otherImages;
 
     @Schema(description = "创建人ID")
     private String createdBy;
@@ -115,13 +93,18 @@ public class ProductVO {
     private LocalDateTime updatedAt;
 
 
-    public List<ProductImageVO> getThumbnailImage() {
-        return thumbnailImage == null ? List.of() :
-                thumbnailImage.stream().filter(Objects::nonNull).collect(Collectors.toList());
-    }
+    @Schema(description = "商品主图")
+    private FileVO mainImage;
 
-    public void setThumbnailImage(List<ProductImageVO> thumbnailImage) {
-        this.thumbnailImage = thumbnailImage == null ? List.of() :
-                thumbnailImage.stream().filter(Objects::nonNull).collect(Collectors.toList());
-    }
+    @Schema(description = "缩略图")
+    private FileVO thumbnailImage;
+
+    @Schema(description = "商品SKU")
+    @Transient
+    private List<ProductSkuVO> skus;
+
+    @Schema(description = "是否有多个SKU")
+    private Integer hasMultipleSku;
+
+
 }

@@ -26,12 +26,13 @@ public class ProductController {
         return productService.create(productVO);
     }
 
+
     @GetMapping
     public Mono<PageResponse<ProductVO>> search(@RequestParam(required = false) String name,
                                                 @RequestParam(required = false) String archivedStatus,
                                                 @RequestParam(required = true) int page,
                                                 @RequestParam(required = true) int size) {
-        return PageResponse.reactivePageSuccess(productService.search(name, archivedStatus, page, size));
+        return productService.search(name, archivedStatus, page, size);
     }
 
     @PostMapping("/batch")
@@ -44,7 +45,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public Mono<Response<ProductVO>> update(@PathVariable String id, @RequestBody ProductVO productVO) {
         productVO.setId(id);
-        return productService.update(id, productVO).map(Response::success) // 成功时返回响应
+        return productService.save(id, productVO).map(Response::success) // 成功时返回响应
                 .switchIfEmpty(Mono.just(Response.error("找不到商品"))); // 如果找不到商品，返回错误
     }
 
@@ -52,7 +53,15 @@ public class ProductController {
     // 获取商品详情
     @GetMapping("/{id}")
     public Mono<Response<ProductVO>> getProductDetail(@PathVariable String id) {
-        return productService.getProductWithImagesById(id)
+        return productService.findById(id)
+                .map(Response::success) // 成功时返回响应
+                .switchIfEmpty(Mono.just(Response.error("找不到商品"))); // 如果找不到商品，返回错误
+    }
+
+    // 获取商品详情
+    @GetMapping("/archived/{id}")
+    public Mono<Response<ProductVO>> getArchivedProductDetail(@PathVariable String id) {
+        return productService.findByIdWithSku(id)
                 .map(Response::success) // 成功时返回响应
                 .switchIfEmpty(Mono.just(Response.error("找不到商品"))); // 如果找不到商品，返回错误
     }

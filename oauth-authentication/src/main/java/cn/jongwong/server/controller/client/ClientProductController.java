@@ -8,8 +8,10 @@ import cn.jongwong.server.enums.GlobalEnableTypeEnum;
 import cn.jongwong.server.enums.product.ProductListedStatus;
 import cn.jongwong.server.enums.product.ProductStatus;
 import cn.jongwong.server.enums.product.PurchaseGroupStatus;
+import cn.jongwong.server.service.GroupAdminService;
 import cn.jongwong.server.service.ProductService;
 import cn.jongwong.server.service.ProductSkuService;
+import cn.jongwong.server.service.PurchaseGroupService;
 import cn.jongwong.server.service.product.PurchaseGroupProductService;
 import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
@@ -30,11 +32,17 @@ public class ClientProductController {
     private PurchaseGroupProductService purchaseGroupProductService;
 
     @Autowired
-    private ProductService productService;
+    private PurchaseGroupService purchaseGroupService;
 
 
     @Autowired
+    private ProductService productService;
+    ;
+
+    @Autowired
     private ProductSkuService productSkuService;
+    @Autowired
+    private GroupAdminService groupAdminService;
 
     @GetMapping("/client/group/product")
     public Mono<PageResponse<ClientPurchaseGroupProductVO>> queryGroupProduct(
@@ -101,6 +109,40 @@ public class ClientProductController {
 
         return productSkuService.findAllByProductId(id).collectList().map(Response::ok);
     }
+
+    @GetMapping("/client/product/sku/by_group/{id}/{groupId}")
+    public Mono<Response<List<ProductSkuVO>>> findAllGroupSkuBProductId(@PathVariable String groupId, @PathVariable String id) { // 每页大小
+
+
+        return purchaseGroupService.findById(groupId).flatMap(
+                group -> {
+
+                    var productList = group.getProducts();
+
+                    return productSkuService.findAllByProductId(id).collectList().map(
+                            list -> {
+                                list.forEach(
+                                        sku -> {
+                                            var find = productList.stream().filter(
+                                                    product -> product.getProductId().equals(sku.getProductId())
+                                            ).findFirst();
+                                            if (find.isPresent()) {
+                                                var findSku = find.get();
+
+                                                var newPrice = sku.getPrice() - findSku.getAmountOffset();
+                                                sku.setPrice(newPrice);
+
+                                            }
+
+                                        }
+                                );
+                                return list;
+                            }
+                    );
+                }
+        ).map(Response::ok);
+    }
+
 
     @GetMapping("/client/product/{id}")
     public Mono<Response<ProductVO>> findByProductId(@PathVariable String id) { // 每页大小

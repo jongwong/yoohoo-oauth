@@ -155,7 +155,7 @@ const Index: React.FC = () => {
         </FormItem>
 
         <FormItem
-          label="原价"
+          label="售卖价格"
           name={["products", idx, "price"]}
           trigger="onInput"
           valueFormat={(e) => e.detail.value}
@@ -169,16 +169,16 @@ const Index: React.FC = () => {
           </ProxyWrapped>
         </FormItem>
         <FormItem
-          label="折扣价"
-          name={["products", idx, "discount_price"]}
+          label="商品降价"
+          name={["products", idx, "amount_offset"]}
           trigger="onChange"
         >
           {readonly ? (
             <ProxyWrapped>
               {(cfg) => (
                 <Text>
-                  {isNumber(item?.discount_price)
-                    ? formatAmount(item?.discount_price)
+                  {isNumber(item?.amount_offset)
+                    ? formatAmount(item?.amount_offset)
                     : EMPTY_TEXT}
                 </Text>
               )}
@@ -188,11 +188,11 @@ const Index: React.FC = () => {
               {(cfg) => (
                 <InputNumber
                   precision={2}
-                  placeholder={"请输入折扣价"}
-                  value={formatAmount(item.discount_price)}
+                  placeholder={"请输入降价金额(增量)"}
+                  value={formatAmount(item.amount_offset)}
                   onChange={(e) => {
                     const val = e;
-                    item.discount_price = isNumber(val)
+                    item.amount_offset = isNumber(val)
                       ? multiply(val, 100)
                       : undefined;
 

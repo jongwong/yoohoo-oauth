@@ -14,7 +14,7 @@ import { reduce } from "lodash";
 
 const Index: React.FC = () => {
   const router = useRouter();
-  const [skuCountList, setSkuCountList] = useState<
+  const [_skuCountList, setSkuCountList] = useState<
     {
       data: any;
       product_id: string;
@@ -22,6 +22,7 @@ const Index: React.FC = () => {
       count: number;
     }[]
   >([]);
+  const skuCountList = _skuCountList.filter((it) => it.count > 0);
   const [{ currentArea }, LocationSelectHolder] = useLocationSelect();
   const [cartCountMap, setCartCountMap] = useState({});
   const {
@@ -105,6 +106,7 @@ const Index: React.FC = () => {
         onClose={() => {
           setPopupOpenProductId("");
         }}
+        groupId={groupDetailData?.id}
         skuCountList={skuCountList}
         onChange={(e) => {
           setSkuCountList(e);

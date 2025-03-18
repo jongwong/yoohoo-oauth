@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Badge, Icon, Popup, Stepper } from "@antmjs/vantui";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
-import { divide } from "@/utils/number";
+import { divide, multiply } from "@/utils/number";
 import { cloneDeep } from "lodash-es";
 import Image from "@/component/Image";
 import { generateFileUrl } from "@/utils/file";
@@ -25,6 +25,15 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
   const productCount = useMemo(() => {
     return skuCountList.reduce((acc, cur) => {
       return acc + cur.count;
+    }, 0);
+  }, [skuCountList]);
+
+  const totalAmount = useMemo(() => {
+    return skuCountList.reduce((acc, cur) => {
+      const count: number = cur.count || 0;
+      const price: number = cur?.data.price || 0;
+      const val = multiply(count, price) || 0;
+      return acc + val;
     }, 0);
   }, [skuCountList]);
   return (
@@ -52,7 +61,9 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
             <View className={styles["cart-popup-fee"]}>
               <Text>
                 <Text className={"text-sm text-red"}>约</Text>
-                <Text className={"text-lg text-red"}>￥{20.1}</Text>
+                <Text className={"text-lg text-red"}>
+                  ￥{divide(totalAmount, 100)}
+                </Text>
               </Text>
 
               <Text className={"text-grey-dark text-xs"}>

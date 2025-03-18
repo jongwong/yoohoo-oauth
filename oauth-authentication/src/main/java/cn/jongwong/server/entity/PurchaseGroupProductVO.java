@@ -49,8 +49,12 @@ public class PurchaseGroupProductVO {
     @Transient
     private Integer marketPrice;
 
-    @Schema(description = "商品折扣价")
-    private Integer discountPrice;
+    @Schema(description = "市场价")
+    @Transient
+    private Integer finalPrice;
+
+    @Schema(description = "商品价格便宜")
+    private Integer amountOffset;
 
 
     @Schema(description = "商品图片")
@@ -60,5 +64,15 @@ public class PurchaseGroupProductVO {
     @Schema(description = "是否有多个SKU")
     @Transient
     private Integer hasMultipleSku;
+
+    public Object getFinalPrice() {
+        if (this.price == null) {
+            return null;
+        }
+        if (this.amountOffset == null) {
+            return this.price;
+        }
+        return this.price - this.amountOffset;
+    }
 
 }

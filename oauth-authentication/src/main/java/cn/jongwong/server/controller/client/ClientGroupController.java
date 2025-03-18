@@ -49,6 +49,14 @@ public class ClientGroupController {
         }));
     }
 
+
+    @GetMapping("/group/{id}")
+    public Mono<Response<PurchaseGroupVO>> findById(@PathVariable String id) {
+        return purchaseGroupService.findById(id)
+                .map(Response::success)
+                .defaultIfEmpty(Response.notFound());
+    }
+
     @GetMapping("/admin/group")
     public Mono<PageResponse<PurchaseGroupVO>> searchGroup(@RequestParam(required = false) String name,
                                                            @RequestParam(required = false) Integer enable,
@@ -59,9 +67,8 @@ public class ClientGroupController {
 
     }
 
-
-    @GetMapping("/group/{id}")
-    public Mono<Response<PurchaseGroupVO>> findById(@PathVariable String id) {
+    @GetMapping("/admin/group/{id}")
+    public Mono<Response<PurchaseGroupVO>> findAdminById(@PathVariable String id) {
         return purchaseGroupService.findById(id)
                 .map(Response::success)
                 .defaultIfEmpty(Response.notFound());

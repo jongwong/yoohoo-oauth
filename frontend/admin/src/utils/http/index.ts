@@ -61,7 +61,6 @@ axiosRetry(http, {
 	retries: 10, // 重试次数
 	retryDelay: axiosRetry.exponentialDelay, // 使用指数回退延迟
 	retryCondition: error => {
-		console.log('=====error=====', error);
 		// 在这里可以根据错误的类型来决定是否重试
 		return tryConfirm(error);
 	},
@@ -82,7 +81,6 @@ http.interceptors.request.use(
 		return config;
 	},
 	error => {
-		console.log('=====error=====', error);
 		return Promise.reject(error);
 	}
 );
@@ -131,16 +129,13 @@ export default {
 		const params = omitBy(config?.params || {}, it => {
 			return it === -1 || it === '' || isNil(it);
 		});
-		console.log('=====url=====', url);
 		try {
 			return http
 				.get(url, {
 					...config,
 					params,
 				})
-				.catch(error => {
-					console.log('=====error=====', error);
-				});
+				.catch(error => {});
 		} catch (error) {
 			console.error('Global Error Handling (GET):', error);
 			// 可以在这里统一处理错误

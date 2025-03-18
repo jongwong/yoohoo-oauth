@@ -13,6 +13,7 @@ public interface ProductSkuRepository extends GenericReactiveRepository<ProductS
     // 查询某个商品的所有 SKU
     Flux<ProductSkuVO> findAllByProductId(String productId);
 
+
     // 查询某个 SKU 的详情
     @NotNull
     Mono<ProductSkuVO> findById(String id);

@@ -10,12 +10,20 @@ import { divide } from "@/utils/number";
 
 type SkuPopupProps = PopupProps & {
   productId: string;
+  groupId?: string;
   onChange?: (e: any) => void;
   skuCountList: any[];
 };
 const SkuPopup: React.FC<SkuPopupProps> = (props) => {
-  const { productId, skuCountList, onChange, selectSkuName, show, ...rest } =
-    props;
+  const {
+    productId,
+    groupId,
+    skuCountList,
+    onChange,
+    selectSkuName,
+    show,
+    ...rest
+  } = props;
   const [skuParameter, setSkuParameter] = useState<
     {
       name: string;
@@ -27,9 +35,20 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
 
   const { data: skuData } = useRequest(
     async () => {
-      const res = await request.get(`/client/product/sku/${productId}`, {
-        params: {},
-      });
+      let res: any = {};
+
+      if (groupId) {
+        res = await request.get(
+          `/client/product/sku/by_group/${productId}/${groupId}`,
+          {
+            params: {},
+          }
+        );
+      } else {
+        res = await request.get(`/client/product/sku/${productId}`, {
+          params: {},
+        });
+      }
 
       return res?.data?.map((it) => {
         let li = [];
@@ -50,14 +69,9 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
     },
     {
       ready: !!productId && show,
-      refreshDeps: [productId, show],
+      refreshDeps: [productId, show, groupId],
     }
   );
-  // useEffect(() => {
-  //   if (selectSkuName) {
-  //     setSelectSku(selectSkuName.split("/"));
-  //   }
-  // }, [selectSkuName]);
 
   const { data: productData } = useRequest(
     () => {
@@ -82,7 +96,10 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
   const getTotalPrice = () => {
     const find = getFindSku();
 
-    return divide(find?.price || 0, 100);
+    return find?.price || 0;
+  };
+  const renderTotalPrice = () => {
+    return divide(getTotalPrice(), 100);
   };
 
   const currentSku = (skuCountList || []).find((it) => {
@@ -172,7 +189,7 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
             <View>
               总计
               <Text className={"text-red"}>
-                <>￥{selectSku.some(isNil) ? "--" : getTotalPrice()}</>
+                <>￥{selectSku.some(isNil) ? "--" : renderTotalPrice()}</>
               </Text>
             </View>
 
@@ -185,7 +202,7 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
                   onClick={() => {
                     changeCount?.(true);
                   }}
-                  disabled={!getTotalPrice()}
+                  disabled={!renderTotalPrice()}
                 >
                   加入购物车
                 </Button>

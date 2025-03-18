@@ -43,7 +43,7 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
   }
 
   const currentSku = (skuCountList || []).find((it) => {
-    return it.product_id === productData?.product_id && !it?.skuId;
+    return it.product_id === productData?.product_id && it?.skuId;
   });
   const count = currentSku?.count || 0;
   const changeCount = (isAdd?: boolean) => {

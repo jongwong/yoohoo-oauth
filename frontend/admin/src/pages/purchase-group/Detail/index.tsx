@@ -420,7 +420,6 @@ const Detail: React.FC = () => {
 									formItemProps: {
 										rules: [{ required: true }],
 										getValueFromEvent: (e, op) => {
-											console.log('=====op=====', op);
 											return e;
 										},
 									},
@@ -444,17 +443,25 @@ const Detail: React.FC = () => {
 								},
 
 								{
-									title: '最大库存',
-									dataIndex: 'max_stock',
-									width: editable ? '40%' : '40%',
-									valueType: EDefaultValueType.PositiveInteger,
-								},
-								{
-									title: '折扣价',
-									dataIndex: 'discount_price',
+									title: '售卖价格',
+									dataIndex: 'price',
 									width: '20%',
 									valueType: EDefaultValueType.Money,
 								},
+								{
+									title: '商品减价',
+									dataIndex: 'amount_offset',
+									width: '20%',
+									valueType: EDefaultValueType.Money,
+								},
+
+								{
+									title: '最大库存',
+									dataIndex: 'max_stock',
+									width: editable ? '20%' : '20%',
+									valueType: EDefaultValueType.PositiveInteger,
+								},
+
 								{
 									title: '操作',
 									dataIndex: '_action',

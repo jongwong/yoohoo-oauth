@@ -23,7 +23,6 @@ const List: React.FC = () => {
 	// 获取团购列表
 	const fetchPurchaseGroupList = async (params: any) => {
 		const res = await getPurchaseGroupPage(params);
-		console.log('=====res=====', res);
 		return res;
 	};
 

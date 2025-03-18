@@ -48,7 +48,7 @@ public class PriceChangeItemVO {
 
     @Schema(description = "商品图片")
     @Transient
-    private String imageUrl;
+    private String thumbnailImage;
 
     @Schema(description = "原价 (单位：分)")
     @Transient

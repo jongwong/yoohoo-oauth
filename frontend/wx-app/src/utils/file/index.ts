@@ -1,5 +1,5 @@
 export const generateFileUrl = (
-  filePath: string,
+  filePath: string = "",
   fallback: boolean = false
 ): string | undefined => {
   const domain = "https://yoohoo-oss.oss-cn-shanghai.aliyuncs.com"; // 这里是你的 OSS 域名

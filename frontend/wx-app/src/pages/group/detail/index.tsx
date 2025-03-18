@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import Layout from "@/component/Layout";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
@@ -10,7 +10,6 @@ import SkuPopup from "@/pages/group/detail/SkuPopup";
 import CartPopup from "@/pages/group/detail/CartPopup";
 import useLocationSelect from "@/pages/group/detail/useLocationSelect";
 import { View } from "@tarojs/components";
-import { reduce } from "lodash";
 
 const Index: React.FC = () => {
   const router = useRouter();
@@ -54,18 +53,6 @@ const Index: React.FC = () => {
     }
   );
 
-  const skuCountMap = useMemo(() => {
-    return reduce(
-      skuCountList,
-      (acc, cur) => {
-        return {
-          ...acc,
-          [cur.product_id]: (acc[cur.product_id] || 0) + cur?.count,
-        };
-      },
-      {}
-    );
-  }, [skuCountList]);
   const [popupOpenProductId, setPopupOpenProductId] = useState("");
   return (
     <Layout loading={loading || deliveryFeeLoading} edge={"none"}>
@@ -76,7 +63,7 @@ const Index: React.FC = () => {
           return (
             <ProductCardItem
               title={it.product_name}
-              src={generateFileUrl(it.image_url)}
+              src={generateFileUrl(it.thumbnail_image)}
               originalPrice={it?.market_price}
               price={getFinallyPrice(it)}
               productData={it}

@@ -1,43 +1,60 @@
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, View } from "@tarojs/components";
-import { Empty, Icon, Picker, Space } from "@antmjs/vantui";
+import React, { ReactNode, useMemo, useRef, useState } from "react";
+import Layout from "@/component/Layout";
+import useRequest from "@/hooks/useRequest";
+import request from "@/utils/request";
+import Taro from "@tarojs/taro";
+import ProductCardItem from "@/pages/group/detail/ProductCardItem";
+import { generateFileUrl, getNoDataUrl } from "@/utils/file";
+import { getFinallyPrice } from "@/utils/product";
+import SkuPopup from "@/pages/group/detail/SkuPopup";
+import CartPopup from "@/pages/group/detail/CartPopup";
+import useLocationSelect from "@/pages/group/detail/useLocationSelect";
+import { ScrollView, View } from "@tarojs/components";
 
-import { useRequest } from "ahooks";
+import styles from "./index.module.less";
 import dayjs, { Dayjs } from "dayjs";
 import { groupBy } from "lodash-es";
+import SwiperDatePicker from "@/pages/classify/component/DatePicker";
 import classNames from "classnames";
-import request from "@/utils/request";
-import ProductCardItem from "./component/ProductCardItem";
-import { generateFileUrl, getNoDataUrl } from "@/utils/file";
-import styles from "./index.module.less";
-import Taro from "@tarojs/taro";
-import SwiperDatePicker from "./component/DatePicker";
-import Layout from "@/component/Layout";
+import { Empty, Space } from "@antmjs/vantui";
 
 const Index: React.FC = () => {
   // State hooks
   const [activeIndex, setActiveIndex] = useState(0); // 当前激活的菜单项
   const [scrollToId, setScrollToId] = useState<string>(""); // 滚动到的目标
   const [selectTime, setSelectTime] = useState<Dayjs>(dayjs()); // 选择时间
-  const [productList, setProductList] = useState<any[]>([]); // 产品列表
-  const [currentArea, setCurrentArea] = useState<{
-    id: string;
-    name: string;
-  }>(); // 当前选中的区域
-  const [addressPickVisible, setAddressPickVisible] = useState(false); // 地址选择弹窗是否显示
-  const [areaList, setAreaList] = useState<any[]>([]); // 区域列表
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [cartMap, setCartMap] = useState({});
 
-  // Refs
+  const [productList, setProductList] = useState<any[]>([]); // 产品列表
+
+  const [_skuCountList, setSkuCountList] = useState<
+    {
+      data: any;
+      product_id: string;
+      skuId?: string;
+      count: number;
+    }[]
+  >([]);
   const isScrollingByClick = useRef(false); // 是否为点击触发滚动
   const scrollTimer = useRef<NodeJS.Timeout | null>(null); // 用于清理滚动状态的定时器
 
-  // 数据请求
+  const skuCountList = _skuCountList.filter((it) => it.count > 0);
+  const [{ currentArea }, LocationSelectHolder] = useLocationSelect();
+
   const { data: menuList = [] } = useRequest(async () => {
     const res = await request.get("/client/menus/category");
     return res?.data || [];
   });
+
+  const [currentGroupId, setCurrentGroupId] = useState("");
+  const { loading: deliveryFeeLoading, data: deliveryFee } = useRequest(
+    async () => {
+      return request.get(`/client/delivery/fee`);
+    },
+    {
+      refreshDeps: [currentArea?.id],
+      ready: !!currentArea?.id,
+    }
+  );
 
   // 请求产品列表数据
   const { loading: productLoading } = useRequest(
@@ -63,52 +80,6 @@ const Index: React.FC = () => {
       },
     }
   );
-
-  // 获取当前位置信息
-  const getWxLocation = () => {
-    setLocationLoading(true);
-    wx.getLocation({
-      type: "wgs84",
-      success(res) {
-        wx.setStorageSync("locationInfo", res);
-        fetchLocationList({
-          page: 1,
-          size: 10,
-          enable: 1,
-          latitude: res?.latitude,
-          longitude: res?.longitude,
-        }).finally(() => {
-          setLocationLoading(false);
-        });
-      },
-      fail(error) {
-        setLocationLoading(false);
-        console.error("获取位置失败", error);
-        wx.showToast({ title: "获取位置失败" });
-      },
-    });
-  };
-
-  // 获取区域列表
-  const fetchLocationList = async (params: {
-    latitude: number;
-    longitude: number;
-    name?: string;
-    page: number;
-    size: number;
-    enable?: number;
-  }) => {
-    const res = await request.get("/client/store/area/distance", { params });
-
-    if (res.success) {
-      setAreaList(res.data || []);
-      setCurrentArea(res?.data?.[0]);
-    }
-  };
-
-  useEffect(() => {
-    getWxLocation();
-  }, []);
 
   // 格式化菜单数据
   const formatMenuData = useMemo(() => {
@@ -159,57 +130,13 @@ const Index: React.FC = () => {
       .exec();
   };
 
-  const productCount = useMemo(() => {
-    return Object.keys(cartMap || {})
-      .map((it) => cartMap[it])
-      .reduce((it, pre) => pre + (it || 0), 0);
-  }, [cartMap]);
-
+  const [popupOpenProductId, setPopupOpenProductId] = useState("");
   return (
-    <Layout
-      loading={productLoading || locationLoading}
-      backgroundColor={"#fff"}
-      edge={"none"}
-    >
+    <Layout backgroundColor={"#fff"} edge={"none"} loading={productLoading}>
       <View className={styles.container}>
         {/* Header: Store Name and Location */}
-        <View className={styles.header}>
-          <View className={styles["store-title"]}>
-            {/*<Star size={14} className={styles.icon} />*/}
-            <View onClick={() => setAddressPickVisible(true)}>
-              {currentArea?.name ? (
-                <View style={{ display: "inline-flex" }}>
-                  <Picker
-                    title="选择地址"
-                    columns={areaList?.map((it) => ({
-                      text: it.name,
-                      value: it.id,
-                    }))}
-                    idKey={"value"}
-                    onConfirm={(e) => {
-                      const find = areaList.find(
-                        (it) => it.id === e?.[0]?.value
-                      );
-                      setCurrentArea(find);
-                      setAddressPickVisible(false);
-                    }}
-                    mode={"content"}
-                    allowClear={false}
-                    onCancel={() => setAddressPickVisible(false)}
-                    key={currentArea?.id}
-                    value={currentArea?.id ? [currentArea?.id] : undefined}
-                  />
-                  <Text className={"ml-4"}>{">"}</Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-          <View className={styles["store-location"]}>
-            <Text className={styles.text}>{currentArea?.address || ""}</Text>
-            <Icon name={"location-o"} size={12} className={styles.icon} />
-          </View>
-        </View>
 
+        {LocationSelectHolder}
         {/* Time Picker */}
         <View className={styles["timePickerBox"]}>
           <SwiperDatePicker value={selectTime} onChange={setSelectTime} />
@@ -255,28 +182,22 @@ const Index: React.FC = () => {
                 if (list?.length) {
                   content = (
                     <>
-                      {list.map((productIt) => (
+                      {list.map((it) => (
                         <ProductCardItem
-                          key={productIt.id}
-                          title={productIt?.product_name}
-                          price={productIt?.price}
-                          src={generateFileUrl(
-                            productIt?.thumbnail_image_url,
-                            true
-                          )}
-                          onGotoOrderSubmit={() => {
-                            Taro.navigateTo({
-                              url: `/pages/order/create/index?product_id=${productIt?.id}&area_id=${currentArea?.id}`,
-                            });
+                          title={it.product_name}
+                          src={generateFileUrl(it.thumbnail_image)}
+                          originalPrice={it?.market_price}
+                          price={getFinallyPrice(it)}
+                          productData={it}
+                          onOpenSku={() => {
+                            setCurrentGroupId(it?.purchase_group_id);
+                            setPopupOpenProductId(it.product_id);
                           }}
-                          data={productIt}
-                          onCartChange={(num) => {
-                            setCartMap((old) => ({
-                              ...old,
-                              [productIt.id]: num,
-                            }));
+                          skuCountList={skuCountList}
+                          onChange={(e) => {
+                            setSkuCountList(e);
                           }}
-                          originalPrice={productIt?.original_price}
+                          hasMultipleSku={it?.has_multiple_sku}
                         />
                       ))}
                     </>
@@ -323,6 +244,29 @@ const Index: React.FC = () => {
           </ScrollView>
         </View>
       </View>
+
+      <CartPopup
+        skuCountList={skuCountList}
+        onChange={(e) => {
+          setSkuCountList(e);
+        }}
+        deliveryFee={deliveryFee}
+      />
+      {currentGroupId && popupOpenProductId ? (
+        <SkuPopup
+          show={!!popupOpenProductId}
+          productId={popupOpenProductId}
+          onClose={() => {
+            setPopupOpenProductId("");
+            setCurrentGroupId("");
+          }}
+          groupId={currentGroupId}
+          skuCountList={skuCountList}
+          onChange={(e) => {
+            setSkuCountList(e);
+          }}
+        />
+      ) : null}
     </Layout>
   );
 };

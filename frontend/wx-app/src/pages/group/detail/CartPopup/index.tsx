@@ -98,7 +98,7 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
             return (
               <View className={styles.skuItem}>
                 <Image
-                  src={generateFileUrl(it.data?.image_url)}
+                  src={generateFileUrl(it.data?.thumbnail_image)}
                   fadeIn
                   width={100}
                   fallback

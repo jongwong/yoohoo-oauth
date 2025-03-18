@@ -397,7 +397,7 @@ public class OrderService {
                                 .productCode(product.getCode())
                                 .productName(product.getName())
                                 .groupProductId(product.getGroupProductId())
-                                .productImageUrl(product.getImageUrl())
+                                .productImageUrl(product.getThumbnailImage())
                                 .createdAt(LocalDateTime.now())
                                 .updatedAt(LocalDateTime.now())
                                 .build();

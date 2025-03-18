@@ -41,6 +41,14 @@ public class ClientPurchaseGroupProductVO {
     private String productName;
 
 
+    @Schema(description = "减价")
+    private Integer amountOffset;
+
+    @Schema(description = "最终价格")
+    private Integer final_price;
+
+
+
     @Schema(description = "商品类别名称")
     private String categoryName;
 
@@ -60,7 +68,16 @@ public class ClientPurchaseGroupProductVO {
     private String distributionPointId;
 
     @Schema(description = "缩略图")
-    private String thumbnailImageUrl;
+    private String thumbnailImage;
+
+    @Schema(description = "缩略图")
+    private String mainImage;
+
+    @Schema(description = "是否有sku")
+    private Integer hasMultipleSku;
+
+    @Schema(description = "价格")
+    private Integer price;
 
 
     @Schema(description = "最小成团人数")

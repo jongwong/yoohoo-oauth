@@ -23,7 +23,7 @@ public class OrderProductItemDTO {
     private String groupProductId;
 
     @Schema(description = "商品图片")
-    private String imageUrl;
+    private String thumbnailImage;
 
     @Schema(description = "商品价格")
     private Integer price;

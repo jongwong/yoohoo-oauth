@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Button, Icon, Popup, PopupProps, Space } from "@antmjs/vantui";
+import {
+  Button,
+  Icon,
+  Popup,
+  PopupProps,
+  Skeleton,
+  Space,
+} from "@antmjs/vantui";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
 import { Text, View } from "@tarojs/components";
@@ -15,28 +22,18 @@ type SkuPopupProps = PopupProps & {
   skuCountList: any[];
 };
 const SkuPopup: React.FC<SkuPopupProps> = (props) => {
-  const {
-    productId,
-    groupId,
-    skuCountList,
-    onChange,
-    selectSkuName,
-    show,
-    ...rest
-  } = props;
+  const { productId, groupId, skuCountList, onChange, show, ...rest } = props;
   const [skuParameter, setSkuParameter] = useState<
     {
       name: string;
       options: string[];
     }[]
   >([]);
-  const maxCount = 99;
   const [selectSku, setSelectSku] = useState<(string | undefined)[]>([]);
 
-  const { data: skuData } = useRequest(
+  const { data: skuData, loading: skuLoading } = useRequest(
     async () => {
       let res: any = {};
-
       if (groupId) {
         res = await request.get(
           `/client/product/sku/by_group/${productId}/${groupId}`,
@@ -57,9 +54,7 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
         } catch (e) {}
         setSkuParameter(li);
 
-        if (!selectSkuName) {
-          setSelectSku(li.map(() => undefined));
-        }
+        setSelectSku(li.map(() => undefined));
 
         return {
           ...it,
@@ -73,7 +68,7 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
     }
   );
 
-  const { data: productData } = useRequest(
+  const { data: productData, loading: productLoading } = useRequest(
     () => {
       return request.get(`/client/product/${productId}`, {
         params: {},
@@ -129,7 +124,7 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
             product_id: productData?.id,
             product_name: productData?.name,
             price: getTotalPrice(),
-            image_url: productData?.thumbnail_image?.url,
+            thumbnail_image: productData?.thumbnail_image?.url,
             skuId: _find?.id,
             skuName: selectSku.filter(Boolean).join("/"),
           },
@@ -151,6 +146,9 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
           <View className={"text-lg mb-8"}>{productData?.name}</View>
         </View>
         <View className={styles["sku-popup-body"]}>
+          {(skuLoading || productLoading) && !skuParameter?.length ? (
+            <Skeleton title={true} row="6" />
+          ) : null}
           {skuParameter?.map((it, skuIndex) => (
             <View>
               <View className={"text-md "}>{it.name}</View>

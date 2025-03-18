@@ -133,7 +133,7 @@ public class PurchaseGroupService {
                                         product.setPrice(p.getPrice());
                                         product.setHasMultipleSku(p.getHasMultipleSku());
                                         product.setMarketPrice(p.getMarketPrice());
-                                        product.setImageUrl(p.getThumbnailImage().getUrl());
+                                        product.setThumbnailImage(p.getThumbnailImage().getUrl());
 
                                     });
                                 });
@@ -184,7 +184,6 @@ public class PurchaseGroupService {
                                         .on("p.distribution_point_id = d.id")))
 
                 .flatMap(pageData -> {
-                    // setImageUrl
                     Flux<PurchaseGroupVO> flux = Flux.fromIterable(pageData.getData()).flatMap(e -> findById(e.getId()));
                     return flux.collectList().map(list -> {
                         pageData.setData(list);

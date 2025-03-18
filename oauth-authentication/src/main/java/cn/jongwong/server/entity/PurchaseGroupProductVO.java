@@ -59,7 +59,7 @@ public class PurchaseGroupProductVO {
 
     @Schema(description = "商品图片")
     @Transient
-    private String imageUrl;
+    private String thumbnailImage;
 
     @Schema(description = "是否有多个SKU")
     @Transient

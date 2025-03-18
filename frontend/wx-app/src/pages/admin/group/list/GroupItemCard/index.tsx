@@ -42,7 +42,7 @@ const GroupItemCard: React.FC<{
                 <GridItem key={productItem?.id}>
                   <Image
                     style={{ borderRadius: "8px", overflow: "hidden" }}
-                    src={generateFileUrl(productItem?.image_url)}
+                    src={generateFileUrl(productItem?.thumbnail_image)}
                     width={"80px"}
                     height={"80px"}
                   />

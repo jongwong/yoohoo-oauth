@@ -133,19 +133,19 @@ const Index: React.FC = () => {
 
         <FormItem
           label="商品图片"
-          name={["products", idx, "image_url"]}
+          name={["products", idx, "thumbnail_image"]}
           trigger="onInput"
           valueFormat={(e) => e.detail.value}
         >
           <ProxyWrapped>
             {(cfg) => (
               <Image
-                src={generateFileUrl(item?.image_url)}
+                src={generateFileUrl(item?.thumbnail_image)}
                 width={60}
                 height={60}
                 onClick={() =>
                   ImageViewer.show({
-                    list: [generateFileUrl(item?.image_url)],
+                    list: [generateFileUrl(item?.thumbnail_image)],
                     currentIndex: 0,
                   })
                 }
@@ -515,7 +515,7 @@ const Index: React.FC = () => {
                       product_name: item.name,
                       product_code: item.code,
                       price: item.price,
-                      image_url: item.thumbnail_image?.[0]?.url,
+                      thumbnail_image: item?.thumbnail_image?.url,
                     } as any,
                   ]);
                   forceUpdate();

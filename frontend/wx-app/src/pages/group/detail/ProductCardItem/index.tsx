@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Text, View } from "@tarojs/components";
 import Image from "src/component/Image"; // 引入自定义的 Image 组件
 import styles from "./index.module.less";
@@ -8,6 +8,7 @@ import duration from "dayjs/plugin/duration"; // 引入 duration 插件
 import relativeTime from "dayjs/plugin/relativeTime";
 import { divide } from "@/utils/number";
 import { cloneDeep } from "lodash-es";
+import { getFinallyPrice } from "@/utils/product";
 
 // 使用插件
 dayjs.extend(duration);
@@ -42,10 +43,16 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
     return Math.ceil(num / 10) * 10;
   }
 
-  const currentSku = (skuCountList || []).find((it) => {
-    return it.product_id === productData?.product_id && it?.skuId;
-  });
-  const count = currentSku?.count || 0;
+  const productCount = useMemo(() => {
+    const currentSkuList = (skuCountList || []).filter((it) => {
+      return it.product_id === productData?.product_id;
+    });
+
+    return currentSkuList.reduce((acc, cur) => {
+      return acc + (cur?.count || 0);
+    }, 0);
+  }, [skuCountList]);
+
   const changeCount = (isAdd?: boolean) => {
     const productId = productData?.product_id;
     const findIndex = (skuCountList || []).findIndex((it) => {
@@ -63,8 +70,8 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
           data: {
             product_id: productData?.product_id,
             product_name: productData?.product_name,
-            price: productData?.price,
-            image_url: productData?.image_url,
+            price: getFinallyPrice(productData),
+            thumbnail_image: productData?.thumbnail_image,
           },
         });
       }
@@ -81,9 +88,9 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
     if (hasMultipleSku) {
       return (
         <View className={styles.cartBtns}>
-          {count ? (
+          {productCount ? (
             <Badge
-              content={count}
+              content={productCount}
               style={{
                 backgroundColor: "rgba(139,195,74,0.8)",
               }}
@@ -116,7 +123,7 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
     }
     return (
       <View className={styles.cartBtns}>
-        {count ? (
+        {productCount ? (
           <View
             className={styles.subToCartBtn}
             onClick={() => {
@@ -130,8 +137,8 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
             />
           </View>
         ) : null}
-        {count ? (
-          <View style={{ width: 16, textAlign: "center" }}>{count}</View>
+        {productCount ? (
+          <View style={{ width: 16, textAlign: "center" }}>{productCount}</View>
         ) : null}
         <View
           onClick={() => {

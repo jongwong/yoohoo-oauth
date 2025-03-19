@@ -40,6 +40,14 @@ public class OrderItemVO {
     @Schema(description = "团购商品ID")
     private String groupProductId;
 
+
+    @Schema(description = "sku ID")
+    private String skuId;
+
+    @Schema(description = "sku名称")
+    private String skuName;
+
+
     @Schema(description = "商品代码")
     private Integer productCode;
 

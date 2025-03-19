@@ -17,13 +17,12 @@ const Index: React.FC = () => {
     {
       data: any;
       product_id: string;
-      skuId?: string;
+      sku_id?: string;
       count: number;
     }[]
   >([]);
   const skuCountList = _skuCountList.filter((it) => it.count > 0);
   const [{ currentArea }, LocationSelectHolder] = useLocationSelect();
-  const [cartCountMap, setCartCountMap] = useState({});
   const {
     runAsync: fetchGroupData,
     data: groupDetailData,
@@ -82,6 +81,7 @@ const Index: React.FC = () => {
 
       <CartPopup
         skuCountList={skuCountList}
+        currentAreaId={currentArea?.id}
         onChange={(e) => {
           setSkuCountList(e);
         }}

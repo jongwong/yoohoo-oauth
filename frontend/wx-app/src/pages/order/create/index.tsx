@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Layout from "@/component/Layout";
 import request from "@/utils/request";
 import { useRouter } from "@tarojs/taro";
@@ -22,17 +22,38 @@ const OrderCreate: React.FC = () => {
   const [currentConsignee, setCurrentConsignee] = useState();
   const form = Form.useForm();
   const forceUpdate = useUpdate();
+
+  const [skuCountList, setSkuCountList] = useState<
+    {
+      data: any;
+      product_id: string;
+      sku_id?: string;
+      count: number;
+    }[]
+  >(wx.getStorageSync("CART_SKU_COUNT_LIST"));
+
   const [saveLoading, setSaveLoading] = useState(false);
+
+  const productId = useMemo(() => {
+    return first(skuCountList)?.product_id;
+  }, [skuCountList]);
+  const groupId = useMemo(() => {
+    return first(skuCountList)?.purchase_group_id;
+  }, [skuCountList]);
+  console.log("=====skuCountList=====", skuCountList);
   // 请求产品列表数据
   const { loading: productLoading, data: productData } = useRequest(
     async () => {
-      return request.get(`/client/group/product/${router.params?.product_id}`, {
-        params: {},
-      });
+      return request.get(
+        `/client/group/product/by-group-product/${groupId}/${productId}`,
+        {
+          params: {},
+        }
+      );
     },
     {
-      refreshDeps: [router.params?.product_id],
-      ready: !!router.params?.product_id,
+      refreshDeps: [productId, groupId],
+      ready: !!productId && !!groupId,
       onSuccess: (res) => {
         return res?.data;
       },
@@ -120,17 +141,20 @@ const OrderCreate: React.FC = () => {
     const currentCoupons = form.getFieldValue("currentCoupons");
     const find = couponsList.find((item) => item.id === currentCoupons);
     const couponsFee = find?.discount_amount || 0;
-    const _products = [
-      {
-        id: productData?.product_id,
-        group_product_id: productData?.group_product_id,
-        name: productData?.product_name,
-        code: productData?.product_code,
-        image_url: productData?.thumbnail_image_url,
-        price: productData?.price,
-        count: 1,
-      },
-    ];
+    const _products = skuCountList.map((it) => {
+      const data = it?.data;
+      return {
+        id: it.product_id,
+        group_product_id: data?.group_product_id,
+        name: data?.product_name,
+        code: data?.product_code,
+        sku_id: data.sku_id,
+        sku_name: data?.sku_name,
+        thumbnail_image: data?.thumbnail_image,
+        price: data?.price,
+        count: it.count,
+      };
+    });
     const amountProduct = _products.reduce((prev, next) => {
       return prev + next.price * next.count;
     }, 0);
@@ -186,7 +210,7 @@ const OrderCreate: React.FC = () => {
             gotoPayPageResult(true);
           },
           fail: (e) => {
-            gotoPayPageResult(true);
+            // gotoPayPageResult(true);
           },
         });
       }
@@ -261,30 +285,35 @@ const OrderCreate: React.FC = () => {
           </View>
         </View>
         <View className={classNames("mt-16", styles.card)}>
-          <View className={styles.productCard}>
-            <Image
-              src={generateFileUrl(productData?.thumbnail_image_url, true)}
-              fadeIn
-              fallback
-              className={styles.productImage}
-              mode="aspectFill"
-            />
-            <View className={styles.productInfo}>
-              <View className={styles.productTitleRow}>
-                <View className={styles.productTitle}>
-                  {productData?.product_name}
-                </View>
+          {skuCountList?.map((it) => {
+            const productItem = it?.data;
+            return (
+              <View className={styles.productCard}>
+                <Image
+                  src={generateFileUrl(productItem?.thumbnail_image, true)}
+                  fadeIn
+                  fallback
+                  className={styles.productImage}
+                  mode="aspectFill"
+                />
+                <View className={styles.productInfo}>
+                  <View className={styles.productTitleRow}>
+                    <View className={styles.productTitle}>
+                      {productItem?.product_name}
+                    </View>
 
-                <Text className={styles.productPrice}>
-                  <Text className={"text-12"}>￥</Text>
-                  {transformMoney(productData?.price)}
-                </Text>
+                    <Text className={styles.productPrice}>
+                      <Text className={"text-12"}>￥</Text>
+                      {transformMoney(productItem?.price)}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text className={styles.productNum}> x {it?.count}</Text>
+                  </View>
+                </View>
               </View>
-              <View>
-                <Text className={styles.productNum}> x 1</Text>
-              </View>
-            </View>
-          </View>
+            );
+          })}
 
           <FormItem
             label={"配送费"}

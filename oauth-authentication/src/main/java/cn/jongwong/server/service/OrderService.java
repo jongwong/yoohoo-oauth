@@ -7,15 +7,12 @@ import cn.jongwong.server.dto.order.OrderPayDTO;
 import cn.jongwong.server.dto.order.OrderProductItemDTO;
 import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
-import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
 import cn.jongwong.server.entity.OrderItemVO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.entity.PaymentVO;
 import cn.jongwong.server.enums.OrderItemTypeEnum;
 import cn.jongwong.server.enums.OrderStatusEnum;
 import cn.jongwong.server.enums.PaymentStatusEnum;
-import cn.jongwong.server.enums.product.ProductArchivedStatus;
-import cn.jongwong.server.enums.product.ProductListedStatus;
 import cn.jongwong.server.repository.OrderItemRepository;
 import cn.jongwong.server.repository.OrderRepository;
 import cn.jongwong.server.service.product.PurchaseGroupProductService;
@@ -23,7 +20,6 @@ import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -287,62 +283,6 @@ public class OrderService {
             order.setCreatedBy(u.getId());
             order.setCreatedByName(u.getName());
             return Mono.just(order);
-        }).flatMap(o -> {
-
-            var ids = data.getProducts().stream()
-                    .map(OrderProductItemDTO::getGroupProductId)
-                    .toList();
-            Flux<ClientPurchaseGroupProductVO> productsMono = groupProductService.findAllByIds(ids).map(e -> {
-                if (e == null) {
-                    throw new RuntimeException("商品不存在");
-                }
-                return e;
-            });
-
-
-            return productsMono.collectList().map(re -> {
-//                int total = re.stream()
-//                        .mapToInt(p -> p.getPrice() * data.getProducts().stream()
-//                                .filter(it -> it.getGroupProductId().equals(p.getId()))
-//                                .findFirst()
-//                                .map(it -> it.getCount())
-//                                .orElse(0)) // 避免空指针异常
-//                        .sum();
-//
-//                if (total != data.getAmountProduct()) {
-//                    throw new RuntimeException("商品金额不匹配");
-//                }
-
-                re.forEach(p -> {
-                    OrderProductItemDTO find = data.getProducts().stream()
-                            .filter(it -> it.getId().equals(p.getId()))
-                            .findFirst().orElse(null);
-                    ;
-                    if (find != null) {
-
-                        if (p.getArchivedStatus() != ProductArchivedStatus.COMPLETED.getCode()) {
-                            throw new RuntimeException("商品状态不能为" + ProductArchivedStatus.fromCode(p.getArchivedStatus()).getDescription());
-                        }
-
-                        if (p.getListedStatus() != ProductListedStatus.LISTED.getCode()) {
-                            throw new RuntimeException("商品上架状态不能为" + ProductListedStatus.fromCode(p.getListedStatus()).getDescription());
-                        }
-
-//                        var leftover = p.getMaxStock() - p.getSoldQuantity();
-//                        if (leftover < find.getCount()) {
-//                            throw new RuntimeException("商品库存不足");
-//                        }
-
-//                        if (p.getPrice().compareTo(find.getPrice()) != 0) {
-//                            throw new RuntimeException("价格已经发生变化，请重新刷新页面数据");
-//                        }
-                    }
-
-                });
-
-
-                return order;
-            });
         }).flatMap((o) -> {
             if (data.getCouponsId() == null) {
                 return Mono.just(o);
@@ -363,26 +303,17 @@ public class OrderService {
 
 
                 return userCoupon;
-            }).flatMap(userCoupon -> {
+            }).flatMap(userCoupon -> couponsService.findById(userCoupon.getCouponsId()).map(coupons -> {
+                if (!coupons.getDiscountAmount().equals(data.getAmountDiscount())) {
+                    throw new RuntimeException("优惠券金额不匹配");
+                }
 
 
-                return couponsService.findById(userCoupon.getCouponsId()).map(coupons -> {
-                    if (!coupons.getDiscountAmount().equals(data.getAmountDiscount())) {
-                        throw new RuntimeException("优惠券金额不匹配");
-                    }
-
-
-                    if (coupons.getDisable().equals(1)) {
-                        throw new RuntimeException("优惠券已停用");
-                    }
-                    return userCoupon;
-                }).flatMap((uc) -> {
-                    return userCouponsService.markAsUsed(data.getCouponsId()).map(_uc -> {
-                        return order;
-                    });
-
-                });
-            });
+                if (coupons.getDisable().equals(1)) {
+                    throw new RuntimeException("优惠券已停用");
+                }
+                return userCoupon;
+            }).flatMap((uc) -> userCouponsService.markAsUsed(data.getCouponsId()).map(_uc -> order)));
 
         }).flatMap(this::insert).flatMap(
                 savedOrder -> {
@@ -423,9 +354,7 @@ public class OrderService {
                     .amount(savedOrder.getAmountTotal())
                     .status(PaymentStatusEnum.PENDING_PAYMENT.getCode())
                     .build();
-            return paymentService.insert(payment).map(p -> {
-                return savedOrder;
-            });
+            return paymentService.insert(payment).map(p -> savedOrder);
         });
     }
 }

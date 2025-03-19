@@ -22,6 +22,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.function.Function;
 
 public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<T, ID> implements GenericReactiveRepository<T, ID> {
 
@@ -140,11 +141,34 @@ public class GenericReactiveRepositoryImpl<T, ID> extends SimpleR2dbcRepository<
 
 
     // 自定义方法：传入 ID 和 dslFn 方法来构建查询
-    public <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
+    public <S extends T> Mono<T> findOneByIdDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
 
         var tableName = this.entity.getTableName().toString();
         var sqlBuilder = SqlBuilder.select().from(tableName);
         sqlBuilder.eq("id", id);
+
+        // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
+        sqlBuilderFunction.apply(sqlBuilder);
+
+
+        sqlBuilder
+                .findOne();
+
+        return databaseClient.sql(sqlBuilder.toString())
+                .map((row, metadata) -> {
+                    T instance = instantiateEntity();
+                    populateEntityFromRow(row, metadata, instance);
+                    return instance;
+                })
+                .one();
+    }
+
+
+    // 自定义方法：传入 ID 和 dslFn 方法来构建查询
+    public <S extends T> Mono<T> findOneByDSL(Function<SqlBuilder, SqlBuilder> sqlBuilderFunction) {
+
+        var tableName = this.entity.getTableName().toString();
+        var sqlBuilder = SqlBuilder.select().from(tableName);
 
         // 将 sqlBuilderFunction 应用到 SqlBuilder 实例
         sqlBuilderFunction.apply(sqlBuilder);

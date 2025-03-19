@@ -9,6 +9,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { divide } from "@/utils/number";
 import { cloneDeep } from "lodash-es";
 import { getFinallyPrice } from "@/utils/product";
+import Taro from "@tarojs/taro";
 
 // 使用插件
 dayjs.extend(duration);
@@ -53,10 +54,30 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
     }, 0);
   }, [skuCountList]);
 
+  const validSameGroup = () => {
+    const groupId = productData?.purchase_group_id;
+
+    if (skuCountList?.some((it) => it?.purchase_group_id !== groupId)) {
+      Taro.showToast({
+        title: "请先同个团购的商品",
+        icon: "none",
+      });
+      return false;
+    }
+    return true;
+  };
   const changeCount = (isAdd?: boolean) => {
+    if (isAdd && !validSameGroup()) {
+      Taro.showToast({
+        title: "请先同个团购的商品",
+        icon: "none",
+      });
+      return;
+    }
+
     const productId = productData?.product_id;
     const findIndex = (skuCountList || []).findIndex((it) => {
-      return it.product_id === productData?.product_id && !it?.skuId;
+      return it.product_id === productData?.product_id && !it?.sku_id;
     });
     const find = skuCountList?.[findIndex];
     if (isAdd) {
@@ -67,6 +88,7 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
         skuCountList.push({
           count: 1,
           product_id: productId,
+          purchase_group_id: productData?.purchase_group_id,
           data: {
             product_id: productData?.product_id,
             product_name: productData?.product_name,
@@ -100,7 +122,9 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
                 round
                 type={"primary"}
                 onClick={() => {
-                  onOpenSku?.();
+                  if (validSameGroup()) {
+                    onOpenSku?.();
+                  }
                 }}
               >
                 选规格
@@ -112,7 +136,9 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
               round
               type={"primary"}
               onClick={() => {
-                onOpenSku?.();
+                if (validSameGroup()) {
+                  onOpenSku?.();
+                }
               }}
             >
               选规格

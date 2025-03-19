@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClientPurchaseGroupProductRepository extends GenericReactiveRepository<ClientPurchaseGroupProductVO, String> {
 
+
 }

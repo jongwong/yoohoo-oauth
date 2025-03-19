@@ -3,6 +3,7 @@ package cn.jongwong.server.config.wechatpay;
 import cn.jongwong.server.config.wechatpay.util.AesUtil;
 import cn.jongwong.server.config.wechatpay.util.AuthorizationUtils;
 import cn.jongwong.server.dto.order.OrderRefundDTO;
+import cn.jongwong.server.entity.OrderItemVO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.entity.PaymentVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,10 +19,10 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static cn.jongwong.server.config.wechatpay.util.AuthorizationUtils.generatePaySign;
 
@@ -51,44 +52,85 @@ public class WeChatPayService {
         return orderId + "-R" + randomNum;
     }
 
+
+    public String generateOrderDescription(OrderVO order) {
+        // 默认描述
+        String description = "";
+
+        // 获取订单明细
+        List<OrderItemVO> items = order.getItems();
+        if (items != null && !items.isEmpty()) {
+            int size = items.size();
+            String itemName = items.get(0).getProductName();
+            if (items.get(0).getSkuName() != null) {
+                itemName = itemName + " - " + items.get(0).getSkuName();
+
+            }
+            if (size == 1) {
+                description = itemName + "等";
+            } else {
+                description = itemName;
+            }
+
+
+        }
+
+        // 可选：如果有配送点信息，拼接上
+        if (order.getDeliveryPointName() != null) {
+            description += " - " + order.getDeliveryPointName();
+        }
+
+        return description;
+    }
+
     public Mono<HashMap<String, String>> createJsApiOrder(String curOpenId, OrderVO order) {
         var tradeNum = generateOutTradeNo(order.getNum());
         // 创建请求参数
         Map<String, Object> request = new HashMap<>();
         request.put("appid", appId);
         request.put("mchid", mchId);
-
-        request.put("description", "Image形象店-深圳腾大-QQ公仔");
-        request.put("out_trade_no", tradeNum);
-        request.put("time_expire", "2018-06-08T10:34:56+08:00");
-//        request.put("attach", "{\"order_id\":\"" + oder.getId() + "\"}");
         request.put("notify_url", notifyUrl);
-        request.put("goods_tag", "WXG");
+
+        request.put("out_trade_no", tradeNum);
+        request.put("description", generateOrderDescription(order));
+
+        // 订单支付超时时间（默认 1 小时后过期）
+        LocalDateTime expireTime = order.getCreatedAt().plusHours(1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+        request.put("time_expire", expireTime.atZone(ZoneId.of("Asia/Shanghai")).format(formatter));
+
+        // 商品标签
+        request.put("goods_tag", "ORDER");
         request.put("support_fapiao", false);
-        request.put("amount", Map.of("total", 1, "currency", "CNY"));
+        request.put("amount", Map.of("total", order.getAmountTotal(), "currency", "CNY"));
+        // 附加数据（包含订单ID）
+        request.put("attach", "{\"order_id\":\"" + order.getId() + "\"}");
+
         request.put("payer", Map.of("openid", curOpenId));
-        request.put("detail", Map.of(
-                "invoice_id", "微信123",
-                "goods_detail", new Object[]{
-                        Map.of(
-                                "merchant_goods_id", "1246464644",
-                                "wechatpay_goods_id", "1001",
-                                "goods_name", "iPhoneX 256G",
-                                "quantity", 1,
-                                "unit_price", 528800
-                        )
+
+        List<Map<String, Object>> goodsDetails = new ArrayList<>();
+
+        if (order.getItems() != null) {
+            for (OrderItemVO item : order.getItems()) {
+                if (item != null) {
+                    goodsDetails.add(Map.of(
+                            "merchant_goods_id", Optional.ofNullable(item.getProductCode()).map(Object::toString).orElse("UNKNOWN_CODE"),
+                            "goods_name", Optional.ofNullable(item.getProductName()).orElse("未知商品"),
+                            "quantity", Optional.ofNullable(item.getCount()).orElse(1), // 默认数量为 1
+                            "unit_price", Optional.ofNullable(item.getAmount()).orElse(0) // 默认金额为 0
+                    ));
                 }
-        ));
-        request.put("scene_info", Map.of(
-                "payer_client_ip", "14.23.150.211",
-                "device_id", "013467007045764",
-                "store_info", Map.of(
-                        "id", "0001",
-                        "name", "腾讯大厦分店",
-                        "area_code", "440305",
-                        "address", "广东省深圳市南山区科技中一道10000号"
-                )
-        ));
+            }
+        }
+
+// 构造 detail（确保 `goodsDetails` 不能为空，否则不加 `goods_detail`）
+        Map<String, Object> detail = new HashMap<>();
+        detail.put("invoice_id", "微信支付_" + Optional.ofNullable(order.getNum()).orElse("UNKNOWN_ORDER"));
+        if (!goodsDetails.isEmpty()) {
+            detail.put("goods_detail", goodsDetails);
+        }
+        request.put("detail", detail);
+
         request.put("settle_info", Map.of("profit_sharing", false));
         WebClient webClient = WebClient.builder()
                 .baseUrl("https://api.mch.weixin.qq.com")  // 微信支付 API 基础 URL

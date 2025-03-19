@@ -99,13 +99,13 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
 
   const currentSku = (skuCountList || []).find((it) => {
     const find = getFindSku();
-    return it.product_id === productId && find?.id === it.skuId;
+    return it.product_id === productId && find?.id === it.sku_id;
   });
 
   const changeCount = (isAdd?: boolean) => {
     const findIndex = (skuCountList || []).findIndex((it) => {
       const find = getFindSku();
-      return it.product_id === productId && find?.id === it.skuId;
+      return it.product_id === productId && find?.id === it.sku_id;
     });
     const find = skuCountList?.[findIndex];
     if (isAdd) {
@@ -117,16 +117,17 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
         skuCountList.push({
           count: 1,
           product_id: productId,
-          skuId: _find?.id,
-          skuName: selectSku.filter(Boolean).join("/"),
-
+          sku_id: _find?.id,
+          sku_name: selectSku.filter(Boolean).join("/"),
+          purchase_group_id: groupId,
           data: {
             product_id: productData?.id,
             product_name: productData?.name,
             price: getTotalPrice(),
             thumbnail_image: productData?.thumbnail_image?.url,
-            skuId: _find?.id,
-            skuName: selectSku.filter(Boolean).join("/"),
+            sku_id: _find?.id,
+            sku_name: selectSku.filter(Boolean).join("/"),
+            purchase_group_id: groupId,
           },
         });
       }

@@ -50,9 +50,10 @@ const Profile: React.FC = () => {
   const renderActions = (orderItem) => {
     if (orderItem?.status === EOrderStatus.PendingPayment) {
       return (
-        <Space direction={"vertical"}>
+        <Space direction={"horizontal"}>
           <Button
             size={"small"}
+            hairline
             onClick={() => {
               runCancelOrder(orderItem.id);
             }}

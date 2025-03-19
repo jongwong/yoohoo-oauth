@@ -6,19 +6,27 @@ import { divide, multiply } from "@/utils/number";
 import { cloneDeep } from "lodash-es";
 import Image from "@/component/Image";
 import { generateFileUrl } from "@/utils/file";
+import Taro from "@tarojs/taro";
 
 type SkuPopupProps = {
   skuCountList: {
     data: any;
     product_id: string;
-    skuId?: string;
+    sku_id?: string;
     count: number;
   }[];
   onChange?: (e) => void;
+  currentAreaId?: string;
   deliveryFee?: number;
 };
 const CartPopup: React.FC<SkuPopupProps> = (props) => {
-  const { deliveryFee = 0, onChange, skuCountList, ...rest } = props;
+  const {
+    deliveryFee = 0,
+    currentAreaId,
+    onChange,
+    skuCountList,
+    ...rest
+  } = props;
 
   const [showPopup, setShowPopup] = useState(false);
 
@@ -75,7 +83,19 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
           </View>
 
           <View className={styles["cart-popup-content-right"]}>
-            <View className={styles["cart-popup-submit-right"]}>去结算</View>
+            <View
+              className={styles["cart-popup-submit-right"]}
+              onClick={() => {
+                wx.setStorageSync("CART_SKU_COUNT_LIST", skuCountList);
+                if (currentAreaId) {
+                  Taro.navigateTo({
+                    url: `/pages/order/create/index?area_id=${currentAreaId}`,
+                  });
+                }
+              }}
+            >
+              去结算
+            </View>
           </View>
         </View>
       </View>
@@ -111,7 +131,7 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
                     className={"text-grey text-xs"}
                     style={{ height: "18px" }}
                   >
-                    <Text>{it.data?.skuName || ""}</Text>
+                    <Text>{it.data?.sku_name || ""}</Text>
                   </View>
                   <View className={"flex justify-between items-center"}>
                     <View className={"text-red"}>

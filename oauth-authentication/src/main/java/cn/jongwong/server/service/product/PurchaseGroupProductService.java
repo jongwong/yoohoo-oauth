@@ -36,6 +36,7 @@ public class PurchaseGroupProductService {
             "p.category_name",
             "p.category_id",
             "p.category_code",
+            "pg.id AS purchase_group_id",
             "pg.name AS group_name",
             "pg.group_required_count AS group_required_count",
             "pg.status AS group_status",
@@ -77,7 +78,7 @@ public class PurchaseGroupProductService {
 
 
     public Mono<ClientPurchaseGroupProductVO> fineOneWithImage(String id) {
-        return clientPurchaseGroupProductRepository.findOneByDSL(id, sql ->
+        return clientPurchaseGroupProductRepository.findOneByIdDSL(id, sql ->
                 sql.as("pgp")
                         .columns(COLUMNS)
                         .withJoin(t -> t.left()
@@ -88,34 +89,21 @@ public class PurchaseGroupProductService {
                                 .on("pgp.purchase_group_id = pg.id")));
     }
 
-
-    public Mono<Page<ClientPurchaseGroupProductVO>> searchWithImage(String productName, String categoryId, String distributionPointId, Integer[] groupStatus, Integer listedStatus, Integer enable,
-                                                                    LocalDateTime timeDeliveryStart, LocalDateTime timeDeliveryEnd, LocalDateTime timeGroupStart, LocalDateTime timeGroupEnd, Integer page, Integer size) {
-
-        return clientPurchaseGroupProductRepository.findPageByDSL(page, size, sql ->
-                        sql.as("pgp")
-                                .columns(COLUMNS)
-                                .withJoin(t -> t.left()
-                                        .table("tb_product p")
-                                        .on("pgp.product_id = p.id"))
-                                .withJoin(t -> t.left()
-                                        .table("tb_purchase_group pg")
-                                        .on("pgp.purchase_group_id = pg.id"))
-
-                                .eq("pg.distribution_point_id", distributionPointId)
-                                .eq("pg.enable", enable)
-                                .like("p.name", productName)
-                                .eq("p.category_id", categoryId)
-                                .eq("pg.status", groupStatus)
-                                .customCondition("pg.time_delivery_start", ">=", timeDeliveryStart)
-                                .customCondition("pg.time_delivery_end", "<=", timeDeliveryEnd)
-                                .customCondition("pg.time_start", ">=", timeGroupStart)
-                                .customCondition("pg.time_end", "<=", timeGroupEnd)
-
-
-        );
-
+    public Mono<ClientPurchaseGroupProductVO> fineOneBypProductGroupId(String groupId, String productId) {
+        return clientPurchaseGroupProductRepository.findOneByDSL(sql ->
+                sql.as("pgp")
+                        .columns(COLUMNS)
+                        .eq("pgp.purchase_group_id", groupId)
+                        .eq("pgp.product_id", productId)
+                        .withJoin(t -> t.left()
+                                .table("tb_product p")
+                                .on("pgp.product_id = p.id"))
+                        .withJoin(t -> t.left()
+                                .table("tb_purchase_group pg")
+                                .on("pgp.purchase_group_id = pg.id")));
     }
+
+
 
 
     public Flux<ClientPurchaseGroupProductVO> findAllByIds(List<String> ids) {

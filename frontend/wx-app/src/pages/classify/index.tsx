@@ -30,7 +30,7 @@ const Index: React.FC = () => {
     {
       data: any;
       product_id: string;
-      skuId?: string;
+      sku_id?: string;
       count: number;
     }[]
   >([]);
@@ -250,6 +250,7 @@ const Index: React.FC = () => {
         onChange={(e) => {
           setSkuCountList(e);
         }}
+        currentAreaId={currentArea?.id}
         deliveryFee={deliveryFee}
       />
       {currentGroupId && popupOpenProductId ? (

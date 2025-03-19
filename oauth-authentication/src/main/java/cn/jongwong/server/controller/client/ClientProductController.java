@@ -88,6 +88,15 @@ public class ClientProductController {
 
     }
 
+    @GetMapping("/client/group/product/by-group-product/{groupId}/{productId}")
+    public Mono<Response<ClientPurchaseGroupProductVO>> findOneById(@PathVariable String groupId, @PathVariable String productId) { // 每页大小
+
+
+        return purchaseGroupProductService.fineOneBypProductGroupId(groupId, productId)
+                .map(Response::ok);
+
+    }
+
     @GetMapping("/client/product")
     public Mono<PageResponse<ProductVO>> searchProduct(@RequestParam(required = false) String name, @RequestParam(required = true) int page, @RequestParam(required = true) int size) { // 每页大小
 

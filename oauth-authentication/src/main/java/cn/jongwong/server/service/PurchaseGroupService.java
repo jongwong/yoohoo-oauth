@@ -104,7 +104,7 @@ public class PurchaseGroupService {
         // 合并purchaseGroupRepository  purchaseGroupProductRepository
 
 
-        return purchaseGroupRepository.findOneByDSL(id, sql -> sql.as("p")
+        return purchaseGroupRepository.findOneByIdDSL(id, sql -> sql.as("p")
                         .column("d.name as distribution_point_name")
                         .column("d.address as distribution_point_address")
 

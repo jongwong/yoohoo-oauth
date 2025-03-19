@@ -13,7 +13,10 @@ public interface GenericReactiveRepository<T, ID> extends R2dbcRepository<T, ID>
     // 批量保存或更新实体
     <S extends T> Flux<T> saveRefAll(Iterable<S> entities);
 
-    <S extends T> Mono<T> findOneByDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction);
+    <S extends T> Mono<T> findOneByIdDSL(ID id, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction);
+
+    <S extends T> Mono<T> findOneByDSL(java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction);
+
 
     <S extends T> Mono<Page<T>> findPageByDSL(Integer page, Integer size, java.util.function.Function<SqlBuilder, SqlBuilder> sqlBuilderFunction);
 

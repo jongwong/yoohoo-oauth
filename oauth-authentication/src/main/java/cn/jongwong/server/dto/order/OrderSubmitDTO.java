@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -48,7 +47,7 @@ public class OrderSubmitDTO {
     private String deliveryPointAddress;
 
     @Schema(description = "订单总金额")
-    private BigDecimal amountTotal;
+    private Integer amountTotal;
 
     @Schema(description = "订单状态")
     private Integer status; // 订单状态（10: 待支付, 20: 待收货, 30: 退款中, 40: 已取消, 50: 待评价, 60: 已完成）

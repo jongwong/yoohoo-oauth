@@ -9,7 +9,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -32,16 +31,16 @@ public class OrderVO {
     private String userId;
 
     @Schema(description = "订单总金额")
-    private BigDecimal amountTotal;
+    private Integer amountTotal;
 
     @Schema(description = "配送费金额")
-    private BigDecimal amountDelivery;
+    private Integer amountDelivery;
 
     @Schema(description = "优惠金额")
-    private BigDecimal amountDiscount;
+    private Integer amountDiscount;
 
     @Schema(description = "商品金额")
-    private BigDecimal amountProduct;
+    private Integer amountProduct;
 
     @Schema(description = "优惠券ID")
     private String couponsId;
@@ -90,7 +89,7 @@ public class OrderVO {
     private String updatedByName;
 
     @Schema(description = "订单状态")
-    private Integer status;  // 订单状态（10: 待支付, 20: 待收货, 30: 退款中, 40: 已取消, 50: 待评价, 60: 已完成）
+    private Integer status;
 
     @Transient
     @Schema(description = "订单明细")

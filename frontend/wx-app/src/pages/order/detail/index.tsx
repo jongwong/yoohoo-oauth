@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import Layout from "@/component/Layout";
-import Taro, { useRouter } from "@tarojs/taro";
+import { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
-import { Button, Cell, Field, Form } from "@antmjs/vantui";
+import { Button, Cell, Form } from "@antmjs/vantui";
 import Image from "@/component/Image";
 import { generateFileUrl } from "@/utils/file";
 import classNames from "classnames";
@@ -12,14 +12,11 @@ import request from "@/utils/request";
 import { EOrderStatus, StatusMap } from "@/pages/order/constants";
 import dayjs from "dayjs";
 import { transformMoney } from "@/utils/number";
-import { gotoPayPageResult, gotoPayRefundResult } from "@/pages/order/utils";
+import { gotoPayPageResult } from "@/pages/order/utils";
 
-const OrderCreate: React.FC<{
-  pageType?: "refund" | "create";
-}> = ({ pageType = "create" }) => {
+const OrderCreate: React.FC<{}> = () => {
   const router = useRouter();
 
-  const isRefund = pageType === "refund";
   const [hasValidError, setHasValidError] = useState(false);
 
   const [saveLoading, setSaveLoading] = useState(false);
@@ -71,43 +68,7 @@ const OrderCreate: React.FC<{
     }
   };
 
-  const refundHandle = async () => {
-    if (!refundReason?.trim()?.length) {
-      setHasValidError(true);
-      return Taro.showToast({
-        title: "请输入退款原因",
-        icon: "none",
-      });
-    }
-    setSaveLoading(true);
-    const res = await request
-      .post(`/client/order/refund`, {
-        reason: refundReason,
-        open_id: wx.getStorageSync("open_id"),
-        order_id: orderData?.id,
-      })
-      .finally(() => {
-        setSaveLoading(false);
-      });
-    if (res?.success) {
-      gotoPayRefundResult(true);
-    }
-  };
   const renderFooter = () => {
-    if (isRefund) {
-      return (
-        <View className={styles.footer}>
-          <Button
-            type="primary"
-            block
-            size={"small"}
-            onClick={() => refundHandle()}
-          >
-            申请退款
-          </Button>
-        </View>
-      );
-    }
     if (orderData?.status === EOrderStatus.PendingPayment) {
       return (
         <View className={styles.footer}>
@@ -191,40 +152,6 @@ const OrderCreate: React.FC<{
       </View>
     );
   };
-  if (isRefund) {
-    return (
-      <Layout loading={loading} footer={renderFooter()}>
-        <View className={classNames(styles.card, "mb-16")}>
-          <View className={"mb-8"} style={{ fontSize: 16 }}>
-            {StatusMap[orderData?.status]}
-          </View>
-          {renderProduct()}
-        </View>
-        <View className={classNames(styles.card, "mb-16")}>{renderFee()}</View>
-        <View className={styles.card}>
-          <Field
-            type="textarea"
-            value={refundReason}
-            onChange={(e) => {
-              const val = e?.detail;
-              setHasValidError(!!val?.trim());
-              setRefundReason(val);
-            }}
-            style={"border: 1px solid #eee;background: rgba(0,0,0,0.01);"}
-            placeholder="请输入退款原因"
-            autosize
-            focus
-            errorMessage={
-              hasValidError && !refundReason?.length
-                ? "请输入退款原因"
-                : undefined
-            }
-            showWordLimit
-          />
-        </View>
-      </Layout>
-    );
-  }
 
   return (
     <Layout loading={loading || saveLoading} footer={renderFooter()}>

@@ -2,7 +2,6 @@ package cn.jongwong.server.config.wechatpay;
 
 import cn.jongwong.server.config.wechatpay.util.AesUtil;
 import cn.jongwong.server.config.wechatpay.util.AuthorizationUtils;
-import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.entity.OrderItemVO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.entity.PaymentVO;
@@ -48,6 +47,11 @@ public class WeChatPayService {
     private ObjectMapper objectMapper;
 
     public static String generateOutTradeNo(String orderId) {
+        int randomNum = 10000 + new Random().nextInt(90000); // 生成5位随机数
+        return orderId + "-P" + randomNum;
+    }
+
+    public static String generateRefundOutTradeNo(String orderId) {
         int randomNum = 10000 + new Random().nextInt(90000); // 生成5位随机数
         return orderId + "-R" + randomNum;
     }
@@ -189,17 +193,19 @@ public class WeChatPayService {
     }
 
 
-    public Mono<HashMap<String, String>> refundJsApiOrder(OrderVO order, PaymentVO payment, OrderRefundDTO refundDTO) {
+    public Mono<HashMap<String, String>> refundJsApiOrder(OrderVO order, PaymentVO payment, String reason) {
         var tradeNum = payment.getTransactionNo(); // 订单号
-        var refundNum = generateOutTradeNo(order.getNum()); // 生成退款单号
-
+        var refundNum = generateRefundOutTradeNo(order.getNum()); // 生成退款单号
+        System.out.printf("=============tradeNum===========%s%n", tradeNum);
+        System.out.printf("=============reason===========%s%n", reason);
+        System.out.printf("=============payment===========%s%n", payment);
         // 退款请求参数
         Map<String, Object> request = new HashMap<>();
         request.put("transaction_id", payment.getTransactionId());
 
         request.put("out_trade_no", tradeNum);  // 原支付订单号
         request.put("out_refund_no", refundNum); // 退款单号
-        request.put("reason", refundDTO.getReason()); // 退款原因
+        request.put("reason", reason); // 退款原因
         var refundAmount = order.getAmountTotal();
 
 

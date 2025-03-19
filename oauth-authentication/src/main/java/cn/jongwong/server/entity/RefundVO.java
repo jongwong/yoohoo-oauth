@@ -61,4 +61,20 @@ public class RefundVO {
 
     @Schema(description = "更新人名称")
     private String updatedByName;
+
+
+    @Schema(description = "审核人ID")
+    private String auditBy;
+
+    @Schema(description = "审核人名称")
+    private String auditByName;
+
+    @Schema(description = "审核时间")
+    private LocalDateTime auditAt;
+
+    @Schema(description = "审核原因")
+    private String auditReason;
+
+    @Schema(description = "申请原因")
+    private String applyReason;
 }

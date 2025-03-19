@@ -10,7 +10,7 @@ import { View } from "@tarojs/components";
 type LayoutProps = {
   children?: React.ReactNode;
   style?: React.CSSProperties;
-  edge?: "none";
+  edge?: "none" | false;
   loading?: boolean;
   backgroundColor?: string;
   footer?: ReactNode;
@@ -19,12 +19,17 @@ const Layout: React.FC<LayoutProps> = (props) => {
   const { children, footer, backgroundColor, loading, edge, style, ...rest } =
     props;
 
+  let _edge = edge;
+  if (edge === false) {
+    _edge = "none";
+  }
+  console.log("=====_edge=====", _edge);
   return (
     <ConfigProvider className={styles["yo-layout-wrapper"]}>
       <View
         className={classNames(
           styles["yoohoo-layout"],
-          edge && styles["yoohoo-layout-edge-" + edge],
+          edge && styles["yoohoo-layout-edge-" + _edge],
           !!footer && styles["yo-layout-has-footer"]
         )}
         style={{ backgroundColor, ...style }}

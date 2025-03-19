@@ -4,6 +4,7 @@ package cn.jongwong.server.controller.client;
 import cn.jongwong.server.config.oss.OssService;
 import cn.jongwong.server.config.wechatpay.WeChatPayService;
 import cn.jongwong.server.dto.order.OrderPayDTO;
+import cn.jongwong.server.dto.order.OrderRefundApproveDTO;
 import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.OrderVO;
@@ -228,9 +229,26 @@ public class ClientCommonController {
     }
 
     @PostMapping("/order/refund")
-    public Mono<Response<OrderVO>> refundOrder(@RequestBody OrderRefundDTO data) {
+    public Mono<Response<Boolean>> refundOrder(@RequestBody OrderRefundDTO data) {
         return orderService.refund(data).map(Response::ok);
     }
+
+
+    @GetMapping("/admin/order")
+    public Mono<PageResponse<OrderVO>> queryByUser(@RequestParam(required = true) Integer page, @RequestParam(required = true) Integer size, @RequestParam(required = false) Integer status) {
+        return orderService.query(page, size, status).map(PageResponse::success);
+    }
+
+    @PostMapping("/order/refund/approve")
+    public Mono<Response<OrderVO>> refundApprove(@RequestBody OrderRefundApproveDTO data) {
+        return orderService.refundApprove(data, true).map(Response::ok);
+    }
+
+    @PostMapping("/order/refund/reject")
+    public Mono<Response<OrderVO>> refundReject(@RequestBody OrderRefundApproveDTO data) {
+        return orderService.refundApprove(data, false).map(Response::ok);
+    }
+
 
 
 }

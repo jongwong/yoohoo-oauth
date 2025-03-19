@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderRefundDTO {
+public class OrderRefundApproveDTO {
 
 
     @Schema(description = "订单ID")

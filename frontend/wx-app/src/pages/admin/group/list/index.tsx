@@ -1,4 +1,3 @@
-import Layout from "@/component/Layout";
 import {
   InfiniteScroll,
   InfiniteScrollProps,
@@ -56,28 +55,26 @@ const Index: React.FC = () => {
     });
   };
   return (
-    <Layout edge={"none"}>
-      <PullToRefresh onRefresh={onRefresh}>
-        <View style={{ padding: "4px 6px" }}>
-          {data?.map((item) => (
-            <GroupItemCard
-              key={item.id}
-              item={item}
-              onClick={() => {
-                Taro.navigateTo({
-                  url: `/pages/admin/group/detail/index?id=${item.id}`,
-                });
-              }}
-            />
-          ))}
-          <InfiniteScroll
-            loadMore={loadMore}
-            ref={InfiniteScrollInstance}
-            completeText={data?.length > pageSize}
+    <PullToRefresh onRefresh={onRefresh}>
+      <View style={{ padding: "4px 6px" }}>
+        {data?.map((item) => (
+          <GroupItemCard
+            key={item.id}
+            item={item}
+            onClick={() => {
+              Taro.navigateTo({
+                url: `/pages/admin/group/detail/index?id=${item.id}`,
+              });
+            }}
           />
-        </View>
-      </PullToRefresh>
-    </Layout>
+        ))}
+        <InfiniteScroll
+          loadMore={loadMore}
+          ref={InfiniteScrollInstance}
+          completeText={data?.length > pageSize}
+        />
+      </View>
+    </PullToRefresh>
   );
 };
 export default Index;

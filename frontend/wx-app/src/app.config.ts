@@ -1,5 +1,5 @@
 export default defineAppConfig({
-  entryPagePath: "pages/group/list/index",
+  entryPagePath: "pages/admin/index",
 
   pages: [
     "pages/index/index",
@@ -13,7 +13,7 @@ export default defineAppConfig({
     "pages/registration/index",
     "pages/login/index",
     "pages/status-page/index",
-    "pages/admin/group/list/index",
+    "pages/admin/index",
     "pages/admin/group/detail/index",
     "pages/group/detail/index",
     "pages/group/list/index",

@@ -97,7 +97,7 @@ const Index: React.FC = () => {
               const res = await fetchAdminPermission();
               if (res?.success) {
                 Taro.navigateTo({
-                  url: "/pages/admin/group/list/index",
+                  url: "/pages/admin/index",
                 });
               }
             }}

@@ -1,8 +1,19 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 
 import Layout from "../../component/Layout";
-import { Button, Empty, Image, Space, Tab, Tabs, Toast } from "@antmjs/vantui";
-import { Text, View } from "@tarojs/components";
+import {
+  Button,
+  Dialog,
+  Empty,
+  Form,
+  FormItem,
+  Image,
+  Space,
+  Tab,
+  Tabs,
+  Toast,
+} from "@antmjs/vantui";
+import { Text, Textarea, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import dayjs from "dayjs";
 import { getFormatWeekdays } from "@/utils/date";
@@ -13,12 +24,16 @@ import { useGetState } from "ahooks";
 import Taro from "@tarojs/taro";
 import { EOrderStatus, StatusMap } from "@/pages/order/constants";
 import { divide } from "@/utils/number";
+import ProxyWrapped from "@/component/ProxyWrapped";
+import { gotoPayRefundResult } from "@/pages/order/utils";
 
+const DialogInstance = Dialog.createOnlyDialog();
 const Profile: React.FC = () => {
   const [currentStatus, setCurrentStatus, getCurrentStatus] = useGetState<
     number | undefined
   >(-1);
-
+  const [saveLoading, setSaveLoading] = useState(false);
+  const form = Form.useForm();
   const {
     data: orderDataList,
     loading,
@@ -31,6 +46,97 @@ const Profile: React.FC = () => {
       },
     });
   });
+
+  const refundConfirm = useCallback((orderItem) => {
+    DialogInstance.confirm({
+      renderTitle: (
+        <View
+          style={{
+            textAlign: "left",
+            paddingLeft: "22px",
+          }}
+          className={"text-lg"}
+        >
+          是否申请退款?
+        </View>
+      ),
+      message: (
+        <View
+          style={{
+            textAlign: "left",
+          }}
+        >
+          <Form form={form} initialValues={{ reason: "" }}>
+            <FormItem
+              name={"reason"}
+              label={"退款原因"}
+              required
+              requiredIcon={null}
+              layout={"vertical"}
+              trigger={"onInput"}
+              valueFormat={(e) => e.target.value}
+            >
+              <ProxyWrapped>
+                {(cfg) => (
+                  <View
+                    style={{
+                      border: "1px solid #ebedf0",
+                      backgroundColor: "#f6f6f6",
+                      padding: "8px",
+                    }}
+                    className={"w-1-1"}
+                  >
+                    <Textarea
+                      placeholder="请输入退款原因"
+                      className={"w-1-1"}
+                      showCount
+                      {...cfg}
+                      style={{
+                        height: "50px",
+                      }}
+                    />
+                  </View>
+                )}
+              </ProxyWrapped>
+            </FormItem>
+          </Form>
+        </View>
+      ),
+      beforeClose: async (action) => {
+        return new Promise(async (resolve, reject) => {
+          if (action === "cancel") {
+            resolve(true);
+            return true;
+          }
+          return form.validateFields((err, val) => {
+            if (err?.length) {
+              resolve(false);
+              return;
+            }
+
+            request
+              .post(`/client/order/refund`, {
+                reason: val?.reason,
+                open_id: wx.getStorageSync("open_id"),
+                order_id: orderItem?.id,
+              })
+
+              .then((res) => {
+                if (res?.success) {
+                  resolve(true);
+                  gotoPayRefundResult("processing");
+                  return;
+                }
+                resolve(false);
+              })
+              .catch(() => {
+                resolve(false);
+              });
+          });
+        });
+      },
+    });
+  }, []);
 
   const { loading: cancelLoading, run: runCancelOrder } = useRequest(
     (id) => {
@@ -81,11 +187,8 @@ const Profile: React.FC = () => {
           <Button
             type={"primary"}
             size={"small"}
-            onClick={(e) => {
-              Taro.navigateTo({
-                url: `/pages/order/refund/index?id=${orderItem?.id}`,
-              });
-              e.stopPropagation();
+            onClick={() => {
+              refundConfirm(orderItem);
             }}
           >
             退款
@@ -147,14 +250,7 @@ const Profile: React.FC = () => {
           {orderDataList?.length ? (
             orderDataList.map((orderItem) => {
               return (
-                <View
-                  className={styles.orderItem}
-                  onClick={() => {
-                    Taro.navigateTo({
-                      url: `/pages/order/detail/index?id=${orderItem?.id}`,
-                    });
-                  }}
-                >
+                <View className={styles.orderItem}>
                   <View className={styles.orderItemHeader}>
                     <View className={styles.orderItemStatus}>
                       {StatusMap[orderItem.status]}
@@ -166,12 +262,19 @@ const Profile: React.FC = () => {
                     </View>
                   </View>
                   {/* 商品部分 */}
-                  <View className={styles.orderItemProduct}>
+                  <View
+                    className={styles.orderItemProduct}
+                    onClick={() => {
+                      Taro.navigateTo({
+                        url: `/pages/order/detail/index?id=${orderItem?.id}`,
+                      });
+                    }}
+                  >
                     {orderItem.items.map((item, index) => (
                       <View key={index}>
                         <Image
                           src={generateFileUrl(item.product_image_url)}
-                        ></Image>{" "}
+                        ></Image>
                         {/* 商品图片 */}
                       </View>
                     ))}
@@ -215,6 +318,7 @@ const Profile: React.FC = () => {
           )}
         </Space>
       </View>
+      <DialogInstance />
     </Layout>
   );
 };

@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -29,7 +28,7 @@ public class PaymentVO {
     private Integer paymentMethod; // 数据库中为 tinyint
 
     @Schema(description = "支付金额")
-    private BigDecimal amount;
+    private Integer amount;
 
     @Schema(description = "支付状态 (10: 支付中, 20: 支付成功, 30: 支付失败, 40: 已取消)")
     private Integer status; // 数据库中为 tinyint

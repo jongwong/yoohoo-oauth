@@ -3,16 +3,15 @@ package cn.jongwong.server.service;
 import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.SnowflakeIdUtils;
 import cn.jongwong.server.config.wechatpay.WeChatPayService;
-import cn.jongwong.server.dto.order.OrderPayDTO;
-import cn.jongwong.server.dto.order.OrderProductItemDTO;
-import cn.jongwong.server.dto.order.OrderRefundDTO;
-import cn.jongwong.server.dto.order.OrderSubmitDTO;
+import cn.jongwong.server.dto.order.*;
 import cn.jongwong.server.entity.OrderItemVO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.entity.PaymentVO;
+import cn.jongwong.server.entity.RefundVO;
 import cn.jongwong.server.enums.OrderItemTypeEnum;
 import cn.jongwong.server.enums.OrderStatusEnum;
 import cn.jongwong.server.enums.PaymentStatusEnum;
+import cn.jongwong.server.enums.RefundStatusEnum;
 import cn.jongwong.server.repository.OrderItemRepository;
 import cn.jongwong.server.repository.OrderRepository;
 import cn.jongwong.server.service.product.PurchaseGroupProductService;
@@ -26,7 +25,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class OrderService {
@@ -52,6 +50,7 @@ public class OrderService {
 
     @Autowired
     private CouponsService couponsService;
+
 
 
 
@@ -126,6 +125,27 @@ public class OrderService {
 
     }
 
+    public Mono<Page<OrderVO>> query(int page, int size, Integer status) {
+        return orderRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.in("status", status).sort("status,asc").sort("created_at,desc"))
+                .flatMap(e -> {
+                    List<String> ids = e.getData().stream()
+                            .map(OrderVO::getId)   // 假设 getId() 返回的是 String
+                            .toList();
+                    var items = orderItemRepository.findAllByDSL(sql -> sql.in("order_id", ids));
+                    return items.collectList().map(orderItems -> {
+                        e.getData().forEach(order -> {
+                            var orderItem = orderItems.stream()
+                                    .filter(it -> it.getOrderId().equals(order.getId()))
+                                    .toList();
+                            order.setItems(orderItem);
+                        });
+                        return e;
+                    });
+                });
+
+    }
+
+
     @Transactional
     public Mono<OrderVO> findOneByOrderId(String orderId) {
         return orderRepository.findById(orderId)
@@ -180,61 +200,136 @@ public class OrderService {
     }
 
     @Transactional
-    public Mono<OrderVO> refund(OrderRefundDTO data) {
-        var now = LocalDateTime.now();
-        AtomicReference<PaymentVO> payment = new AtomicReference<>();
-        return paymentService.findByOrderId(data.getOrderId()).map((e) -> {
-                    payment.set(e);
-                    return e;
-                }).flatMap((p) -> {
-                    return findOneByOrderId(data.getOrderId());
-                })
-                .map(order -> {
-                    order.setStatus(OrderStatusEnum.REFUND_IN_PROGRESS.getCode());
-                    return order;
-                }).flatMap(this::update);
+    public Mono<Boolean> refund(OrderRefundDTO data) {
+
+        var orderId = data.getOrderId();
+        var orderMono = findOneByOrderId(orderId).flatMap(order -> {
+            if (order.getStatus() > OrderStatusEnum.PENDING_PAYMENT.getCode() && order.getStatus() < OrderStatusEnum.CANCELLED.getCode()) {
+                order.setStatus(OrderStatusEnum.REFUND_IN_PROGRESS.getCode());
+                return Mono.just(order);
+            }
+            return Mono.error(new RuntimeException("订单状态不正确"));
+        }).flatMap(this::update);
+
+        var paymentMono = paymentService.findByOrderId(orderId).flatMap(payment -> {
+            if (payment.getStatus() != PaymentStatusEnum.PAYMENT_SUCCESS.getCode()) {
+                return Mono.error(new RuntimeException("支付状态不正确"));
+            }
+            return Mono.just(payment);
+        });
+
+
+        // 合并
+        return Mono.zip(orderMono, paymentMono).flatMap(tuple -> {
+            var order = tuple.getT1();
+
+            return refundService.existsById(orderId).flatMap((existsFund) -> {
+
+                if (
+                        existsFund
+                ) {
+                    return refundService.findByOrderId(orderId).map(refund1 -> {
+                        refund1.setAmount(order.getAmountTotal());
+                        refund1.setApplyReason(data.getReason());
+                        refund1.setUpdatedAt(LocalDateTime.now());
+                        refund1.setStatus(RefundStatusEnum.PENDING_REFUND.getCode());
+                        refund1.setAuditBy(null);
+                        refund1.setAuditByName(null);
+                        refund1.setAuditAt(null);
+                        refund1.setTransactionId(null);
+                        refund1.setTransactionNo(null);
+                        refund1.setAuditReason(null);
+                        refund1.setRefundAt(null);
+
+                        return refund1;
+                    }).flatMap(refundService::update).map(e -> true);
+                } else {
+
+                    RefundVO refund = RefundVO.builder()
+                            .orderId(orderId)
+                            .amount(order.getAmountTotal())
+                            .applyReason(data.getReason())
+                            .status(RefundStatusEnum.PENDING_REFUND.getCode())
+                            .build();
+
+                    return refundService.insert(refund).map(e -> true);
+                }
+            });
+        });
+
 
     }
-//
-//        return weChatPayService.refundJsApiOrder(order, payment.get(), data).flatMap(re -> {
-//        var transactionId = re.get("transaction_id");
-//        var outRefundNo = re.get("out_refund_no");
-//        var refundAmountStr = re.get("refund_amount");
-//        // 转成int
-//        var refundAmount = Integer.parseInt(refundAmountStr);
-//
-//        var refund = RefundVO.builder()
-//                .id(UUID.randomUUID().toString())
-//                .orderId(data.getOrderId())
-//                .amount(refundAmount)
-//                .paymentMethod(1)
-//                .status(10)
-//                .refundAt(now)
-//                .transactionId(transactionId)
-//                .transactionNo(outRefundNo)
-//                .createdAt(now)
-//                .createdBy(order.getCreatedBy())
-//                .createdByName(order.getCreatedByName())
-//                .build();
-//        return refundService.insert(refund).map((e) -> order);
-//    });
-//
+
+    ;
+
+    //refundJsApiOrder
+
+    @Transactional
+    public Mono<OrderVO> refundApprove(OrderRefundApproveDTO refundDto, Boolean isPass) {
+
+        var orderId = refundDto.getOrderId();
+        var orderMomo = findOneByOrderId(orderId).flatMap(order -> {
+            if (order.getStatus() != OrderStatusEnum.REFUND_IN_PROGRESS.getCode()) {
+                throw new RuntimeException("订单状态不正确");
+            }
+            if (!isPass) {
+                order.setStatus(OrderStatusEnum.REFUND_FAILED.getCode());
+            }
+
+            return Mono.just(order);
+        }).flatMap(this::update);
+
+        var paymentMomo = paymentService.findByOrderId(orderId).flatMap((payment) -> {
+            if (payment.getStatus() != PaymentStatusEnum.PAYMENT_SUCCESS.getCode()) {
+                return Mono.error(new RuntimeException("支付状态不正确"));
+            }
+            return Mono.just(payment);
+        });
+        var refundMomo = refundService.findByOrderId(orderId).flatMap((refund) -> userService.getCurrentUserReactive().map(u -> {
+            refund.setAuditReason(refundDto.getReason());
+            refund.setAuditBy(u.getId());
+            refund.setAuditByName(u.getName());
+            refund.setStatus(isPass ? RefundStatusEnum.PENDING_REFUND.getCode() : RefundStatusEnum.REFUND_FAILED.getCode());
+            refund.setAuditAt(LocalDateTime.now());
+            return refund;
+        }).flatMap(refundService::update));
+        // 合并
+        return Mono.zip(orderMomo, paymentMomo, refundMomo).flatMap(tuple -> {
+            var order = tuple.getT1();
+            var payment = tuple.getT2();
+            var refund = tuple.getT3();
+
+            if (refund.getStatus() != RefundStatusEnum.PENDING_REFUND.getCode()) {
+                return Mono.error(new RuntimeException("退款状态不正确"));
+            }
+            return weChatPayService.refundJsApiOrder(order, payment, refund.getApplyReason()).map(re -> {
+                order.setPrepayInfo(re);
+                return order;
+            });
+        });
+
+    }
+
 
     @Transactional
     public Mono<OrderVO> finishRefund(String orderNum, String outTradeNo, String transactionId) {
 
         return orderRepository.findByNum(orderNum).flatMap(order -> {
-            order.setStatus(OrderStatusEnum.REFUNDED.getCode());
+
             var now = LocalDateTime.now();
-            order.setPaymentAt(now);
+
             return refundService.findByOrderId(order.getId()).map(refund -> {
                 refund.setUpdatedAt(now);
                 refund.setTransactionId(transactionId);
                 refund.setTransactionNo(outTradeNo);
 
-                refund.setStatus(PaymentStatusEnum.PAYMENT_SUCCESS.getCode());
+                refund.setStatus(RefundStatusEnum.REFUND_SUCCESS.getCode());
                 return refund;
-            }).flatMap(refundService::update).map(e -> order).flatMap(this::update);
+            }).flatMap(refundService::update).map(e -> {
+                order.setStatus(OrderStatusEnum.REFUNDED.getCode());
+                order.setPaymentAt(now);
+                return order;
+            }).flatMap(this::update);
         }).doOnError(e -> {
             e.printStackTrace();
         });
@@ -272,6 +367,7 @@ public class OrderService {
                 .deliveryPointName(data.getDeliveryPointName())
                 .num(orderNum)
                 .createdAt(now)
+                .amountTotal(data.getAmountTotal())
                 .deliveryPointAddress(data.getDeliveryPointAddress())
                 .status(OrderStatusEnum.PENDING_PAYMENT.getCode())
                 .build();

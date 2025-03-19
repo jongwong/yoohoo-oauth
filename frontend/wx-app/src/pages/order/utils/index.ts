@@ -19,10 +19,27 @@ export const gotoPayPageResult = (isSuccess?: boolean) => {
   });
 };
 
-export const gotoPayRefundResult = (isSuccess?: boolean) => {
+export const gotoPayRefundResult = (
+  status: "error" | "success" | "processing"
+) => {
+  const ob = {
+    error: {
+      title: "申请退款失败",
+      status: "error",
+    },
+    success: {
+      title: "申请退款成功",
+      status: "success",
+    },
+    processing: {
+      title: "申请退款成功",
+      status: "success",
+    },
+  };
+  const find: any = ob[status];
   navigateToStatusPage({
-    status: !isSuccess ? "error" : "success",
-    title: !isSuccess ? "申请退款失败" : "申请退款成功",
+    status: find?.status,
+    title: find?.title,
     buttons: [
       {
         text: "返回首页",

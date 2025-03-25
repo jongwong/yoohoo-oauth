@@ -30,4 +30,9 @@ public class WeChatRegistrationDTO {
     @NotNull(message = "昵称不能为空")
     @Size(min = 2, max = 12, message = "昵称长度应在 2 到 12 个字符之间")
     private String nickname; // 昵称
+
+
+    @NotNull(message = "头像不能为空")
+    @Size(max = 500, message = "头像长度应小于 500 个字符之间")
+    private String avatar;
 }

@@ -1,13 +1,13 @@
 import React from "react";
 
-import UseCheckLogin from "../../hooks/useCheckLogin";
+import useCheckLogin from "../../hooks/useCheckLogin";
 
 import Layout from "../../component/Layout";
 
 const Index: React.FC = () => {
   // // 在页面加载时隐藏 tabBar
   // Taro.hideTabBar();
-  const { gotToRegisteredElement } = UseCheckLogin();
+  const { gotToRegisteredElement } = useCheckLogin();
 
   return (
     <Layout edge={"none"}>

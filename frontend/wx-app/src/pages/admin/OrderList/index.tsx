@@ -3,6 +3,7 @@ import React, { useCallback, useRef } from "react";
 import {
   Button,
   Dialog,
+  Divider,
   Empty,
   Form,
   FormItem,
@@ -16,122 +17,141 @@ import { getFormatWeekdays } from "@/utils/date";
 import request from "@/utils/request";
 import { generateFileUrl, getNoDataUrl } from "@/utils/file";
 import Taro from "@tarojs/taro";
-import { EOrderStatus, StatusMap } from "@/pages/order/constants";
+import { EOrderStatus, EOrderStatusMap } from "@/constant/order";
 import { divide } from "@/utils/number";
 import ProxyWrapped from "@/component/ProxyWrapped";
 import ScrollPage from "@/hooks/usePageRequest";
+import Tag from "@/component/Tag";
 
 const DialogInstance = Dialog.createOnlyDialog();
-const Index: React.FC = () => {
+const Index: React.FC<{
+  status?: number;
+}> = ({ status = EOrderStatus.RefundInProgress }) => {
   const form = Form.useForm();
 
   const actionRef = useRef<any>();
-  const refundReview = useCallback((orderItem, isPass: boolean) => {
-    DialogInstance.confirm({
-      renderTitle: (
-        <View
-          style={{
-            textAlign: "left",
-            paddingLeft: "22px",
-          }}
-          className={"text-lg"}
-        >
-          {"是否申请退款" + isPass ? "通过?" : "拒绝?"}
-        </View>
-      ),
-      message: (
-        <View
-          style={{
-            textAlign: "left",
-          }}
-        >
-          <Form form={form} initialValues={{ reason: "" }}>
-            <FormItem
-              name={"reason"}
-              label={"备注"}
-              required
-              requiredIcon={null}
-              layout={"vertical"}
-              trigger={"onInput"}
-              valueFormat={(e) => e.target.value}
-            >
-              <ProxyWrapped>
-                {(cfg) => (
-                  <View
-                    style={{
-                      border: "1px solid #ebedf0",
-                      backgroundColor: "#f6f6f6",
-                      padding: "8px",
-                    }}
-                    className={"w-1-1"}
-                  >
-                    <Textarea
-                      placeholder="请输入备注"
-                      className={"w-1-1"}
-                      showCount
-                      {...cfg}
+  const refundReview = useCallback(
+    (orderItem, type: "pass" | "refuse" | "direct") => {
+      let title = "是否申请退款" + type === "pass" ? "通过?" : "拒绝?";
+
+      if (type === "direct") {
+        title = "是否主动退款给用户?";
+      }
+      DialogInstance.confirm({
+        renderTitle: (
+          <View
+            style={{
+              textAlign: "left",
+              paddingLeft: "22px",
+            }}
+            className={"text-lg"}
+          >
+            {title}
+          </View>
+        ),
+        message: (
+          <View
+            style={{
+              textAlign: "left",
+            }}
+          >
+            <Form form={form} initialValues={{ reason: "" }}>
+              <FormItem
+                name={"reason"}
+                label={"备注"}
+                required
+                requiredIcon={null}
+                layout={"vertical"}
+                trigger={"onInput"}
+                valueFormat={(e) => e.target.value}
+              >
+                <ProxyWrapped>
+                  {(cfg) => (
+                    <View
                       style={{
-                        height: "50px",
+                        border: "1px solid #ebedf0",
+                        backgroundColor: "#f6f6f6",
+                        padding: "8px",
                       }}
-                    />
-                  </View>
-                )}
-              </ProxyWrapped>
-            </FormItem>
-          </Form>
-        </View>
-      ),
-      beforeClose: async (action) => {
-        return new Promise(async (resolve, reject) => {
-          if (action === "cancel") {
-            resolve(true);
-            return true;
-          }
-          return form.validateFields((err, val) => {
-            if (err?.length) {
-              resolve(false);
-              return;
+                      className={"w-1-1"}
+                    >
+                      <Textarea
+                        placeholder="请输入备注"
+                        className={"w-1-1"}
+                        showCount
+                        {...cfg}
+                        style={{
+                          height: "50px",
+                        }}
+                      />
+                    </View>
+                  )}
+                </ProxyWrapped>
+              </FormItem>
+            </Form>
+          </View>
+        ),
+        beforeClose: async (action) => {
+          return new Promise(async (resolve) => {
+            if (action === "cancel") {
+              resolve(true);
+              return true;
             }
-
-            const _url = isPass
-              ? `/client/order/refund/approve`
-              : `/client/order/refund/reject`;
-
-            request
-              .post(_url, {
-                reason: val?.reason,
-                order_id: orderItem?.id,
-              })
-
-              .then((res) => {
-                if (res?.success) {
-                  resolve(true);
-                  actionRef.current?.reload();
-                  return;
-                }
+            return form.validateFields((err, val) => {
+              if (err?.length) {
                 resolve(false);
-              })
-              .catch(() => {
-                resolve(false);
-              });
+                return;
+              }
+
+              let _url =
+                type === "pass"
+                  ? `/client/order/refund/approve`
+                  : `/client/order/refund/reject`;
+
+              if (type === "direct") {
+                _url = `/client/order/refund/direct`;
+              }
+
+              request
+                .post(_url, {
+                  reason: val?.reason,
+                  order_id: orderItem?.id,
+                })
+
+                .then((res) => {
+                  if (res?.success) {
+                    resolve(true);
+                    actionRef.current?.reload();
+                    return;
+                  }
+                  resolve(false);
+                })
+                .catch(() => {
+                  resolve(false);
+                });
+            });
           });
-        });
-      },
-    });
-  }, []);
+        },
+      });
+    },
+    []
+  );
 
   const renderActions = (orderItem) => {
-    if (orderItem?.status < EOrderStatus.Completed) {
+    if (
+      orderItem?.status < EOrderStatus.Completed &&
+      orderItem?.status !== EOrderStatus.RefundInProgress
+    ) {
       return (
         <Space direction={"vertical"}>
           <Button
             type={"primary"}
             size={"small"}
             onClick={() => {
-              refundReview(orderItem);
+              refundReview(orderItem, "direct");
             }}
           >
-            退款
+            主动退款
           </Button>
         </Space>
       );
@@ -143,19 +163,19 @@ const Index: React.FC = () => {
             type={"danger"}
             size={"small"}
             onClick={() => {
-              refundReview(orderItem, false);
+              refundReview(orderItem, "refuse");
             }}
           >
-            退款拒绝
+            拒绝退款
           </Button>
           <Button
             type={"primary"}
             size={"small"}
             onClick={() => {
-              refundReview(orderItem, true);
+              refundReview(orderItem, "pass");
             }}
           >
-            退款通过
+            同意退款
           </Button>
         </Space>
       );
@@ -166,10 +186,10 @@ const Index: React.FC = () => {
     <ScrollPage
       actionRef={actionRef}
       request={(params) => {
-        return request.get("/client/admin/order", {
+        return request.get("/client/admin/order/with_refund", {
           params: {
             ...params,
-            status: 70,
+            status,
           },
         });
       }}
@@ -184,17 +204,44 @@ const Index: React.FC = () => {
                     return (
                       <View className={styles.orderItem}>
                         <View className={styles.orderItemHeader}>
-                          <View className={styles.orderItemStatus}>
-                            {StatusMap[orderItem.status]}
-                          </View>
+                          <View className={"flex justify-between"}>
+                            <View className={"flex items-center"}>
+                              <Image
+                                height={30}
+                                width={30}
+                                round
+                                src={orderItem?.user_avatar}
+                              />
+                              <View className={"ml-8"}>
+                                {orderItem.user_nickname}
+                              </View>
+                            </View>
 
-                          <View className={styles.orderItemTime}>
-                            {dayjs(orderItem.created_at).format(
-                              "YYYY/MM/DD HH:mm "
-                            )}
-                            {getFormatWeekdays(orderItem.created_at)}
+                            <View className={styles.orderItemStatus}>
+                              <Tag
+                                status={
+                                  EOrderStatusMap.get(orderItem.status)?.status
+                                }
+                              >
+                                {EOrderStatusMap.getText(orderItem.status)}
+                              </Tag>
+                            </View>
                           </View>
                         </View>
+                        <View className={styles.orderItemTime}>
+                          {dayjs(orderItem.created_at).format(
+                            "YYYY/MM/DD HH:mm "
+                          )}
+                          {getFormatWeekdays(orderItem.created_at)}
+                        </View>
+                        <View className={styles.orderItemTime}>
+                          {orderItem?.delivery_point_name}
+
+                          <Text className={"ml-16"}>
+                            {orderItem?.user_mobile}
+                          </Text>
+                        </View>
+
                         {/* 商品部分 */}
                         <View
                           className={styles.orderItemProduct}
@@ -229,7 +276,13 @@ const Index: React.FC = () => {
                             </View>
                           </Space>
                         </View>
-
+                        <Divider />
+                        {orderItem?.status === EOrderStatus.RefundInProgress ? (
+                          <View className={"text-red"}>
+                            {"退款备注: " +
+                              (orderItem?.refund_info?.apply_reason || "")}
+                          </View>
+                        ) : null}
                         {/* 底部部分 */}
                         <View className={styles.orderItemFooter}>
                           {renderActions(orderItem)}

@@ -2,6 +2,7 @@ import { serviceConfig } from "../../config";
 import Taro from "@tarojs/taro";
 import { isNil, omitBy } from "lodash-es";
 import { Toast } from "@antmjs/vantui";
+import { navigateTo } from "@/utils/navigate";
 
 type ResponseData<T = any> = {
   code: number;
@@ -18,7 +19,6 @@ export type RequestOption<T = any, U = any> = Omit<
   },
   "method" | "url"
 >;
-const urlList = ["/client/wechat/login"];
 
 const getFormatUrl = (url: string, params: any) => {
   let _params = params || {};
@@ -32,6 +32,10 @@ const getFormatUrl = (url: string, params: any) => {
   return url + queryString;
 };
 
+const hasUserBaseInfo = (user: Record<string, any> = {}) => {
+  return !!(user?.name && user?.nickname && user?.mobile && user?.avatar);
+};
+
 const request = <T = any, U = any>(
   config: RequestOption<T, U> & {
     method: Taro.request.Option<T>["method"];
@@ -39,23 +43,33 @@ const request = <T = any, U = any>(
   }
 ): Promise<ResponseData<T>> => {
   return new Promise((resolve, reject) => {
+    const token = wx.getStorageSync("access_token");
+    const _userInfo = wx.getStorageSync("userInfo");
+
+    const checkSpecUrl = () => {
+      const urlList = ["/client/wechat/login", "/client/wechat/register"];
+
+      const list = config?.url.split("/").filter(Boolean);
+      const isUserUrl =
+        config?.url.startsWith("/client/user") &&
+        list.length === 3 &&
+        list[2].length === 36;
+      return urlList.includes(config?.url) || isUserUrl;
+    };
+    const isSpecUrl = checkSpecUrl();
+
+    if ((!token || !hasUserBaseInfo(_userInfo)) && !isSpecUrl) {
+      navigateTo({
+        url: "/pages/login/index",
+      });
+
+      return;
+    }
+
     const _url = config.url.startsWith("/")
       ? serviceConfig.client + config.url
       : config.url;
 
-    const token = wx.getStorageSync("access_token");
-
-    if (!token && !urlList.includes(config.url)) {
-      // 获取当前页面地址，需要比对
-      const pages = getCurrentPages();
-      const pageUrl = pages[0].route;
-      if (pageUrl !== "/pages/login/index") {
-        wx.navigateTo({
-          url: "/pages/login/index",
-        });
-      }
-      return;
-    }
     Taro.request({
       header: {
         "Content-Type": "application/json", // 默认请求头
@@ -69,20 +83,18 @@ const request = <T = any, U = any>(
         });
       },
       success: (result) => {
-        if (result?.data?.code === 401) {
-          if (
-            result?.data?.message.startsWith("Token Invalid: JWT expired at")
-          ) {
-            wx.removeStorageSync("access_token");
-            wx.removeStorageSync("refresh_token");
-          }
+        if (result?.data?.message.startsWith("Token Invalid:")) {
+          wx.removeStorageSync("access_token");
+          wx.removeStorageSync("refresh_token");
+        }
 
-          // 获取当前页面地址，需要比对
-          const pages = getCurrentPages();
-          if (!urlList.includes(config.url)) {
-            wx.navigateTo({
-              url: "/pages/login/index",
-            });
+        if (result?.data?.code === 401) {
+          if (!isSpecUrl) {
+            setTimeout(() => {
+              navigateTo({
+                url: "/pages/login/index",
+              });
+            }, 300);
           }
         }
 

@@ -4,9 +4,11 @@ import cn.jongwong.server.entity.RefundVO;
 import cn.jongwong.server.repository.RefundRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class RefundService {
@@ -47,6 +49,10 @@ public class RefundService {
 
     Mono<Boolean> existsById(String orderId) {
         return refundRepository.existsById(orderId);
+    }
+
+    Flux<RefundVO> findByOrderIdIn(List<String> orderIds) {
+        return refundRepository.findByOrderIdIn(orderIds);
     }
 
 

@@ -23,7 +23,6 @@ const Layout: React.FC<LayoutProps> = (props) => {
   if (edge === false) {
     _edge = "none";
   }
-  console.log("=====_edge=====", _edge);
   return (
     <ConfigProvider className={styles["yo-layout-wrapper"]}>
       <View

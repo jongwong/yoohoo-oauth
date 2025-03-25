@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Taro from "@tarojs/taro";
-import { Button, Field, Form, FormItem } from "@antmjs/vantui";
+import { Button, Field, Form, FormItem, Image } from "@antmjs/vantui";
 
 import Layout from "../../component/Layout";
 
 import request from "@/utils/request";
 
 import styles from "./index.module.less";
+import { View } from "@tarojs/components";
 
 const Registration: React.FC = () => {
   const [loading, setLoading] = useState(false); // 加载状态
@@ -24,13 +25,18 @@ const Registration: React.FC = () => {
         return;
       }
       const values = form.getFieldsValue();
+      const _userInfo = wx.getStorageSync("userInfo");
       const _data = {
         ...values, // 提交表单数据
         encrypted_data: encryptedData,
         iv,
-        union_id: wx.getStorageSync("union_id"),
-        session_key: wx.getStorageSync("session_key"),
+        union_id: _userInfo?.union_id,
+        session_key: _userInfo?.session_key,
       };
+      if (!encryptedData || !iv) {
+        return;
+      }
+
       const res = await request
         .post("/client/wechat/register", _data)
         .finally(() => {
@@ -42,6 +48,10 @@ const Registration: React.FC = () => {
           icon: "success",
           duration: 2000,
         });
+        wx.removeStorageSync("userInfo");
+        wx.removeStorageSync("access_token");
+        wx.removeStorageSync("open_id");
+        wx.removeStorageSync("refresh_token");
         Taro.reLaunch({
           url: "/pages/login/index",
         });
@@ -79,6 +89,31 @@ const Registration: React.FC = () => {
       return Promise.resolve();
     };*/
 
+  useEffect(() => {
+    const _userInfo = wx.getStorageSync("userInfo");
+    form.setFields({
+      nickname: _userInfo?.nickname,
+      name: _userInfo?.name,
+      mobile: _userInfo?.mobile,
+      avatar: _userInfo?.avatar,
+    });
+  }, []);
+
+  const getUserProfile = () => {
+    Taro.getUserProfile({
+      desc: "获取您的个人信息",
+      success: (res) => {
+        form.setFieldsValue("avatar", res?.userInfo?.avatarUrl);
+        form.setFieldsValue("nickname", res?.userInfo?.nickName);
+      },
+      fail: (err) => {
+        console.error(err);
+        wx.showToast({
+          title: "获取失败",
+        });
+      },
+    });
+  };
   return (
     <Layout
       style={{
@@ -86,37 +121,22 @@ const Registration: React.FC = () => {
       }}
     >
       <Form className={styles.form} form={form}>
-        <FormItem
-          label="姓名"
-          name="name"
-          layout={"vertical"}
-          rules={[
-            {
-              rule: (value, call) => {
-                if (!value) {
-                  call("姓名不能为空");
-                } else if (value.length < 2) {
-                  call("姓名长度不能小于 2 个字符");
-                } else if (value.length > 8) {
-                  call("姓名长度不能超过 8 个字符");
-                }
-              },
-            },
-          ]}
-        >
-          <Field placeholder="请输入姓名" className={styles.input} />
+        <FormItem label="头像" name="avatar" layout={"vertical"} required>
+          <AvatarSelect
+            onClick={() => {
+              getUserProfile();
+            }}
+          />
         </FormItem>
-
         <FormItem
           label="昵称"
           name="nickname"
           layout={"vertical"}
+          required
           rules={[
             {
               rule: (value, call) => {
-                if (!value) {
-                  call("昵称不能为空");
-                } else if (value.length < 2) {
+                if (value.length < 2) {
                   call("昵称长度不能小于 2 个字符");
                 } else if (value.length > 12) {
                   call("昵称长度不能超过 12 个字符");
@@ -127,6 +147,26 @@ const Registration: React.FC = () => {
         >
           <Field placeholder="请输入昵称" className={styles.input} />
         </FormItem>
+
+        <FormItem
+          label="姓名"
+          name="name"
+          layout={"vertical"}
+          required
+          rules={[
+            {
+              rule: (value, call) => {
+                if (value.length < 2) {
+                  call("姓名长度不能小于 2 个字符");
+                } else if (value.length > 8) {
+                  call("姓名长度不能超过 8 个字符");
+                }
+              },
+            },
+          ]}
+        >
+          <Field placeholder="请输入姓名" className={styles.input} />
+        </FormItem>
       </Form>
       <Button
         className={styles.button}
@@ -136,7 +176,7 @@ const Registration: React.FC = () => {
         block
         openType="getPhoneNumber"
         onGetPhoneNumber={handleRegister}
-        loading={loading}
+        loading={false}
       >
         注册
       </Button>
@@ -145,3 +185,26 @@ const Registration: React.FC = () => {
 };
 
 export default Registration;
+
+const AvatarSelect: React.FC<{
+  value?: string;
+  onClick: () => void;
+}> = ({ value, onClick }) => {
+  return (
+    <View>
+      {value ? (
+        <Image src={value} width={80} height={80} round />
+      ) : (
+        <Button
+          type={"primary"}
+          size={"small"}
+          onClick={() => {
+            onClick();
+          }}
+        >
+          点击获取微信头像
+        </Button>
+      )}
+    </View>
+  );
+};

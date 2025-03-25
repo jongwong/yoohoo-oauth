@@ -15,11 +15,11 @@ enum ETabType {
 const tabList = [
   {
     value: 10,
-    title: "团购管理",
+    title: "团购",
   },
   {
     value: 20,
-    title: "订单管理",
+    title: "退款",
   },
 ];
 const AdminPage: React.FC = () => {

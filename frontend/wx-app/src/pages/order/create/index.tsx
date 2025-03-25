@@ -40,7 +40,6 @@ const OrderCreate: React.FC = () => {
   const groupId = useMemo(() => {
     return first(skuCountList)?.purchase_group_id;
   }, [skuCountList]);
-  console.log("=====skuCountList=====", skuCountList);
   // 请求产品列表数据
   const { loading: productLoading, data: productData } = useRequest(
     async () => {
@@ -199,7 +198,7 @@ const OrderCreate: React.FC = () => {
         });
 
       if (resPay?.success) {
-        const data: Record<string, string> = resPay?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
+        const data: Record<string, string> = resPay?.data || {}; // 假设返回的数据在 resp.data
         wx.requestPayment({
           timeStamp: data.timestamp,
           nonceStr: data.nonce_str,

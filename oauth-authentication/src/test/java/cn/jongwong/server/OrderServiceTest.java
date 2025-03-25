@@ -19,7 +19,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.web.WebAppConfiguration;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -67,7 +66,7 @@ public class OrderServiceTest {
     public void paymentCreate() {
         var payment = PaymentVO.builder()
                 .id(UUID.randomUUID().toString())
-                .amount(BigDecimal.valueOf(1.0))
+                .amount(1)
                 .status(PaymentStatusEnum.PENDING_PAYMENT.getCode())
                 .build();
         paymentService.insert(payment);

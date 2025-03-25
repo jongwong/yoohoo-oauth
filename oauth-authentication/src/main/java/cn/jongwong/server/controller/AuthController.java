@@ -54,6 +54,7 @@ public class AuthController {
 
     @PostMapping("/client/wechat/register")
     public Mono<Response<UserRO>> register(@Valid @RequestBody WeChatRegistrationDTO request) {
+
         // 如果调用次数没有超过限制，则调用解密方法
         return weChatAuthService.getEncryptedPhoneNumber(request.getUnionId(), request.getEncryptedData(), request.getIv()).flatMap((e) -> {
 
@@ -63,6 +64,7 @@ public class AuthController {
                 newU.setName(request.getName());
                 newU.setNickname(request.getNickname());
                 newU.setMobile(mobile);
+                newU.setAvatar(request.getAvatar());
                 return newU;
             });
 

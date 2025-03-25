@@ -9,7 +9,7 @@ import { generateFileUrl } from "@/utils/file";
 import classNames from "classnames";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
-import { EOrderStatus, StatusMap } from "@/pages/order/constants";
+import { EOrderStatus, EOrderStatusMap } from "@/constant/order";
 import dayjs from "dayjs";
 import { transformMoney } from "@/utils/number";
 import { gotoPayPageResult } from "@/pages/order/utils";
@@ -51,7 +51,7 @@ const OrderCreate: React.FC<{}> = () => {
       });
 
     if (res?.success) {
-      const data: Record<string, string> = res?.data?.prepay_info || {}; // 假设返回的数据在 resp.data
+      const data: Record<string, string> = res?.prepay_info || {}; // 假设返回的数据在 resp.data
       wx.requestPayment({
         timeStamp: data.timestamp,
         nonceStr: data.nonce_str,
@@ -162,7 +162,7 @@ const OrderCreate: React.FC<{}> = () => {
         }}
       >
         <View className={"mb-8"} style={{ fontSize: 16 }}>
-          {StatusMap[orderData?.status]}
+          {EOrderStatusMap.getText(orderData?.status)}
         </View>
       </View>
 

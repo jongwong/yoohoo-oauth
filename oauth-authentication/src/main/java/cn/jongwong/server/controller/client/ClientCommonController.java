@@ -8,6 +8,7 @@ import cn.jongwong.server.dto.order.OrderRefundApproveDTO;
 import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.OrderVO;
+import cn.jongwong.server.entity.OrderWithInfoVO;
 import cn.jongwong.server.service.GroupAdminService;
 import cn.jongwong.server.service.OrderService;
 import cn.jongwong.server.service.UserService;
@@ -115,7 +116,7 @@ public class ClientCommonController {
     }
 
     @PostMapping("/order/pay/submit")
-    public Mono<Response<OrderVO>> submitPay(@RequestBody OrderPayDTO data) {
+    public Mono<Response<Map<String, String>>> submitPay(@RequestBody OrderPayDTO data) {
         return orderService.payOrder(data).map(Response::ok);
     }
 
@@ -228,15 +229,27 @@ public class ClientCommonController {
                 .onErrorReturn(ResponseEntity.status(500).body("Verification error."));
     }
 
+
+    @GetMapping("/admin/order")
+    public Mono<PageResponse<OrderVO>> queryByUser(@RequestParam(required = true) Integer page, @RequestParam(required = true) Integer size, @RequestParam(required = false) Integer status) {
+        return orderService.query(page, size, status).map(PageResponse::success);
+    }
+
+    @GetMapping("/admin/order/with_refund")
+    public Mono<PageResponse<OrderWithInfoVO>> queryWithRefundByUser(@RequestParam(required = true) Integer page, @RequestParam(required = true) Integer size, @RequestParam(required = false) Integer status) {
+        return orderService.queryWithPaymentRefundInfo(page, size, status).map(PageResponse::success);
+    }
+
+
     @PostMapping("/order/refund")
     public Mono<Response<Boolean>> refundOrder(@RequestBody OrderRefundDTO data) {
         return orderService.refund(data).map(Response::ok);
     }
 
 
-    @GetMapping("/admin/order")
-    public Mono<PageResponse<OrderVO>> queryByUser(@RequestParam(required = true) Integer page, @RequestParam(required = true) Integer size, @RequestParam(required = false) Integer status) {
-        return orderService.query(page, size, status).map(PageResponse::success);
+    @PostMapping("/order/refund/direct")
+    public Mono<Response<OrderVO>> directRefund(@RequestBody OrderRefundDTO data) {
+        return orderService.directRefund(data).map(Response::ok);
     }
 
     @PostMapping("/order/refund/approve")

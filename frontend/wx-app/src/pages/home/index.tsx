@@ -15,6 +15,7 @@ const Index: React.FC = () => {
     "//yoohoo-oss.oss-cn-shanghai.aliyuncs.com/miniapp/home/swiper/2.png",
   ];
 
+  const [userInfo, setUserInfo] = useState(wx.getStorageSync("userInfo") || {});
   const { loading: permissionLoading, runAsync: fetchAdminPermission } =
     UseRequest(
       () => {
@@ -63,11 +64,7 @@ const Index: React.FC = () => {
         </Swiper>
         <View className={styles.userInfoCard}>
           <View className={styles.userInfo}>
-            <Image
-              className={styles.avatar}
-              round
-              src="https://img.yzcdn.cn/vant/cat.jpeg"
-            />
+            <Image className={styles.avatar} round src={userInfo?.avatar} />
             <View className={styles.userBox}>
               <View className={styles.userName}>王忠(JongWong)</View>
               <View className={styles.integral}>

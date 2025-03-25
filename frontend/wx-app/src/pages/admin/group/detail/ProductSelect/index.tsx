@@ -25,7 +25,6 @@ const ProductSelect: React.FC<ProductSelectProps> = (props) => {
       optionRender={(e: any) => {
         const _url = e?.thumbnail_image?.url as string;
         const _fullUrl = generateFileUrl(_url);
-        console.log("=====e=====", _url);
         return (
           <View style={{ display: "flex" }}>
             <View style={{ marginRight: "16px" }}>

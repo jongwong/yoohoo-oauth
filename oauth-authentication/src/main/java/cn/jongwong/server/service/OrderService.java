@@ -4,16 +4,14 @@ import cn.jongwong.server.common.MapperUtil;
 import cn.jongwong.server.common.SnowflakeIdUtils;
 import cn.jongwong.server.config.wechatpay.WeChatPayService;
 import cn.jongwong.server.dto.order.*;
-import cn.jongwong.server.entity.OrderItemVO;
-import cn.jongwong.server.entity.OrderVO;
-import cn.jongwong.server.entity.PaymentVO;
-import cn.jongwong.server.entity.RefundVO;
+import cn.jongwong.server.entity.*;
 import cn.jongwong.server.enums.OrderItemTypeEnum;
 import cn.jongwong.server.enums.OrderStatusEnum;
 import cn.jongwong.server.enums.PaymentStatusEnum;
 import cn.jongwong.server.enums.RefundStatusEnum;
 import cn.jongwong.server.repository.OrderItemRepository;
 import cn.jongwong.server.repository.OrderRepository;
+import cn.jongwong.server.repository.OrderWithInfoRepository;
 import cn.jongwong.server.service.product.PurchaseGroupProductService;
 import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +22,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -50,6 +49,9 @@ public class OrderService {
 
     @Autowired
     private CouponsService couponsService;
+
+    @Autowired
+    private OrderWithInfoRepository orderWithInfoRepository;
 
 
 
@@ -146,6 +148,53 @@ public class OrderService {
     }
 
 
+    public Mono<Page<OrderWithInfoVO>> queryWithPaymentRefundInfo(int page, int size, Integer status) {
+        return orderWithInfoRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.as("o").in("status", status)
+
+                        .field("u.name as user_name, u.nickname as user_nickname, u.mobile as user_mobile, u.avatar as user_avatar", true)
+                        .withJoin(t -> t.left()
+                                .table("tb_user  u")
+                                .on("o.user_id = u.id"))
+                )
+                .flatMap(e -> {
+                    List<String> ids = e.getData().stream()
+                            .map(OrderWithInfoVO::getId)   // 假设 getId() 返回的是 String
+                            .toList();
+
+                    return refundService.findByOrderIdIn(ids).collectList().flatMap(refunds -> {
+                        var items = orderItemRepository.findAllByDSL(sql -> sql.in("order_id", ids));
+                        return items.collectList().map(orderItems -> {
+                            // OrderVO 转成 OrderWithInfoVO；
+                            var newOrderList = new ArrayList<OrderWithInfoVO>();
+
+                            e.getData().forEach(order -> {
+
+                                OrderWithInfoVO newOrder = new OrderWithInfoVO();
+                                MapperUtil.merge(newOrder, order);
+                                var find = refunds.stream()
+                                        .filter(it -> it.getOrderId().equals(order.getId()))
+                                        .findFirst().orElse(null);
+
+                                newOrder.setRefundInfo(find);
+                                var orderItem = orderItems.stream()
+                                        .filter(it -> it.getOrderId().equals(order.getId()))
+                                        .toList();
+                                newOrder.setItems(orderItem);
+                                newOrderList.add(newOrder);
+                            });
+
+                            var newRe = new Page<OrderWithInfoVO>();
+                            MapperUtil.merge(newRe, e);
+                            newRe.setData(newOrderList);
+                            return newRe;
+                        });
+                    });
+
+                });
+
+    }
+
+
     @Transactional
     public Mono<OrderVO> findOneByOrderId(String orderId) {
         return orderRepository.findById(orderId)
@@ -189,14 +238,20 @@ public class OrderService {
     }
 
     @Transactional
-    public Mono<OrderVO> payOrder(OrderPayDTO data) {
+    public Mono<Map<String, String>> payOrder(OrderPayDTO data) {
         return findOneByOrderId(data.getOrderId())
-                .flatMap(order -> {
-                    return weChatPayService.createJsApiOrder(data.getOpenId(), order).map(re -> {
-                        order.setPrepayInfo(re);
-                        return order;
-                    });
-                });
+                .flatMap(order -> weChatPayService.createJsApiOrder(data.getOpenId(), order).map(re -> re));
+    }
+
+    @Transactional
+    public Mono<OrderVO> directRefund(OrderRefundDTO data) {
+        return refund(data).flatMap((e) -> {
+            var dto = OrderRefundApproveDTO.builder()
+                    .orderId(data.getOrderId())
+                    .reason(data.getReason())
+                    .build();
+            return refundApprove(dto, true);
+        });
     }
 
     @Transactional
@@ -302,10 +357,7 @@ public class OrderService {
             if (refund.getStatus() != RefundStatusEnum.PENDING_REFUND.getCode()) {
                 return Mono.error(new RuntimeException("退款状态不正确"));
             }
-            return weChatPayService.refundJsApiOrder(order, payment, refund.getApplyReason()).map(re -> {
-                order.setPrepayInfo(re);
-                return order;
-            });
+            return weChatPayService.refundJsApiOrder(order, payment, refund.getApplyReason()).map(re -> order);
         });
 
     }

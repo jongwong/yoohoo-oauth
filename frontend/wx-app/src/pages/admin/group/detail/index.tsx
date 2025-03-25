@@ -39,7 +39,7 @@ const Index: React.FC = () => {
   const [detailData, setDetailData] = useState({});
   const [saveLoading, setSaveLoading] = useState(false);
   const groupId = router.params?.id;
-  const [readonly, setReadonly] = useState(false);
+  const [readonly, setReadonly] = useState(true);
 
   const productListRef = useRef([]);
   const [productList, _setProductList] = useState([]);
@@ -118,16 +118,18 @@ const Index: React.FC = () => {
           }}
           isLink={false}
           renderExtra={
-            <View style={{ textAlign: "right", marginTop: "10px" }}>
-              <Button
-                type="primary"
-                size="small"
-                onClick={() => onRemove(idx)}
-                plain
-              >
-                删除
-              </Button>
-            </View>
+            !readonly ? (
+              <View style={{ textAlign: "right", marginTop: "10px" }}>
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={() => onRemove(idx)}
+                  plain
+                >
+                  删除
+                </Button>
+              </View>
+            ) : null
           }
         />
 
@@ -271,22 +273,22 @@ const Index: React.FC = () => {
             </>
           ) : (
             <View style={{ display: "flex", gap: "10px" }}>
-              {/*<Button*/}
-              {/*  type="primary"*/}
-              {/*  plain*/}
-              {/*  hairline*/}
-              {/*  block*/}
-              {/*  onClick={async () => {*/}
-              {/*    const val = historyDataRef.current;*/}
-              {/*    form.resetFields();*/}
-              {/*    form.setFields(val);*/}
-              {/*    historyDataRef.current = undefined;*/}
-              {/*    setReadonly(true);*/}
-              {/*    setFormUidKey(uniqueId());*/}
-              {/*  }}*/}
-              {/*>*/}
-              {/*  取消*/}
-              {/*</Button>*/}
+              <Button
+                type="primary"
+                plain
+                hairline
+                block
+                onClick={async () => {
+                  const val = historyDataRef.current;
+                  form.resetFields();
+                  form.setFields(val);
+                  historyDataRef.current = undefined;
+                  setReadonly(true);
+                  setFormUidKey(uniqueId());
+                }}
+              >
+                取消
+              </Button>
               <Button
                 type="primary"
                 block

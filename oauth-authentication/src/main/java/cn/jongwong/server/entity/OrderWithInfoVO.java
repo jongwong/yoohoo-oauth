@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @Table(name = "tb_order")
-public class OrderVO {
+public class OrderWithInfoVO {
 
     @Schema(description = "订单ID")
     @Id
@@ -28,6 +28,21 @@ public class OrderVO {
 
     @Schema(description = "用户ID")
     private String userId;
+
+
+    @Schema(description = "用户名称")
+    private String userName;
+
+
+    @Schema(description = "用户昵称")
+    private String userNickname;
+
+    @Schema(description = "用户头像")
+    private String userAvatar;
+
+
+    @Schema(description = "用户手机")
+    private String userMobile;
 
     @Schema(description = "订单总金额")
     private Integer amountTotal;
@@ -74,7 +89,6 @@ public class OrderVO {
     private Integer paymentStatus;
 
 
-
     @Schema(description = "创建人ID")
     private String createdBy;
 
@@ -96,5 +110,9 @@ public class OrderVO {
 
     @Schema(description = "支付时间")
     private LocalDateTime paymentAt;
+
+    @Transient
+    @Schema(description = "退款信息")
+    private RefundVO refundInfo;
 
 }

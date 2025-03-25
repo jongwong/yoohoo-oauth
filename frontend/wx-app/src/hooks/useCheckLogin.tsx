@@ -2,8 +2,13 @@ import { useEffect, useState } from "react";
 import Taro from "@tarojs/taro";
 import { Loading } from "@antmjs/vantui";
 import request from "@/utils/request";
+import { navigateTo } from "@/utils/navigate";
 
-const useCheckLogin = () => {
+const useCheckLogin: (op?: { notRedirect?: boolean }) => {
+  hasInit: boolean;
+  gotToRegisteredElement: JSX.Element;
+} = (op) => {
+  const { notRedirect } = op || {};
   const [loading, setLoading] = useState(false); // 按钮加载状态
   const [hasInit, setHasInit] = useState(false);
 
@@ -13,15 +18,31 @@ const useCheckLogin = () => {
   }, []);
 
   const handleLogin = () => {
+    const pages = getCurrentPages();
+    const pageUrl = pages[0].route;
     const token = wx.getStorageSync("access_token");
     const userInfo = wx.getStorageSync("userInfo");
     const openId = wx.getStorageSync("open_id");
-    // if (token && userInfo && openId) {
-    //   Taro.switchTab({
-    //     url: "/pages/home/index",
-    //   });
-    //   return;
-    // }
+    const isHomePage = pageUrl === "pages/home/index";
+    if (token && userInfo && openId) {
+      setHasInit(true);
+      if (!notRedirect) {
+        if (!hasUserBaseInfo(userInfo)) {
+          navigateTo({
+            url: "/pages/registration/index",
+          });
+          return;
+        }
+
+        if (!isHomePage) {
+          Taro.switchTab({
+            url: "/pages/home/index",
+          });
+        }
+      }
+
+      return;
+    }
 
     wx.login({
       success: async (res) => {
@@ -72,26 +93,31 @@ const useCheckLogin = () => {
         const userRes = await request.get(`/client/user/${_data.user_id}`);
 
         if (userRes.success) {
-          // 检查是否已注册
-          if (userRes?.data?.name) {
-            const userInfo = {
-              union_id: _data.union_id,
-              session_key: _data.session_key,
-              user_id: _data.user_id,
-              ...userRes?.data,
-            };
-            wx.setStorageSync("userInfo", userInfo);
+          const userInfo = {
+            union_id: _data?.union_id,
+            session_key: _data?.session_key,
+            user_id: _data?.user_id,
+            ...userRes?.data,
+          };
+          wx.setStorageSync("userInfo", userInfo);
 
-            wx.setStorageSync("open_id", _data?.open_id);
+          wx.setStorageSync("open_id", _data?.open_id);
 
-            Taro.switchTab({
-              url: "/pages/home/index",
-            });
-          } else {
-            Taro.navigateTo({
-              url: "/pages/registration/index",
-            });
+          if (!notRedirect) {
+            // 检查是否已注册
+            if (hasUserBaseInfo(userRes?.data)) {
+              if (!isHomePage) {
+                Taro.switchTab({
+                  url: "/pages/home/index",
+                });
+              }
+            } else {
+              navigateTo({
+                url: "/pages/registration/index",
+              });
+            }
           }
+
           setLoading(false);
           setHasInit(true);
         }
@@ -106,6 +132,10 @@ const useCheckLogin = () => {
         });
       },
     });
+  };
+
+  const hasUserBaseInfo = (user: Record<string, any> = {}) => {
+    return !!(user?.name && user?.nickname && user?.mobile && user?.avatar);
   };
 
   const wrapperStyle = {

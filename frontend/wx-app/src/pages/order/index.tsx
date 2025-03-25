@@ -22,7 +22,7 @@ import request from "@/utils/request";
 import { generateFileUrl, getNoDataUrl } from "@/utils/file";
 import { useGetState } from "ahooks";
 import Taro from "@tarojs/taro";
-import { EOrderStatus, StatusMap } from "@/pages/order/constants";
+import { EOrderStatus, EOrderStatusMap } from "@/constant/order";
 import { divide } from "@/utils/number";
 import ProxyWrapped from "@/component/ProxyWrapped";
 import { gotoPayRefundResult } from "@/pages/order/utils";
@@ -253,7 +253,7 @@ const Profile: React.FC = () => {
                 <View className={styles.orderItem}>
                   <View className={styles.orderItemHeader}>
                     <View className={styles.orderItemStatus}>
-                      {StatusMap[orderItem.status]}
+                      {EOrderStatusMap.getText(orderItem.status)}
                     </View>
 
                     <View className={styles.orderItemTime}>

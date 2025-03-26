@@ -6,6 +6,7 @@ import { Tab, Tabs } from "@antmjs/vantui";
 import styles from "@/pages/order/index.module.less";
 import { View } from "@tarojs/components";
 import OrderList from "@/pages/admin/OrderList";
+import { EOrderStatus } from "@/constant/order";
 
 enum ETabType {
   GROUP = 10,
@@ -40,7 +41,9 @@ const AdminPage: React.FC = () => {
         ))}
       </Tabs>
       {currentStatus === ETabType.GROUP ? <AdminGroupList /> : null}
-      {currentStatus === ETabType.ORDER ? <OrderList /> : null}
+      {currentStatus === ETabType.ORDER ? (
+        <OrderList status={EOrderStatus.RefundInProgress} />
+      ) : null}
     </Layout>
   );
 };

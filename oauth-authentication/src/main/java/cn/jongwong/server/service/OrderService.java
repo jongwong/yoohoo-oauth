@@ -17,6 +17,7 @@ import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -148,21 +149,28 @@ public class OrderService {
     }
 
 
-    public Mono<Page<OrderWithInfoVO>> queryWithPaymentRefundInfo(int page, int size, Integer status) {
-        return orderWithInfoRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.as("o").in("status", status)
+    public Mono<Page<OrderWithInfoVO>> queryWithPaymentRefundInfo(int page, int size, Integer[] status, String groupId) {
+        return orderWithInfoRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.as("o").in("status", status).eq("ref_id", groupId)
 
                         .field("u.name as user_name, u.nickname as user_nickname, u.mobile as user_mobile, u.avatar as user_avatar", true)
                         .withJoin(t -> t.left()
                                 .table("tb_user  u")
-                                .on("o.user_id = u.id"))
+                                .on("o.user_id = u.id")).sort("o.created_at,desc")
                 )
                 .flatMap(e -> {
                     List<String> ids = e.getData().stream()
                             .map(OrderWithInfoVO::getId)   // 假设 getId() 返回的是 String
                             .toList();
 
-                    return refundService.findByOrderIdIn(ids).collectList().flatMap(refunds -> {
-                        var items = orderItemRepository.findAllByDSL(sql -> sql.in("order_id", ids));
+                    var refundMono = !ids.isEmpty() ? refundService.findByOrderIdIn(ids).collectList() : Mono.just(new ArrayList<RefundVO>());
+
+                    return refundMono.flatMap(refunds -> {
+                        // 初始话空的 Flux<OrderItemVO>
+                        Flux<OrderItemVO> items = Flux.empty();
+
+
+
+
                         return items.collectList().map(orderItems -> {
                             // OrderVO 转成 OrderWithInfoVO；
                             var newOrderList = new ArrayList<OrderWithInfoVO>();

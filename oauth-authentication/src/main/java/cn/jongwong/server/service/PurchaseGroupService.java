@@ -79,7 +79,7 @@ public class PurchaseGroupService {
 
     @Transient
     public Mono<PurchaseGroupVO> create(@AutoCreatedField PurchaseGroupVO data) {
-
+        data.setId(null);
         return userService.getCurrentUserReactive().map((u) -> {
             data.setCreatedBy(u.getId());
             data.setCreatedByName(u.getName());
@@ -90,6 +90,7 @@ public class PurchaseGroupService {
             // 设置purchaseGroupId
             var products = data.getProducts();
             products.forEach(product -> {
+                product.setId(null);
                 product.setPurchaseGroupId(data.getId());
             });
 

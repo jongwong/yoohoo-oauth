@@ -4,7 +4,6 @@ import {
   Button,
   Dialog,
   Divider,
-  Empty,
   Form,
   FormItem,
   Image,
@@ -15,18 +14,24 @@ import styles from "./index.module.less";
 import dayjs from "dayjs";
 import { getFormatWeekdays } from "@/utils/date";
 import request from "@/utils/request";
-import { generateFileUrl, getNoDataUrl } from "@/utils/file";
+import { generateFileUrl } from "@/utils/file";
 import Taro from "@tarojs/taro";
 import { EOrderStatus, EOrderStatusMap } from "@/constant/order";
 import { divide } from "@/utils/number";
 import ProxyWrapped from "@/component/ProxyWrapped";
 import ScrollPage from "@/hooks/usePageRequest";
 import Tag from "@/component/Tag";
+import omitBy from "lodash-es/omitBy";
+import isNil from "lodash-es/isNil";
+import classNames from "classnames";
 
 const DialogInstance = Dialog.createOnlyDialog();
 const Index: React.FC<{
   status?: number;
-}> = ({ status = EOrderStatus.RefundInProgress }) => {
+  groupId?: string;
+  hideAction?: boolean;
+  pageSize?: number;
+}> = ({ status, pageSize, groupId, hideAction }) => {
   const form = Form.useForm();
 
   const actionRef = useRef<any>();
@@ -185,12 +190,15 @@ const Index: React.FC<{
   return (
     <ScrollPage
       actionRef={actionRef}
+      pageSize={pageSize}
       request={(params) => {
+        const val = {
+          ...params,
+          status,
+          group_id: groupId,
+        };
         return request.get("/client/admin/order/with_refund", {
-          params: {
-            ...params,
-            status,
-          },
+          params: omitBy(val, isNil),
         });
       }}
     >
@@ -199,112 +207,114 @@ const Index: React.FC<{
           <>
             <View>
               <Space direction={"vertical"} block gapVertical={16}>
-                {orderDataList?.length ? (
-                  orderDataList.map((orderItem) => {
-                    return (
-                      <View className={styles.orderItem}>
-                        <View className={styles.orderItemHeader}>
-                          <View className={"flex justify-between"}>
-                            <View className={"flex items-center"}>
-                              <Image
-                                height={30}
-                                width={30}
-                                round
-                                src={orderItem?.user_avatar}
-                              />
-                              <View className={"ml-8"}>
-                                {orderItem.user_nickname}
+                {orderDataList?.length
+                  ? orderDataList.map((orderItem, idx) => {
+                      return (
+                        <View
+                          className={classNames(
+                            styles.orderItem,
+                            idx ? "mt-8" : undefined
+                          )}
+                        >
+                          <View className={styles.orderItemHeader}>
+                            <View className={"flex justify-between"}>
+                              <View className={"flex items-center"}>
+                                <Image
+                                  height={30}
+                                  width={30}
+                                  round
+                                  src={orderItem?.user_avatar}
+                                />
+                                <View className={"ml-8"}>
+                                  {orderItem.user_nickname}
+                                </View>
+                              </View>
+
+                              <View className={styles.orderItemStatus}>
+                                <Tag
+                                  status={
+                                    EOrderStatusMap.get(orderItem.status)
+                                      ?.status
+                                  }
+                                >
+                                  {EOrderStatusMap.getText(orderItem.status)}
+                                </Tag>
                               </View>
                             </View>
-
-                            <View className={styles.orderItemStatus}>
-                              <Tag
-                                status={
-                                  EOrderStatusMap.get(orderItem.status)?.status
-                                }
-                              >
-                                {EOrderStatusMap.getText(orderItem.status)}
-                              </Tag>
-                            </View>
                           </View>
-                        </View>
-                        <View className={styles.orderItemTime}>
-                          {dayjs(orderItem.created_at).format(
-                            "YYYY/MM/DD HH:mm "
-                          )}
-                          {getFormatWeekdays(orderItem.created_at)}
-                        </View>
-                        <View className={styles.orderItemTime}>
-                          {orderItem?.delivery_point_name}
+                          <View className={styles.orderItemTime}>
+                            {dayjs(orderItem.created_at).format(
+                              "YYYY/MM/DD HH:mm "
+                            )}
+                            {getFormatWeekdays(orderItem.created_at)}
+                          </View>
+                          <View className={styles.orderItemTime}>
+                            {orderItem?.delivery_point_name}
+                            <Text className={"ml-16"}>
+                              {orderItem?.user_name}
+                            </Text>
+                            <Text className={"ml-16"}>
+                              {orderItem?.user_mobile}
+                            </Text>
+                          </View>
 
-                          <Text className={"ml-16"}>
-                            {orderItem?.user_mobile}
-                          </Text>
-                        </View>
-
-                        {/* 商品部分 */}
-                        <View
-                          className={styles.orderItemProduct}
-                          onClick={() => {
-                            Taro.navigateTo({
-                              url: `/pages/order/detail/index?id=${orderItem?.id}`,
-                            });
-                          }}
-                        >
-                          {orderItem.items.map((item, index) => (
-                            <View key={index}>
-                              <Image
-                                src={generateFileUrl(item.product_image_url)}
-                              ></Image>
-                              {/* 商品图片 */}
-                            </View>
-                          ))}
-                        </View>
-                        <View className={"mb-8"}>
-                          <Space
-                            className={"w-1-1"}
-                            direction={"vertical"}
-                            align={"end"}
+                          {/* 商品部分 */}
+                          <View
+                            className={styles.orderItemProduct}
+                            onClick={() => {
+                              Taro.navigateTo({
+                                url: `/pages/order/detail/index?id=${orderItem?.id}`,
+                              });
+                            }}
                           >
-                            <View style={{ fontSize: 18 }}>
-                              <Text style={{ fontSize: 14, color: "#666666" }}>
-                                实付款 ￥
-                              </Text>
-                              <Text>
-                                ￥{divide(orderItem?.amount_total, 100)}
-                              </Text>
-                            </View>
-                          </Space>
-                        </View>
-                        <Divider />
-                        {orderItem?.status === EOrderStatus.RefundInProgress ? (
-                          <View className={"text-red"}>
-                            {"退款备注: " +
-                              (orderItem?.refund_info?.apply_reason || "")}
+                            {orderItem.items.map((item, index) => (
+                              <View key={index}>
+                                <Image
+                                  src={generateFileUrl(item.product_image_url)}
+                                ></Image>
+                                {/* 商品图片 */}
+                              </View>
+                            ))}
                           </View>
-                        ) : null}
-                        {/* 底部部分 */}
-                        <View className={styles.orderItemFooter}>
-                          {renderActions(orderItem)}
+                          <View className={"mb-8"}>
+                            <Space
+                              className={"w-1-1"}
+                              direction={"vertical"}
+                              align={"end"}
+                            >
+                              <View style={{ fontSize: 18 }}>
+                                <Text
+                                  style={{ fontSize: 14, color: "#666666" }}
+                                >
+                                  实付款
+                                </Text>
+                                <Text className={"text-red"}>
+                                  ￥{divide(orderItem?.amount_total, 100)}
+                                </Text>
+                              </View>
+                            </Space>
+                          </View>
+
+                          {orderItem?.status ===
+                          EOrderStatus.RefundInProgress ? (
+                            <>
+                              <Divider />
+                              <View className={"text-red"}>
+                                {"退款备注: " +
+                                  (orderItem?.refund_info?.apply_reason || "")}
+                              </View>
+                            </>
+                          ) : null}
+                          {/* 底部部分 */}
+                          {!hideAction ? (
+                            <View className={styles.orderItemFooter}>
+                              {renderActions(orderItem)}
+                            </View>
+                          ) : null}
                         </View>
-                      </View>
-                    );
-                  })
-                ) : (
-                  <View
-                    style={{
-                      marginTop: "15vh",
-                      height: "100vw",
-                      bottom: 0,
-                    }}
-                  >
-                    <Empty
-                      description={"暂无订单"}
-                      style={{ width: "100vw", flex: "0 0 auto" }}
-                      image={getNoDataUrl()}
-                    />
-                  </View>
-                )}
+                      );
+                    })
+                  : null}
               </Space>
             </View>
             <DialogInstance />

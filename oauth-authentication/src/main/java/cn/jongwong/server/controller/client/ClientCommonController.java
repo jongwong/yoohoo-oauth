@@ -236,8 +236,8 @@ public class ClientCommonController {
     }
 
     @GetMapping("/admin/order/with_refund")
-    public Mono<PageResponse<OrderWithInfoVO>> queryWithRefundByUser(@RequestParam(required = true) Integer page, @RequestParam(required = true) Integer size, @RequestParam(required = false) Integer status) {
-        return orderService.queryWithPaymentRefundInfo(page, size, status).map(PageResponse::success);
+    public Mono<PageResponse<OrderWithInfoVO>> queryWithRefundByUser(@RequestParam(required = true) Integer page, @RequestParam(required = true) Integer size, @RequestParam(required = false) Integer[] status, @RequestParam(required = false) String groupId) {
+        return orderService.queryWithPaymentRefundInfo(page, size, status, groupId).map(PageResponse::success);
     }
 
 

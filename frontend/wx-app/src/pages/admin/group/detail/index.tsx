@@ -3,15 +3,18 @@ import Layout from "@/component/Layout";
 import React, { useRef, useState } from "react";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
-import { useRouter } from "@tarojs/taro";
+import Taro, { useRouter } from "@tarojs/taro";
 import {
   Button,
   Cell,
+  Col,
   Divider,
   Form,
   FormItem,
+  Icon,
   Image,
   ImageViewer,
+  Row,
   Toast,
 } from "@antmjs/vantui";
 import { Input, Text, Textarea, View } from "@tarojs/components";
@@ -32,6 +35,11 @@ import {
 import { EMPTY_TEXT } from "@/constant";
 import InputNumber from "@/component/InputNumber";
 
+import styles from "./index.module.less";
+import { navigateTo } from "@/utils/navigate";
+import OrderList from "@/pages/admin/OrderList";
+import StatisticsPopup from "@/pages/admin/group/detail/StatisticsPopup";
+
 const Index: React.FC = () => {
   const router = useRouter();
   const form = Form.useForm();
@@ -40,8 +48,9 @@ const Index: React.FC = () => {
   const [saveLoading, setSaveLoading] = useState(false);
   const groupId = router.params?.id;
   const [readonly, setReadonly] = useState(true);
-
+  const [statisticsOpen, setStatisticsOpen] = useState(false);
   const productListRef = useRef([]);
+  const [isCopy, setIsCopy] = useState(false);
   const [productList, _setProductList] = useState([]);
   const [formUidKey, setFormUidKey] = useState("");
   const setProductList = (e) => {
@@ -254,23 +263,64 @@ const Index: React.FC = () => {
       edge={"none"}
       loading={loading || saveLoading}
       footer={
-        <View style={{ padding: "10px" }}>
+        <View className={styles.footer}>
           {readonly ? (
-            <>
-              <Button
-                type="primary"
-                block
-                onClick={async () => {
-                  historyDataRef.current = detailData;
-                  setProductList(detailData.products);
-                  form.setFields(detailData);
+            <Row>
+              <Col className="col" span="6">
+                <View
+                  className={styles.footerItem}
+                  onClick={async () => {
+                    historyDataRef.current = detailData;
+                    setProductList(detailData.products);
+                    form.setFields(detailData);
 
-                  setReadonly(false);
-                }}
-              >
-                编辑
-              </Button>
-            </>
+                    setReadonly(false);
+                  }}
+                >
+                  <Icon name="edit" size="30px" />
+                  <View className={"text-12"}>编辑</View>
+                </View>
+              </Col>
+
+              <Col className="col" span="6">
+                <View
+                  className={styles.footerItem}
+                  onClick={async () => {
+                    navigateTo({
+                      url: `/pages/admin/group/group-order/index?groupId=${groupId}`,
+                    });
+                  }}
+                >
+                  <Icon name="orders-o" size="30px" />
+                  <View className={"text-12"}>订单</View>
+                </View>
+              </Col>
+
+              <Col className="col" span="6">
+                <View
+                  className={styles.footerItem}
+                  onClick={() => {
+                    setIsCopy(true);
+                    setReadonly(false);
+                  }}
+                >
+                  <Icon name="points" size="30px" />
+                  <View className={"text-12"}>复制</View>
+                </View>
+              </Col>
+
+              <Col className="col" span="6">
+                <View
+                  className={styles.footerItem}
+                  onClick={async () => {
+                    setStatisticsOpen(true);
+                  }}
+                >
+                  <Icon name="bar-chart-o" size="30px" />
+                  <View className={"text-12"}>统计</View>
+                </View>
+              </Col>
+            </Row>
           ) : (
             <View style={{ display: "flex", gap: "10px" }}>
               <Button
@@ -285,6 +335,7 @@ const Index: React.FC = () => {
                   historyDataRef.current = undefined;
                   setReadonly(true);
                   setFormUidKey(uniqueId());
+                  setIsCopy(false);
                 }}
               >
                 取消
@@ -297,9 +348,15 @@ const Index: React.FC = () => {
                     const val = form.getFieldsValue();
                     val.products = productList;
                     val.img_url = val?.img_url?.[0]?.url;
-                    const fn = groupId
-                      ? updatePurchaseGroup(groupId, val)
-                      : createPurchaseGroup(val);
+
+                    if (isCopy) {
+                      val.id = undefined;
+                    }
+
+                    const fn =
+                      groupId && !isCopy
+                        ? updatePurchaseGroup(groupId, val)
+                        : createPurchaseGroup(val);
 
                     const res = await fn.finally(() => {
                       setSaveLoading(false);
@@ -309,6 +366,13 @@ const Index: React.FC = () => {
                         children: "保存成功",
                         duration: 2000,
                       });
+
+                      if (isCopy) {
+                        console.log("=====res=====", res);
+                        Taro.reLaunch({
+                          url: `/pages/admin/group/detail/index?id=${res.data.id}`,
+                        });
+                      }
                     }
                   });
                 }}
@@ -540,6 +604,24 @@ const Index: React.FC = () => {
           ) : null}
         </Form>
       </view>
+
+      {groupId && readonly ? (
+        <>
+          <StatisticsPopup
+            groupId={groupId}
+            show={statisticsOpen}
+            onClose={() => {
+              setStatisticsOpen(false);
+            }}
+          />
+          <OrderList
+            key={groupId}
+            hideAction
+            groupId={groupId}
+            pageSize={400}
+          />
+        </>
+      ) : null}
     </Layout>
   );
 };

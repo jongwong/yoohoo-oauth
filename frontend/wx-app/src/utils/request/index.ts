@@ -83,7 +83,8 @@ const request = <T = any, U = any>(
         });
       },
       success: (result) => {
-        if (result?.data?.message.startsWith("Token Invalid:")) {
+        const msg = result?.data?.message || "";
+        if (msg.startsWith("Token Invalid:")) {
           wx.removeStorageSync("access_token");
           wx.removeStorageSync("refresh_token");
         }

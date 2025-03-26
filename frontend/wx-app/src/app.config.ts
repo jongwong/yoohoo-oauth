@@ -17,6 +17,7 @@ export default defineAppConfig({
     "pages/admin/group/detail/index",
     "pages/group/detail/index",
     "pages/group/list/index",
+    "pages/admin/group/group-order/index",
   ],
   permission: {
     "scope.userLocation": {

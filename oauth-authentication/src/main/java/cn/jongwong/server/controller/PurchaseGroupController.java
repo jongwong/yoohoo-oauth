@@ -40,6 +40,14 @@ public class PurchaseGroupController {
                 .defaultIfEmpty(Response.notFound());
     }
 
+    @PutMapping("/{id}/enable")
+    public Mono<Response<PurchaseGroupVO>> enable(@PathVariable String id) {
+        return purchaseGroupService.enable(id)
+                .map(Response::ok)
+                .defaultIfEmpty(Response.notFound());
+    }
+
+
     @PostMapping
     public Mono<Response<PurchaseGroupVO>> create(@RequestBody PurchaseGroupVO purchaseGroupVO) {
         return purchaseGroupService.create(purchaseGroupVO)

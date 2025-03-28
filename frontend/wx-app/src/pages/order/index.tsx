@@ -49,6 +49,7 @@ const Profile: React.FC = () => {
 
   const refundConfirm = useCallback((orderItem) => {
     DialogInstance.confirm({
+      zIndex: 0,
       renderTitle: (
         <View
           style={{
@@ -102,6 +103,7 @@ const Profile: React.FC = () => {
           </Form>
         </View>
       ),
+      loading: false,
       beforeClose: async (action) => {
         return new Promise(async (resolve, reject) => {
           if (action === "cancel") {
@@ -114,6 +116,10 @@ const Profile: React.FC = () => {
               return;
             }
 
+            Toast.loading({
+              message: "退款中",
+              duration: 3000,
+            });
             request
               .post(`/client/order/refund`, {
                 reason: val?.reason,
@@ -125,12 +131,18 @@ const Profile: React.FC = () => {
                 if (res?.success) {
                   resolve(true);
                   gotoPayRefundResult("processing");
+                  Toast.clear();
                   return;
                 }
+                Toast.fail({
+                  message: res?.message || "退款失败",
+                  duration: 2000,
+                });
                 resolve(false);
               })
               .catch(() => {
                 resolve(false);
+                Toast.clear();
               });
           });
         });
@@ -187,6 +199,7 @@ const Profile: React.FC = () => {
           <Button
             type={"primary"}
             size={"small"}
+            loading={false}
             onClick={() => {
               refundConfirm(orderItem);
             }}

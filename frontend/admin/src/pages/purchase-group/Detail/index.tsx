@@ -433,7 +433,7 @@ const Detail: React.FC = () => {
 								},
 								{
 									title: '商品图片',
-									dataIndex: 'image_url',
+									dataIndex: 'thumbnail_image',
 									editable: false,
 									visible: !editable,
 									width: '20%',

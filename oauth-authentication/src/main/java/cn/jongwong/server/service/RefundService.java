@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class RefundService {
@@ -26,11 +27,29 @@ public class RefundService {
             data.setUpdatedByName(u.getName());
             data.setUpdatedAt(LocalDateTime.now());
             return data;
-        }).flatMap((d) -> refundRepository.save(d)).flatMap((d) -> refundRepository.findById(d.getId()));
+        }).flatMap((e) -> refundRepository.save(e)).flatMap((d) -> refundRepository.findById(d.getId()));
+    }
+
+
+    Mono<RefundVO> save(RefundVO data) {
+
+        if (data.getOrderId() == null) {
+            System.out.printf("=============111===========%s%n", 111);
+            return insert(data);
+        }
+        return refundRepository.existsById(data.getOrderId()).flatMap((exists) -> {
+            System.out.printf("=============exists===========%s%n", exists);
+            if (exists) {
+                return update(data);
+            } else {
+                return insert(data);
+            }
+        });
     }
 
     public Mono<RefundVO> insert(RefundVO data) {
         return userService.getCurrentUserReactive().map((u) -> {
+            data.setId(UUID.randomUUID().toString());
             data.setCreatedBy(u.getId());
             data.setCreatedByName(u.getName());
             data.setCreatedAt(LocalDateTime.now());
@@ -43,7 +62,7 @@ public class RefundService {
         return refundRepository.findById(id);
     }
 
-    Mono<RefundVO> findByOrderId(String orderId) {
+    Mono<RefundVO> findOneByOrderId(String orderId) {
         return refundRepository.findByOrderId(orderId);
     }
 

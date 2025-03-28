@@ -119,6 +119,7 @@ const Index: React.FC = () => {
           position: "relative",
         }}
       >
+        {idx ? <Divider dashed /> : null}
         {/* 商品标题 */}
         <Cell
           title={`${item.product_name}`}
@@ -252,9 +253,6 @@ const Index: React.FC = () => {
             </ProxyWrapped>
           )}
         </FormItem>
-
-        {/* 分隔线（用于多个商品之间的间隔） */}
-        <Divider />
       </View>
     );
   };
@@ -368,7 +366,6 @@ const Index: React.FC = () => {
                       });
 
                       if (isCopy) {
-                        console.log("=====res=====", res);
                         Taro.reLaunch({
                           url: `/pages/admin/group/detail/index?id=${res.data.id}`,
                         });

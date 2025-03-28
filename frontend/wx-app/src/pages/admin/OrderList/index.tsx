@@ -8,13 +8,13 @@ import {
   FormItem,
   Image,
   Space,
+  Toast,
 } from "@antmjs/vantui";
 import { Text, Textarea, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import dayjs from "dayjs";
 import { getFormatWeekdays } from "@/utils/date";
 import request from "@/utils/request";
-import { generateFileUrl } from "@/utils/file";
 import Taro from "@tarojs/taro";
 import { EOrderStatus, EOrderStatusMap } from "@/constant/order";
 import { divide } from "@/utils/number";
@@ -37,12 +37,13 @@ const Index: React.FC<{
   const actionRef = useRef<any>();
   const refundReview = useCallback(
     (orderItem, type: "pass" | "refuse" | "direct") => {
-      let title = "是否申请退款" + type === "pass" ? "通过?" : "拒绝?";
+      let title = type === "pass" ? "是否同意退款?" : "是否拒绝退款?";
 
       if (type === "direct") {
         title = "是否主动退款给用户?";
       }
       DialogInstance.confirm({
+        zIndex: 0,
         renderTitle: (
           <View
             style={{
@@ -96,6 +97,7 @@ const Index: React.FC<{
             </Form>
           </View>
         ),
+        loading: false,
         beforeClose: async (action) => {
           return new Promise(async (resolve) => {
             if (action === "cancel") {
@@ -117,6 +119,10 @@ const Index: React.FC<{
                 _url = `/client/order/refund/direct`;
               }
 
+              Toast.loading({
+                message: "退款中",
+                duration: 3000,
+              });
               request
                 .post(_url, {
                   reason: val?.reason,
@@ -127,12 +133,17 @@ const Index: React.FC<{
                   if (res?.success) {
                     resolve(true);
                     actionRef.current?.reload();
+                    Toast.clear();
                     return;
                   }
+                  Toast.fail({
+                    message: res?.message || "退款失败",
+                  });
                   resolve(false);
                 })
                 .catch(() => {
                   resolve(false);
+                  Toast.clear();
                 });
             });
           });
@@ -260,19 +271,34 @@ const Index: React.FC<{
 
                           {/* 商品部分 */}
                           <View
-                            className={styles.orderItemProduct}
                             onClick={() => {
                               Taro.navigateTo({
                                 url: `/pages/order/detail/index?id=${orderItem?.id}`,
                               });
                             }}
+                            className={"mt-8"}
                           >
                             {orderItem.items.map((item, index) => (
-                              <View key={index}>
-                                <Image
-                                  src={generateFileUrl(item.product_image_url)}
-                                ></Image>
-                                {/* 商品图片 */}
+                              <View
+                                key={index}
+                                className={"flex flex-row justify-between"}
+                              >
+                                <View className={styles.orderItemTime}>
+                                  <Text>
+                                    {item.product_name}
+                                    {item?.sku_name
+                                      ? " (" + item?.sku_name + ")"
+                                      : null}
+                                  </Text>
+
+                                  <Text className={"ml-16"}>
+                                    * {item.count || 0}
+                                  </Text>
+                                </View>
+
+                                <View className={styles.orderItemTime}>
+                                  ￥{divide(item?.amount, 100)}
+                                </View>
                               </View>
                             ))}
                           </View>

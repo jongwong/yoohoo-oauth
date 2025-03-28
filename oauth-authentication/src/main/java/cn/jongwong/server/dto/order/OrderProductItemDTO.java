@@ -30,4 +30,10 @@ public class OrderProductItemDTO {
 
     @Schema(description = "商品数量")
     private Integer count;
+
+    @Schema(description = "skuId")
+    private String skuId;
+
+    @Schema(description = "sku名称")
+    private String skuName;
 }

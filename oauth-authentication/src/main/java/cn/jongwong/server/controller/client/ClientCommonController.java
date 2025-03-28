@@ -254,12 +254,12 @@ public class ClientCommonController {
 
     @PostMapping("/order/refund/approve")
     public Mono<Response<OrderVO>> refundApprove(@RequestBody OrderRefundApproveDTO data) {
-        return orderService.refundApprove(data, true).map(Response::ok);
+        return orderService.refundApprove(data).map(Response::ok);
     }
 
     @PostMapping("/order/refund/reject")
     public Mono<Response<OrderVO>> refundReject(@RequestBody OrderRefundApproveDTO data) {
-        return orderService.refundApprove(data, false).map(Response::ok);
+        return orderService.refundApproveReject(data).map(Response::ok);
     }
 
 

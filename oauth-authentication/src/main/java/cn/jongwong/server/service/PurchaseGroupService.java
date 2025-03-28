@@ -3,6 +3,7 @@ package cn.jongwong.server.service;
 import cn.jongwong.server.common.AutoCreatedField;
 import cn.jongwong.server.entity.PurchaseGroupProductVO;
 import cn.jongwong.server.entity.PurchaseGroupVO;
+import cn.jongwong.server.enums.GlobalEnableTypeEnum;
 import cn.jongwong.server.repository.ProductRepository;
 import cn.jongwong.server.repository.PurchaseGroupProductRepository;
 import cn.jongwong.server.repository.PurchaseGroupRepository;
@@ -158,6 +159,18 @@ public class PurchaseGroupService {
         return purchaseGroupProductRepository.findByPurchaseGroupId(purchaseGroupId);
     }
 
+
+    public Mono<PurchaseGroupVO> enable(String purchaseGroupId) {
+        return findById(purchaseGroupId).map(e -> {
+            e.setEnable(GlobalEnableTypeEnum.ENABLE.getValue());
+            return e;
+        }).flatMap((data) -> userService.getCurrentUserReactive().map((u) -> {
+            data.setCreatedBy(u.getId());
+            data.setCreatedByName(u.getName());
+            data.setCreatedAt(LocalDateTime.now());
+            return data;
+        })).flatMap((e) -> purchaseGroupRepository.save(e));
+    }
     public Mono<Page<PurchaseGroupVO>> search(String name, Integer enable, Integer page, Integer size) {
 
         return purchaseGroupRepository.findPageByDSL(page, size, sql ->

@@ -17,10 +17,7 @@ import { gotoPayPageResult } from "@/pages/order/utils";
 const OrderCreate: React.FC<{}> = () => {
   const router = useRouter();
 
-  const [hasValidError, setHasValidError] = useState(false);
-
   const [saveLoading, setSaveLoading] = useState(false);
-  const [refundReason, setRefundReason] = useState("");
   const form = Form.useForm();
   // 请求产品列表数据
   const { loading, data: orderData } = useRequest(
@@ -123,8 +120,11 @@ const OrderCreate: React.FC<{}> = () => {
   const renderProduct = () => {
     return (
       <View className={classNames("mt-16", styles.card)}>
-        {orderData?.items.map((item) => (
-          <View className={styles.productCard}>
+        {orderData?.items.map((item, idx) => (
+          <View
+            className={classNames(styles.productCard, idx ? "mt-8" : undefined)}
+            key={item?.id}
+          >
             <Image
               src={generateFileUrl(item?.product_image_url, true)}
               fadeIn
@@ -141,6 +141,11 @@ const OrderCreate: React.FC<{}> = () => {
                 <Text className={styles.productPrice}>
                   <Text className={"text-12"}>￥</Text>
                   {transformMoney(item?.amount)}
+                </Text>
+              </View>
+              <View>
+                <Text className={"text-sm text-grey-dark"}>
+                  {item?.sku_name}
                 </Text>
               </View>
               <View>

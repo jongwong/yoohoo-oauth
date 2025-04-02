@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Repository
 public interface PurchaseGroupProductRepository extends GenericReactiveRepository<PurchaseGroupProductVO, String> {
     /**
@@ -24,4 +26,8 @@ public interface PurchaseGroupProductRepository extends GenericReactiveRepositor
      * @return Flux<PurchaseGroupProductVO> 商品信息
      */
     Flux<PurchaseGroupProductVO> findAllByPurchaseGroupId(String purchaseGroupId);
+
+    Flux<PurchaseGroupProductVO> findAllByPurchaseGroupIdIn(List<String> ids);
+
+
 }

@@ -7,6 +7,7 @@ import cn.jongwong.server.enums.GlobalEnableTypeEnum;
 import cn.jongwong.server.repository.ProductRepository;
 import cn.jongwong.server.repository.PurchaseGroupProductRepository;
 import cn.jongwong.server.repository.PurchaseGroupRepository;
+import cn.jongwong.server.service.product.PurchaseGroupProductService;
 import cn.jongwong.server.util.response.EntityUtils;
 import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.reactive.TransactionalOperator;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -43,6 +43,8 @@ public class PurchaseGroupService {
     @Autowired
     private PurchaseGroupProductRepository purchaseGroupProductRepository;
 
+    @Autowired
+    PurchaseGroupProductService purchaseGroupProductService;
 
     @Transient
     public Mono<PurchaseGroupVO> update(PurchaseGroupVO data) {
@@ -102,6 +104,8 @@ public class PurchaseGroupService {
         });
 
     }
+
+
     public Mono<PurchaseGroupVO> findById(String id) {
         // 合并purchaseGroupRepository  purchaseGroupProductRepository
 
@@ -149,15 +153,6 @@ public class PurchaseGroupService {
     }
 
 
-    /**
-     * 查询团购关联的商品以及最大库存
-     *
-     * @param purchaseGroupId 团购ID
-     * @return Mono<PurchaseGroupProductVO> 商品及最大库存信息
-     */
-    public Mono<PurchaseGroupProductVO> findProductsByPurchaseGroupId(String purchaseGroupId) {
-        return purchaseGroupProductRepository.findByPurchaseGroupId(purchaseGroupId);
-    }
 
 
     public Mono<PurchaseGroupVO> enable(String purchaseGroupId) {
@@ -192,19 +187,28 @@ public class PurchaseGroupService {
                         sql.as("p")
                                 .column("d.name as distribution_point_name")
                                 .column("d.address as distribution_point_address")
-                                .eq("enable", enable).like("name", name)
+
                                 .withJoin(t -> t.left()
                                         .table("tb_distribution_points d")
-                                        .on("p.distribution_point_id = d.id")))
+                                        .on("p.distribution_point_id = d.id"))
+                                .eq("enable", enable).like("name", name)
+                                .sort("created_at,desc"))
 
                 .flatMap(pageData -> {
-                    Flux<PurchaseGroupVO> flux = Flux.fromIterable(pageData.getData()).flatMap(e -> findById(e.getId()));
-                    return flux.collectList().map(list -> {
-                        pageData.setData(list);
+                    var ids = pageData.getData().stream().map(PurchaseGroupVO::getId).toList();
+
+                    return purchaseGroupProductService.findAllByGroupIds(ids).collectList().map(products -> {
+                        var dataList = pageData.getData();
+                        dataList.forEach(group -> {
+                            var filterProduct = products.stream().filter(p -> group.getId().equals(p.getPurchaseGroupId())).toList();
+                            group.setProducts(filterProduct);
+                        });
+
                         return pageData;
                     });
-                })
-                ;
+
+
+                });
 
 
     }

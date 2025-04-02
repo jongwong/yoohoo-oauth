@@ -1,7 +1,9 @@
 package cn.jongwong.server.service.product;
 
 import cn.jongwong.server.entity.ClientPurchaseGroupProductVO;
+import cn.jongwong.server.entity.PurchaseGroupProductVO;
 import cn.jongwong.server.repository.ClientPurchaseGroupProductRepository;
+import cn.jongwong.server.repository.PurchaseGroupProductRepository;
 import cn.jongwong.server.util.response.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,10 @@ import java.util.List;
 public class PurchaseGroupProductService {
     @Autowired
     private ClientPurchaseGroupProductRepository clientPurchaseGroupProductRepository;
+
+
+    @Autowired
+    private PurchaseGroupProductRepository purchaseGroupProductRepository;
 
     private static final String[] COLUMNS = new String[]{
             "pgp.id AS group_product_id",
@@ -104,14 +110,12 @@ public class PurchaseGroupProductService {
     }
 
 
+    public Flux<PurchaseGroupProductVO> findAllByIds(List<String> ids) {
 
-
-    public Flux<ClientPurchaseGroupProductVO> findAllByIds(List<String> ids) {
-
-        return clientPurchaseGroupProductRepository.findAllByDSL(sql ->
+        return purchaseGroupProductRepository.findAllByDSL(sql ->
                 sql.as("pgp")
                         .columns(COLUMNS)
-                        .eq("pgp.id", ids)
+                        .in("pgp.id", ids)
                         .withJoin(t -> t.left()
                                 .table("tb_product p")
                                 .on("pgp.product_id = p.id"))
@@ -123,6 +127,22 @@ public class PurchaseGroupProductService {
 
     }
 
+    public Flux<PurchaseGroupProductVO> findAllByGroupIds(List<String> ids) {
+
+        return purchaseGroupProductRepository.findAllByDSL(sql ->
+                sql.as("pgp")
+                        .columns(COLUMNS)
+                        .in("pgp.purchase_group_id", ids)
+                        .withJoin(t -> t.left()
+                                .table("tb_product p")
+                                .on("pgp.product_id = p.id"))
+                        .withJoin(t -> t.left()
+                                .table("tb_purchase_group pg")
+                                .on("pgp.purchase_group_id = pg.id"))
+
+        );
+
+    }
 
 
 }

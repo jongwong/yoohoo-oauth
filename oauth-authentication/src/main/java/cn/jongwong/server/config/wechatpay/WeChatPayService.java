@@ -196,9 +196,6 @@ public class WeChatPayService {
     public Mono<HashMap<String, String>> refundJsApiOrder(OrderVO order, PaymentVO payment, String reason) {
         var tradeNum = payment.getTransactionNo(); // 订单号
         var refundNum = generateRefundOutTradeNo(order.getNum()); // 生成退款单号
-        System.out.printf("=============tradeNum===========%s%n", tradeNum);
-        System.out.printf("=============reason===========%s%n", reason);
-        System.out.printf("=============payment===========%s%n", payment);
         // 退款请求参数
         Map<String, Object> request = new HashMap<>();
         request.put("transaction_id", payment.getTransactionId());

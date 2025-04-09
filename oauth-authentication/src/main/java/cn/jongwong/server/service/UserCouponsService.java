@@ -166,7 +166,8 @@ public class UserCouponsService {
     }
 
 
-    public Flux<UserCouponsRO> getUserCouponsByUserId(String userId) {
-        return userCouponsRepository.findUserCouponsByUserId(userId);
+    public Flux<UserCouponsRO> getUserCouponsByUserId(String userId, Integer isUsed) {
+
+        return userCouponsRepository.findUserCouponsByUserId(userId, isUsed);
     }
 }

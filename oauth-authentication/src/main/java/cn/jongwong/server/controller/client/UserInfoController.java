@@ -3,6 +3,7 @@ package cn.jongwong.server.controller.client;
 
 import cn.jongwong.server.dto.user.UserRO;
 import cn.jongwong.server.entity.UserCouponsRO;
+import cn.jongwong.server.enums.GlobalEnableTypeEnum;
 import cn.jongwong.server.service.UserCouponsService;
 import cn.jongwong.server.service.UserService;
 import cn.jongwong.server.util.response.Response;
@@ -26,12 +27,11 @@ public class UserInfoController {
     private UserService userService;
 
 
-    // 获取最近的配送点
     @GetMapping("/coupons")
     public Mono<Response<List<UserCouponsRO>>> getUserCoupons() {
 
         return userService.getCurrentUserReactive()
-                .flatMap(u -> userCouponsService.getUserCouponsByUserId(u.getId()).collectList()).map(Response::ok);
+                .flatMap(u -> userCouponsService.getUserCouponsByUserId(u.getId(), GlobalEnableTypeEnum.ENABLE.getValue()).collectList()).map(Response::ok);
 
     }
 

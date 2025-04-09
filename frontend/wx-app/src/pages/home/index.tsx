@@ -25,8 +25,14 @@ const Index: React.FC = () => {
         manual: true,
       }
     );
+
+  const { loading: couponsLoading, data: couponList } = UseRequest(() => {
+    return request.get("/client/user/coupons");
+  }, {});
+  console.log("=====couponList=====", couponList);
+
   return (
-    <Layout edge={"none"} loading={permissionLoading}>
+    <Layout edge={"none"} loading={permissionLoading || couponsLoading}>
       <View className={styles.container}>
         {/* 轮播图组件 */}
         <Swiper
@@ -66,23 +72,23 @@ const Index: React.FC = () => {
           <View className={styles.userInfo}>
             <Image className={styles.avatar} round src={userInfo?.avatar} />
             <View className={styles.userBox}>
-              <View className={styles.userName}>王忠(JongWong)</View>
+              <View className={styles.userName}>{userInfo?.nickname}</View>
               <View className={styles.integral}>
                 <View className={styles.integralBar}>
                   <Progress
                     strokeWidth="4"
-                    percentage={30}
+                    percentage={20}
                     showPivot={false}
                     color="linear-gradient(270deg, rgba(140, 178, 75, 1) 0%, rgba(102, 152, 69, 1) 40%, rgba(44, 155, 75, 1) 100%)"
                   />
                 </View>
-                <View className={styles.integralText}>73/1000 {" 积分"}</View>
+                <View className={styles.integralText}>0/1000 {" 积分"}</View>
               </View>
             </View>
           </View>
 
           <View className={styles.coupons}>
-            <View>0</View>
+            <View>{couponList?.length || 0}</View>
             <View>优惠券</View>
           </View>
         </View>

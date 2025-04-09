@@ -40,8 +40,8 @@ public interface UserCouponsRepository extends GenericReactiveRepository<UserCou
             LEFT JOIN
             `yoohoo-oauth`.tb_coupons c
             ON uc.coupons_id = c.id
-            WHERE uc.user_id = :userId
+            WHERE is_used = :isUsed AND uc.user_id = :userId
             """)
-    Flux<UserCouponsRO> findUserCouponsByUserId(String userId);
+    Flux<UserCouponsRO> findUserCouponsByUserId(String userId, Integer isUsed);
 }
 

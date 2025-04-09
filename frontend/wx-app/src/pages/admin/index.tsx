@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import AdminGroupList from "@/pages/admin/group/list";
 import { Tab, Tabs } from "@antmjs/vantui";
 import styles from "@/pages/order/index.module.less";
-import { View } from "@tarojs/components";
 import OrderList from "@/pages/admin/OrderList";
 import { EOrderStatus } from "@/constant/order";
 
@@ -26,7 +25,7 @@ const tabList = [
 const AdminPage: React.FC = () => {
   const [currentStatus, setCurrentStatus] = useState(ETabType.GROUP);
   return (
-    <Layout edge={"none"} footer={<View></View>}>
+    <Layout edge={"none"}>
       <Tabs
         className={styles.tabs}
         active={currentStatus}

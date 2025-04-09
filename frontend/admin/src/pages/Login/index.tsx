@@ -5,6 +5,7 @@ import { setCookie } from '@/utils/cookie';
 import http from '@/utils/http';
 import { useNavigate } from 'react-router-dom';
 import { getQueryByName } from '@/utils/url';
+import LogoSvg from '@/layout/MainLayout/logo.svg';
 
 const Login: React.FC = () => {
 	const [loading, setLoading] = useState(false);
@@ -58,43 +59,40 @@ const Login: React.FC = () => {
 	}, []);
 
 	return (
-		<div className="login-container">
-			<div
-				style={{
-					display: 'flex',
-					height: '100vh',
-					justifyContent: 'center',
-					alignItems: 'center',
-				}}>
-				<Form
-					style={{ width: '350px' }}
-					name="login_form"
-					className="login-form"
-					onFinish={onFinish}>
-					<Form.Item
-						name="username"
-						key={lastLoginUsername}
-						initialValue={lastLoginUsername}
-						rules={[{ required: true, message: '请输入用户名!' }]}>
-						<Input prefix={<UserOutlined />} placeholder="用户名" size="large" />
-					</Form.Item>
+		<div className="flex flex-col justify-center" style={{ height: '100vh' }}>
+			<div className={'flex flex-col justify-around'} style={{ height: 300, padding: 16 }}>
+				<LogoSvg style={{ height: 32, fill: '#75af65' }} />
+				<div className={'flex flex-col justify-center items-center'}>
+					<Form
+						style={{ width: '350px' }}
+						name="login_form"
+						className="login-form"
+						onFinish={onFinish}>
+						<Form.Item
+							name="username"
+							key={lastLoginUsername}
+							initialValue={lastLoginUsername}
+							rules={[{ required: true, message: '请输入用户名!' }]}>
+							<Input prefix={<UserOutlined />} placeholder="用户名" size="large" />
+						</Form.Item>
 
-					<Form.Item name="password" rules={[{ required: true, message: '请输入密码!' }]}>
-						<Input.Password prefix={<LockOutlined />} placeholder="密码" size="large" />
-					</Form.Item>
+						<Form.Item name="password" rules={[{ required: true, message: '请输入密码!' }]}>
+							<Input.Password prefix={<LockOutlined />} placeholder="密码" size="large" />
+						</Form.Item>
 
-					<Form.Item>
-						<Button
-							type="primary"
-							htmlType="submit"
-							className="login-form-button"
-							size="large"
-							loading={loading}
-							block>
-							登录
-						</Button>
-					</Form.Item>
-				</Form>
+						<Form.Item>
+							<Button
+								type="primary"
+								htmlType="submit"
+								className="login-form-button"
+								size="large"
+								loading={loading}
+								block>
+								登录
+							</Button>
+						</Form.Item>
+					</Form>
+				</div>
 			</div>
 		</div>
 	);

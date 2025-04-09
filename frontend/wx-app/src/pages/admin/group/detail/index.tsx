@@ -38,7 +38,6 @@ import InputNumber from "@/component/InputNumber";
 import styles from "./index.module.less";
 import { navigateTo } from "@/utils/navigate";
 import OrderList from "@/pages/admin/OrderList";
-import StatisticsPopup from "@/pages/admin/group/detail/StatisticsPopup";
 
 const Index: React.FC = () => {
   const router = useRouter();
@@ -311,7 +310,9 @@ const Index: React.FC = () => {
                 <View
                   className={styles.footerItem}
                   onClick={async () => {
-                    setStatisticsOpen(true);
+                    navigateTo({
+                      url: `/pages/admin/group/statistics/index?groupId=${groupId}`,
+                    });
                   }}
                 >
                   <Icon name="bar-chart-o" size="30px" />
@@ -604,13 +605,6 @@ const Index: React.FC = () => {
 
       {groupId && readonly ? (
         <>
-          <StatisticsPopup
-            groupId={groupId}
-            show={statisticsOpen}
-            onClose={() => {
-              setStatisticsOpen(false);
-            }}
-          />
           <OrderList
             key={groupId}
             hideAction

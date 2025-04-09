@@ -69,3 +69,7 @@ export function divide(
     .reduce((acc, num) => acc?.div(num)!, toBig(_numbers[0])!)
     ?.toNumber(); // 最后转换为 number 类型
 }
+
+export const formatAmount = (amount: number) => {
+  return divide(amount, 100);
+};

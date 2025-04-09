@@ -3,3 +3,6 @@ export const PAGES_PURCHASE_GROUP_DETAIL_URL = '/purchase-group/:groupId';
 export const PAGES_PURCHASE_GROUP_CREATE_URL = '/purchase-group/create';
 
 export const PAGES_PURCHASE_GROUP_PRODUCT_URL = '/purchase-group/product';
+
+export const PAGES_PURCHASE_GROUP_STATISTICS_DETAIL_URL =
+	'/share/purchase-group/statistics/:groupId';

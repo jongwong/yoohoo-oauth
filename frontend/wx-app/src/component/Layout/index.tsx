@@ -1,6 +1,13 @@
 import React, { ReactNode } from "react";
 
-import { ConfigProvider, Loading, Overlay } from "@antmjs/vantui";
+import {
+  ConfigProvider,
+  Loading,
+  Overlay,
+  Sticky,
+  Tab,
+  Tabs,
+} from "@antmjs/vantui";
 
 import classNames from "classnames";
 
@@ -14,10 +21,25 @@ type LayoutProps = {
   loading?: boolean;
   backgroundColor?: string;
   footer?: ReactNode;
+  header?: ReactNode;
+  tabList?: {
+    key: string;
+    label: ReactNode;
+    children: ReactNode;
+  }[];
 };
 const Layout: React.FC<LayoutProps> = (props) => {
-  const { children, footer, backgroundColor, loading, edge, style, ...rest } =
-    props;
+  const {
+    children,
+    footer,
+    header,
+    backgroundColor,
+    loading,
+    edge,
+    style,
+    tabList,
+    ...rest
+  } = props;
 
   let _edge = edge;
   if (edge === false) {
@@ -33,11 +55,22 @@ const Layout: React.FC<LayoutProps> = (props) => {
         )}
         style={{ backgroundColor, ...style }}
       >
-        {children}
+        {header ? <Sticky>{header}</Sticky> : null}
+        {!tabList?.length ? (
+          <View className={styles["yo-layout-content"]}>{children}</View>
+        ) : (
+          <Tabs>
+            {tabList?.map((it) => (
+              <Tab {...it} title={it.label} key={it.key} />
+            ))}
+          </Tabs>
+        )}
+
+        {footer ? (
+          <View className={styles["yo-layout-footer"]}>{footer}</View>
+        ) : null}
       </View>
-      {footer ? (
-        <View className={styles["yo-layout-footer"]}>{footer}</View>
-      ) : null}
+
       <Overlay
         show={loading}
         style={{ background: "rgba(255, 255, 255, 0.3)" }}

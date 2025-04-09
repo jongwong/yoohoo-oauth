@@ -4,6 +4,7 @@ import {
 	PAGES_PURCHASE_GROUP_CREATE_URL,
 	PAGES_PURCHASE_GROUP_DETAIL_URL,
 	PAGES_PURCHASE_GROUP_PRODUCT_URL,
+	PAGES_PURCHASE_GROUP_STATISTICS_DETAIL_URL,
 	PAGES_PURCHASE_GROUP_URL,
 } from './pages'; // 使用相对路径
 
@@ -14,6 +15,8 @@ const GroupList = React.lazy(() => import('./GroupList')); // 使用相对路径
 const Detail = React.lazy(() => import('./Detail')); // 使用相对路径
 
 const Create = React.lazy(() => import('./Create')); // 使用相对路径
+
+const Statistics = React.lazy(() => import('./Statistics')); // 使用相对路径
 
 const routes = [
 	{
@@ -37,6 +40,12 @@ const routes = [
 		hidden: true,
 		title: '团购管理详情',
 		element: <Detail />,
+	},
+	{
+		path: PAGES_PURCHASE_GROUP_STATISTICS_DETAIL_URL,
+		hidden: true,
+		title: '团购统计',
+		element: <Statistics />,
 	},
 ];
 

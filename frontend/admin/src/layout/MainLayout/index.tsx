@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom'; // 使用 Routes 来包裹路由
+import { Route, Routes, useLocation } from 'react-router-dom'; // 使用 Routes 来包裹路由
 import { App, ConfigProvider, DatePicker, Layout } from 'antd';
 
 import MenuComponent from '@/layout/Menu';
@@ -35,6 +35,7 @@ DatePicker.RangePicker.defaultProps = {
 } as any;
 
 const MainLayout: React.FC = () => {
+	const location = useLocation();
 	const renderRoutes = (routeList: any[]) => {
 		return routeList.map(route => {
 			// 在 v6 中，使用 element 属性传递 JSX 组件
@@ -48,6 +49,8 @@ const MainLayout: React.FC = () => {
 	const setMenuVisible = (e: boolean) => {
 		_setMenuVisible(e);
 	};
+
+	const hideMenuButton = location.pathname.startsWith('/share');
 
 	return (
 		<ConfigProvider
@@ -68,84 +71,88 @@ const MainLayout: React.FC = () => {
 						path="/*"
 						element={
 							<Layout style={{ minHeight: '100vh' }}>
-								<div
-									style={{
-										position: 'relative',
-										height: '100vh',
-										width: menuVisible ? 200 : 0,
-									}}></div>
-								{/* 侧边栏 */}
-								<div
-									style={{
-										border: '1px solid #eee',
-										zIndex: 1,
-										position: 'fixed',
-										height: '100vh',
-										left: 0,
-										top: 0,
-
-										width: menuVisible ? 200 : 0,
-									}}>
-									<div
-										onClick={() => {
-											setMenuVisible(!menuVisible);
-										}}
-										style={{
-											position: 'absolute',
-											width: 12,
-											height: 56,
-											top: '50%',
-											right: -12,
-											cursor: 'pointer',
-											boxShadow: '0x 2px 4px rgba(0, 0, 0, 0.05)',
-											zIndex: 1000, // 确保主内容在伪元素之上
-										}}>
+								{!hideMenuButton ? (
+									<>
 										<div
 											style={{
-												background: '#fff',
-												width: '100%',
-												height: '100%',
-												display: 'flex',
-												alignItems: 'center',
-												justifyContent: 'end',
+												position: 'relative',
+												height: '100vh',
+												width: menuVisible ? 200 : 0,
+											}}></div>
+										{/* 侧边栏 */}
+										<div
+											style={{
+												border: '1px solid #eee',
+												zIndex: 1,
+												position: 'fixed',
+												height: '100vh',
+												left: 0,
+												top: 0,
 
-												clipPath: 'polygon(0 0, 100% 10%, 100% 90%, 0 100%)', // 对称梯形
+												width: menuVisible ? 200 : 0,
 											}}>
-											{/* 图标内容 */}
-											<CaretRightFilled
-												rotate={menuVisible ? 180 : 0}
+											<div
+												onClick={() => {
+													setMenuVisible(!menuVisible);
+												}}
 												style={{
 													position: 'absolute',
-													left: -3,
-													color: '#666',
-												}}
-											/>
+													width: 12,
+													height: 56,
+													top: '50%',
+													right: -12,
+													cursor: 'pointer',
+													boxShadow: '0x 2px 4px rgba(0, 0, 0, 0.05)',
+													zIndex: 1000, // 确保主内容在伪元素之上
+												}}>
+												<div
+													style={{
+														background: '#fff',
+														width: '100%',
+														height: '100%',
+														display: 'flex',
+														alignItems: 'center',
+														justifyContent: 'end',
+
+														clipPath: 'polygon(0 0, 100% 10%, 100% 90%, 0 100%)', // 对称梯形
+													}}>
+													{/* 图标内容 */}
+													<CaretRightFilled
+														rotate={menuVisible ? 180 : 0}
+														style={{
+															position: 'absolute',
+															left: -3,
+															color: '#666',
+														}}
+													/>
+												</div>
+											</div>
 										</div>
-									</div>
-								</div>
-								<Sider
-									width={menuVisible ? 200 : 0}
-									theme="light"
-									style={{
-										border: '1px solid #eee',
-										zIndex: 1,
-										position: 'fixed',
-										height: '100vh',
-										left: 0,
-										top: 0,
-										overflowY: 'auto',
-									}}>
-									<div
-										style={{
-											color: '#4d6af1',
-											fontSize: '22px',
-											padding: '12px 16px',
-											textAlign: 'left',
-										}}>
-										<LogoSvg style={{ height: 32, fill: '#75af65' }} />
-									</div>
-									<MenuComponent routes={routes} /> {/* 动态生成菜单 */}
-								</Sider>
+										<Sider
+											width={menuVisible ? 200 : 0}
+											theme="light"
+											style={{
+												border: '1px solid #eee',
+												zIndex: 1,
+												position: 'fixed',
+												height: '100vh',
+												left: 0,
+												top: 0,
+												overflowY: 'auto',
+											}}>
+											<div
+												style={{
+													color: '#4d6af1',
+													fontSize: '22px',
+													padding: '12px 16px',
+													textAlign: 'left',
+												}}>
+												<LogoSvg style={{ height: 32, fill: '#75af65' }} />
+											</div>
+											<MenuComponent routes={routes} /> {/* 动态生成菜单 */}
+										</Sider>
+									</>
+								) : null}
 
 								<Layout>
 									<Suspense fallback={<div>Loading...</div>}>

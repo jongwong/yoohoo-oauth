@@ -11,8 +11,8 @@ const useFormatFields = <T = any, U = any>(): {
 
 			return {
 				...field,
-				render: (t: any, r: any) => {
-					return ob.render?.(t, r, -1, { field: field });
+				render: (t: any, r: any, idx?: number) => {
+					return ob.render?.(t, r, idx, { field: field });
 				},
 			} as any;
 		},

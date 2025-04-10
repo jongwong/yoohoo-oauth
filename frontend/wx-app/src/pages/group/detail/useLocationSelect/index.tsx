@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import request from "@/utils/request";
 import { Text, View } from "@tarojs/components";
-import styles from "@/pages/classify/index.module.less";
+import styles from "./index.module.less";
 import { Icon, Picker } from "@antmjs/vantui";
 
-const useLocationSelect: () => [
+const useLocationSelect: (props?: {
+  extra?: React.ReactNode;
+  footer?: React.ReactNode;
+}) => [
   {
     currentArea?: {
       id: string;
@@ -13,7 +16,8 @@ const useLocationSelect: () => [
     loading: boolean;
   },
   React.ReactNode
-] = () => {
+] = (props = {}) => {
+  const { extra, footer } = props;
   const [areaList, setAreaList] = useState<any[]>([]); // 区域列表
   const [locationLoading, setLocationLoading] = useState(false);
   const [addressPickVisible, setAddressPickVisible] = useState(false);
@@ -70,8 +74,7 @@ const useLocationSelect: () => [
   return [
     { currentArea, loading: locationLoading },
     <View className={styles.header}>
-      <View className={styles["store-title"]}>
-        {/*<Star size={14} className={styles.icon} />*/}
+      <View className={styles.storeTitle}>
         <View onClick={() => setAddressPickVisible(true)}>
           {currentArea?.name ? (
             <View style={{ display: "inline-flex" }}>
@@ -97,11 +100,13 @@ const useLocationSelect: () => [
             </View>
           ) : null}
         </View>
+        <View>{extra}</View>
       </View>
       <View className={styles["store-location"]}>
         <Text className={styles.text}>{currentArea?.address || ""}</Text>
         <Icon name={"location-o"} size={12} className={styles.icon} />
       </View>
+      {footer}
     </View>,
   ];
 };

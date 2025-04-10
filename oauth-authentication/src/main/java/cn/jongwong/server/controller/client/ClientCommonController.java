@@ -28,6 +28,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController()
@@ -123,6 +124,11 @@ public class ClientCommonController {
     @GetMapping("/order/user")
     public Mono<PageResponse<OrderVO>> queryByUser(@RequestParam(required = false) Integer status) {
         return userService.getCurrentUserReactive().flatMap(u -> orderService.queryByUserId(1, 10, u.getId(), status)).map(PageResponse::success);
+    }
+
+    @GetMapping("/group/order")
+    public Mono<Response<List<OrderVO>>> queryByGroupId(@RequestParam(required = false) String groupId) {
+        return orderService.findAllByGroupId(groupId).map(Response::success);
     }
 
     @GetMapping("/order/{id}")

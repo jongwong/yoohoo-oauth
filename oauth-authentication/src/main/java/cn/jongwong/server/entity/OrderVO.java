@@ -29,6 +29,20 @@ public class OrderVO {
     @Schema(description = "用户ID")
     private String userId;
 
+
+    @Transient
+    @Schema(description = "用户名称")
+    private String userNickname;
+
+    @Transient
+    @Schema(description = "用户头像")
+    private String userAvatar;
+
+    @Transient
+    @Schema(description = "用户手机")
+    private String userMobile;
+
+
     @Schema(description = "关联类型")
     private Integer refType;
 
@@ -102,5 +116,6 @@ public class OrderVO {
 
     @Schema(description = "支付时间")
     private LocalDateTime paymentAt;
+
 
 }

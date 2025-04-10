@@ -55,9 +55,6 @@ public class OrderService {
     private OrderWithInfoRepository orderWithInfoRepository;
 
 
-
-
-
     @Autowired
     private PurchaseGroupProductService groupProductService;
 
@@ -82,15 +79,15 @@ public class OrderService {
     @Transactional
     public Mono<OrderVO> cancelById(String id) {
         return userService.getCurrentUserReactive().flatMap((u) -> orderRepository.findById(id).map(order -> {
-            if (order.getStatus() != OrderStatusEnum.PENDING_PAYMENT.getCode()) {
-                throw new RuntimeException("订单状态不正确");
-            }
-            order.setUpdatedBy(u.getId());
-            order.setUpdatedByName(u.getName());
-            order.setUpdatedAt(LocalDateTime.now());
-            order.setStatus(OrderStatusEnum.CANCELLED.getCode());
+                    if (order.getStatus() != OrderStatusEnum.PENDING_PAYMENT.getCode()) {
+                        throw new RuntimeException("订单状态不正确");
+                    }
+                    order.setUpdatedBy(u.getId());
+                    order.setUpdatedByName(u.getName());
+                    order.setUpdatedAt(LocalDateTime.now());
+                    order.setStatus(OrderStatusEnum.CANCELLED.getCode());
 
-            return order;
+                    return order;
                 }).flatMap((order) -> {
                     if (order.getCouponsId() == null) {
                         return Mono.just(order);
@@ -99,12 +96,12 @@ public class OrderService {
                     return userCouponsService.clearAsUsed(order.getCouponsId()).map(uc -> order);
                 }).flatMap(this::update).
                 flatMap(order -> paymentService.findOneById(id).map(payment -> {
-            if (payment.getStatus() == PaymentStatusEnum.PENDING_PAYMENT.getCode()) {
-                throw new RuntimeException("支付状态不正确");
-            }
-            payment.setStatus(PaymentStatusEnum.CANCELLED.getCode());
+                    if (payment.getStatus() == PaymentStatusEnum.PENDING_PAYMENT.getCode()) {
+                        throw new RuntimeException("支付状态不正确");
+                    }
+                    payment.setStatus(PaymentStatusEnum.CANCELLED.getCode());
 
-            return payment;
+                    return payment;
                 }).flatMap(paymentService::update).map(e -> order)));
     }
 
@@ -127,6 +124,46 @@ public class OrderService {
                 });
 
     }
+
+    public Mono<List<OrderVO>> findAllByGroupId(String groupId) {
+        return orderRepository.findAllByDSL(sqlBuilder -> sqlBuilder.as("o").field("u.name as user_name, u.nickname as user_nickname, u.mobile as user_mobile, u.avatar as user_avatar", true).eq("ref_id", groupId).withJoin(join -> join.left()
+                        .table("tb_user u")
+                        .on("u.id = o.user_id")).eq("o.ref_type", 1).sort("o.created_at,desc"))
+                .collectList().flatMap(e -> {
+                    List<String> ids = e.stream()
+                            .map(OrderVO::getId)   // 假设 getId() 返回的是 String
+                            .toList();
+                    List<OrderVO> list = e.stream()
+                            .toList();
+                    var items = orderItemRepository.findAllByDSL(sql -> sql.in("order_id", ids));
+                    return items.collectList().map(orderItems -> {
+                        list.forEach(order -> {
+                            var orderItem = orderItems.stream()
+                                    .filter(it -> it.getOrderId().equals(order.getId()))
+                                    .toList();
+                            order.setItems(orderItem);
+
+                            String mobile = order.getUserMobile();
+                            if (mobile != null && mobile.length() == 11) {
+                                // 保留前三后四，中间替换成星号
+                                String masked = mobile.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2");
+                                order.setUserMobile(masked);
+                            }
+
+                            String consigneeMobile = order.getConsigneeMobile();
+                            if (consigneeMobile != null && consigneeMobile.length() == 11) {
+                                // 保留前三后四，中间替换成星号
+                                String newConsigneeMobile = consigneeMobile.replaceAll("(\\d{3})\\d{4}(\\d{4})", "$1****$2");
+                                order.setConsigneeMobile(newConsigneeMobile);
+                            }
+
+                        });
+                        return e;
+                    });
+                });
+
+    }
+
 
     public Mono<Page<OrderVO>> query(int page, int size, Integer status) {
         return orderRepository.findPageByDSL(page, size, sqlBuilder -> sqlBuilder.in("status", status).sort("status,asc").sort("created_at,desc"))
@@ -474,7 +511,6 @@ public class OrderService {
             e.printStackTrace();
         });
     }
-
 
 
     @Transactional

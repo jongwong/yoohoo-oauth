@@ -7,8 +7,10 @@ import cn.jongwong.server.dto.order.OrderPayDTO;
 import cn.jongwong.server.dto.order.OrderRefundApproveDTO;
 import cn.jongwong.server.dto.order.OrderRefundDTO;
 import cn.jongwong.server.dto.order.OrderSubmitDTO;
+import cn.jongwong.server.entity.DistributionPointVO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.entity.OrderWithInfoVO;
+import cn.jongwong.server.service.DistributionPointService;
 import cn.jongwong.server.service.GroupAdminService;
 import cn.jongwong.server.service.OrderService;
 import cn.jongwong.server.service.UserService;
@@ -54,6 +56,10 @@ public class ClientCommonController {
 
     @Autowired
     private OssService ossService;
+
+
+    @Autowired
+    private DistributionPointService distributionPointService;
 
 
     @PostMapping("/oss/upload")
@@ -104,10 +110,8 @@ public class ClientCommonController {
     }
     // 获取最近的配送点
     @GetMapping("/delivery/fee")
-    public Mono<Response<Double>> getDeliveryFee() {
-        var fee = 0.0;
-        // String 转成 浮点数
-        return Mono.just(fee).map(Response::ok);
+    public Mono<Response<Integer>> getDeliveryFee(@RequestParam(required = false) String pointId) {
+        return distributionPointService.findById(pointId).map(DistributionPointVO::getAmountDelivery).map(Response::ok);
     }
 
 

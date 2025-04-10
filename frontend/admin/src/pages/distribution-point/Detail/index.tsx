@@ -92,6 +92,15 @@ const DistributionPointDetail: React.FC = () => {
 			},
 		},
 		{
+			label: '配送费',
+			name: 'amount_delivery',
+			valueType: EDefaultValueType.Money,
+			formItemProps: {
+				rules: [{ required: true }],
+			},
+		},
+
+		{
 			label: '配送时间备注',
 			name: 'delivery_time_note',
 			valueType: EDefaultValueType.Textarea,

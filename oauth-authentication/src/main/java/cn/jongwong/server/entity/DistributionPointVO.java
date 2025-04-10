@@ -18,21 +18,24 @@ import java.time.LocalDateTime;
 public class DistributionPointVO {
 
     @Id
-    private String id; // 配送点ID
+    private String id;
 
-    private String name; // 配送点名称
+    private String name;
 
-    private String address; // 配送点地址
+    private String address;
 
-    private String contactPhone; // 联系电话
+    private String contactPhone;
 
-    private BigDecimal latitude; // 纬度
+    private BigDecimal latitude;
 
-    private BigDecimal longitude; // 经度
+    private BigDecimal longitude;
 
-    private String deliveryTimeNote; // 配送时间备注
+    private String deliveryTimeNote;
 
-    private Integer enable; // 状态（1：启用，0：停用）
+    private Integer enable;
+
+    private Integer amountDelivery;
+
 
     private String createdBy;
     private String createdByName;
@@ -44,5 +47,6 @@ public class DistributionPointVO {
     private String updatedByName;
 
     private LocalDateTime updatedAt;
+
 
 }

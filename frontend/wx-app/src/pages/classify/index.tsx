@@ -48,7 +48,11 @@ const Index: React.FC = () => {
   const [currentGroupId, setCurrentGroupId] = useState("");
   const { loading: deliveryFeeLoading, data: deliveryFee } = useRequest(
     async () => {
-      return request.get(`/client/delivery/fee`);
+      return request.get(`/client/delivery/fee`, {
+        params: {
+          point_id: currentArea?.id,
+        },
+      });
     },
     {
       refreshDeps: [currentArea?.id],

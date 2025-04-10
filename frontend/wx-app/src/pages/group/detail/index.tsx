@@ -58,7 +58,11 @@ const Index: React.FC = () => {
 
   const { loading: deliveryFeeLoading, data: deliveryFee } = useRequest(
     async () => {
-      return request.get(`/client/delivery/fee`);
+      return request.get(`/client/delivery/fee`, {
+        params: {
+          point_id: groupDetailData?.distribution_point_id,
+        },
+      });
     },
     {
       refreshDeps: [groupDetailData?.distribution_point_id],
@@ -126,7 +130,16 @@ const Index: React.FC = () => {
           );
         })}
 
-        <View className={"bg-white "}>
+        <View className={"bg-white p-16"}>
+          <View
+            className={"text-base mb-4"}
+            style={{
+              borderLeft: "4px solid #8bc34a",
+              paddingLeft: "10px",
+            }}
+          >
+            购买记录
+          </View>
           {orderList?.map((item, idx) => {
             return (
               <View key={item.id} className={styles.orderCardItem}>
@@ -152,7 +165,7 @@ const Index: React.FC = () => {
                     </View>
                   </View>
                 </View>
-                <View className={"text-xs text-grey-dark p-16"}>
+                <View className={"text-xs text-grey-dark"}>
                   {item?.items?.map((skuItem) => (
                     <View className={"flex justify-between mb-4"}>
                       <View>{getTitle(skuItem)}</View>

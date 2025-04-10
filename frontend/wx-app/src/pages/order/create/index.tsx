@@ -6,7 +6,7 @@ import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import { Button, Form, FormItem, Icon, Tag } from "@antmjs/vantui";
 import { formatSortTime } from "@/utils/date";
-import { first } from "lodash-es";
+import { first, isNumber } from "lodash-es";
 import Image from "@/component/Image";
 import { generateFileUrl } from "@/utils/file";
 import classNames from "classnames";
@@ -34,28 +34,20 @@ const OrderCreate: React.FC = () => {
 
   const [saveLoading, setSaveLoading] = useState(false);
 
-  const productId = useMemo(() => {
-    return first(skuCountList)?.product_id;
-  }, [skuCountList]);
   const groupId = useMemo(() => {
     return first(skuCountList)?.purchase_group_id;
   }, [skuCountList]);
   // 请求产品列表数据
-  const { loading: productLoading, data: productData } = useRequest(
+
+  const { loading: groupLoading, data: groupData } = useRequest(
     async () => {
-      return request.get(
-        `/client/group/product/by-group-product/${groupId}/${productId}`,
-        {
-          params: {},
-        }
-      );
+      return request.get(`/client/group/${groupId}`, {
+        params: {},
+      });
     },
     {
-      refreshDeps: [productId, groupId],
-      ready: !!productId && !!groupId,
-      onSuccess: (res) => {
-        return res?.data;
-      },
+      refreshDeps: [groupId],
+      ready: groupId,
     }
   );
 
@@ -87,13 +79,45 @@ const OrderCreate: React.FC = () => {
   // 请求产品列表数据
   const { loading: deliveryFeeLoading, data: deliveryFee } = useRequest(
     async () => {
-      return request.get(`/client/delivery/fee`);
+      return request.get(`/client/delivery/fee`, {
+        params: {
+          point_id: router.params?.area_id,
+        },
+      });
     },
     {
       refreshDeps: [router.params?.area_id],
       ready: !!router.params?.area_id,
     }
   );
+
+  const { loading: orderLoading, data: orderList = [] } = useRequest(
+    async () => {
+      return request.get(`/client/group/order`, {
+        params: {
+          group_id: groupId,
+        },
+      });
+    },
+    {
+      refreshDeps: [groupId],
+      ready: !!groupId,
+    }
+  );
+
+  const orderItemCount = useMemo(() => {
+    // 将order的items 拍平
+    const orderItems = orderList.reduce((prev, cur) => {
+      return [...prev, ...(cur?.items || [])];
+    }, []);
+
+    return orderItems.reduce((prev, cur) => {
+      if (cur.product_id === skuCountList[0].product_id) {
+        return prev + (cur?.count || 0);
+      }
+      return prev;
+    }, 0);
+  }, [orderList]);
 
   // 请求产品列表数据
   const { loading: areaLoading, data: areaData } = useRequest(
@@ -112,15 +136,20 @@ const OrderCreate: React.FC = () => {
   );
 
   const renderAlert = () => {
-    if (productData?.group_required_count! > 1) {
+    const needCount = groupData?.group_required_count - (orderItemCount || 0);
+
+    if (!isNumber(groupData?.group_required_count)) {
+      return null;
+    }
+    if (needCount && needCount > 0) {
       return (
         <View>
           <Tag round plain type="warning">
-            {productData?.group_required_count}人成团
+            {groupData?.group_required_count}人成团
           </Tag>
           <Text className={"text-red text-12"}>
-            需要{productData?.group_required_count}
-            人以后才可成团，成团失败后支付金额会自动原路返回
+            还需要{needCount}
+            才可成团，成团失败后支付金额会自动原路返回
           </Text>
         </View>
       );
@@ -221,12 +250,13 @@ const OrderCreate: React.FC = () => {
     <Form initialValues={{ code: 3 }} form={form}>
       <Layout
         loading={
-          productLoading ||
+          groupLoading ||
           areaLoading ||
           consigneeLoading ||
           couponsLoading ||
           deliveryFeeLoading ||
-          saveLoading
+          saveLoading ||
+          orderLoading
         }
         footer={
           <View className={styles.footer}>
@@ -269,17 +299,17 @@ const OrderCreate: React.FC = () => {
           <View className={"mt-16"}>
             <View className={styles.areaCardLocationTitle}>
               <Text>
-                大约{formatSortTime(productData?.time_delivery_start)}送达
+                大约{formatSortTime(groupData?.time_delivery_start)}送达
               </Text>
               <Tag round type="warning" className={"ml-4"}>
                 提前预约，指定时间送达
               </Tag>
             </View>
             <View className={styles.areaCardLocationDesc}>
-              最迟{formatSortTime(productData?.time_delivery_end)}送达
+              最迟{formatSortTime(groupData?.time_delivery_end)}送达
             </View>
             <View className={styles.areaCardLocationDesc}>
-              最迟预约时间 {formatSortTime(productData?.time_group_end)}
+              最迟预约时间 {formatSortTime(groupData?.time_group_end)}
             </View>
           </View>
         </View>

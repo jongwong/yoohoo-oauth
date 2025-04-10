@@ -46,16 +46,16 @@ export const EOrderStatusMap = toValEnumMap([
   {
     value: EOrderStatus.RefundInProgress,
     text: "退款中",
-    status: "error",
+    status: "warning",
   },
   {
     value: EOrderStatus.Refunded,
     text: "已退款",
-    status: "success",
+    status: "error",
   },
   {
     value: EOrderStatus.RefundFailed,
     text: "退款失败",
-    status: "error",
+    status: "default",
   },
 ]);

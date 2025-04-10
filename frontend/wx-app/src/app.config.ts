@@ -1,5 +1,5 @@
 export default defineAppConfig({
-  entryPagePath: "pages/admin/index",
+  entryPagePath: "pages/classify-group/index",
 
   pages: [
     "pages/index/index",
@@ -16,9 +16,10 @@ export default defineAppConfig({
     "pages/admin/index",
     "pages/admin/group/detail/index",
     "pages/group/detail/index",
-    "pages/group/list/index",
+    "pages/group/participated-list/index",
     "pages/admin/group/group-order/index",
     "pages/admin/group/statistics/index",
+    "pages/classify-group/index",
   ],
   permission: {
     "scope.userLocation": {
@@ -44,7 +45,7 @@ export default defineAppConfig({
         selectedIconPath: "assets/tab-bar/home-active.png",
       },
       {
-        pagePath: "pages/classify/index", // 正确的路径，指向 pages/classify/index
+        pagePath: "pages/classify-group/index", // 正确的路径，指向 pages/classify/index
         text: "点餐",
         iconPath: "assets/tab-bar/classify.png",
         selectedIconPath: "assets/tab-bar/classify-active.png",
@@ -55,12 +56,12 @@ export default defineAppConfig({
         iconPath: "assets/tab-bar/order.png",
         selectedIconPath: "assets/tab-bar/order-active.png",
       },
-      // {
-      //   pagePath: "pages/profile/index", // 正确的路径，指向 pages/profile/index
-      //   text: "我的",
-      //   iconPath: "assets/tab-bar/profile.png",
-      //   selectedIconPath: "assets/tab-bar/profile-active.png",
-      // },
+      {
+        pagePath: "pages/group/participated-list/index",
+        text: "接龙",
+        iconPath: "assets/tab-bar/profile.png",
+        selectedIconPath: "assets/tab-bar/profile-active.png",
+      },
     ],
   },
 });

@@ -19,11 +19,11 @@ import Taro from "@tarojs/taro";
 import { EOrderStatus, EOrderStatusMap } from "@/constant/order";
 import { divide } from "@/utils/number";
 import ProxyWrapped from "@/component/ProxyWrapped";
-import ScrollPage from "@/hooks/usePageRequest";
 import Tag from "@/component/Tag";
 import omitBy from "lodash-es/omitBy";
 import isNil from "lodash-es/isNil";
 import classNames from "classnames";
+import ScrollPage from "@/component/ScrollPage";
 
 const DialogInstance = Dialog.createOnlyDialog();
 const Index: React.FC<{

@@ -29,7 +29,6 @@ const Index: React.FC = () => {
   const { loading: couponsLoading, data: couponList } = UseRequest(() => {
     return request.get("/client/user/coupons");
   }, {});
-  console.log("=====couponList=====", couponList);
 
   return (
     <Layout edge={"none"} loading={permissionLoading || couponsLoading}>

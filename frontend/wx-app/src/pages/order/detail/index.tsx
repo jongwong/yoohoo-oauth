@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Layout from "@/component/Layout";
-import { useRouter } from "@tarojs/taro";
+import Taro, { useRouter } from "@tarojs/taro";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
 import { Button, Cell, Form } from "@antmjs/vantui";
@@ -13,8 +13,10 @@ import { EOrderStatus, EOrderStatusMap } from "@/constant/order";
 import dayjs from "dayjs";
 import { transformMoney } from "@/utils/number";
 import { gotoPayPageResult } from "@/pages/order/utils";
+import { formatMiddleTime } from "@/utils/date";
+import Tag from "@/component/Tag";
 
-const OrderCreate: React.FC<{}> = () => {
+const OrderDetail: React.FC<{}> = () => {
   const router = useRouter();
 
   const [saveLoading, setSaveLoading] = useState(false);
@@ -33,6 +35,18 @@ const OrderCreate: React.FC<{}> = () => {
         form.setFields(res?.data || {});
         return res?.data;
       },
+    }
+  );
+
+  const { loading: groupLoading, data: groupData } = useRequest(
+    async () => {
+      return request.get(`/client/group/${orderData?.ref_id}`, {
+        params: {},
+      });
+    },
+    {
+      refreshDeps: [orderData],
+      ready: orderData?.ref_type === 1 && !!orderData?.ref_id,
     }
   );
 
@@ -120,7 +134,7 @@ const OrderCreate: React.FC<{}> = () => {
   const renderProduct = () => {
     return (
       <View className={classNames("mt-16", styles.card)}>
-        {orderData?.items.map((item, idx) => (
+        {orderData?.items?.map((item, idx) => (
           <View
             className={classNames(styles.productCard, idx ? "mt-8" : undefined)}
             key={item?.id}
@@ -159,15 +173,39 @@ const OrderCreate: React.FC<{}> = () => {
   };
 
   return (
-    <Layout loading={loading || saveLoading} footer={renderFooter()}>
+    <Layout
+      loading={loading || saveLoading || groupLoading}
+      footer={renderFooter()}
+    >
       <View
-        className={styles.card}
+        className={classNames(styles.card, "flex justify-between items-center")}
         style={{
           marginBottom: 16,
         }}
       >
-        <View className={"mb-8"} style={{ fontSize: 16 }}>
-          {EOrderStatusMap.getText(orderData?.status)}
+        <View className={"mb-8 flex items-end"} style={{ fontSize: 16 }}>
+          {EOrderStatusMap.has(orderData?.status) ? (
+            <Tag
+              status={EOrderStatusMap.get(orderData?.status)?.status}
+              size={"large"}
+            >
+              {EOrderStatusMap.getText(orderData?.status)}
+            </Tag>
+          ) : null}
+        </View>
+        <View>
+          {orderData?.ref_type === 1 && orderData?.ref_id ? (
+            <Button
+              plain
+              onClick={() => {
+                Taro.navigateTo({
+                  url: `/pages/group/detail/index?id=${orderData?.ref_id}`,
+                });
+              }}
+            >
+              {"查看拼团 >"}
+            </Button>
+          ) : null}
         </View>
       </View>
 
@@ -186,6 +224,13 @@ const OrderCreate: React.FC<{}> = () => {
             {orderData
               ? orderData?.consignee_name + " " + orderData?.consignee_mobile
               : "--"}
+          </View>
+        </View>
+
+        <View className={"mt-16"}>
+          <View className={styles.areaCardLocationTitle}>预计到达时间</View>
+          <View className={styles.areaCardLocationDesc}>
+            {groupData ? formatMiddleTime(groupData.time_delivery_start) : "--"}
           </View>
         </View>
       </View>
@@ -215,4 +260,4 @@ const OrderCreate: React.FC<{}> = () => {
   );
 };
 
-export default OrderCreate;
+export default OrderDetail;

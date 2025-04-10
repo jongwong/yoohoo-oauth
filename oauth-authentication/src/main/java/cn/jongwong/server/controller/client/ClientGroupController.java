@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 @RestController()
 @RequestMapping("/client")
 public class ClientGroupController {
@@ -62,7 +64,7 @@ public class ClientGroupController {
                                                            @RequestParam(required = false) Integer enable,
                                                            @RequestParam(required = true) int page,
                                                            @RequestParam(required = true) int size) {
-        return purchaseGroupService.clientSearch(name, enable, page, size).map(PageResponse::success);
+        return purchaseGroupService.clientAdminSearch(name, enable, page, size).map(PageResponse::success);
 
 
     }
@@ -72,6 +74,21 @@ public class ClientGroupController {
         return purchaseGroupService.findById(id)
                 .map(Response::success)
                 .defaultIfEmpty(Response.notFound());
+    }
+
+    @GetMapping("/group")
+    public Mono<PageResponse<PurchaseGroupVO>> searchClientGroup(
+            @RequestParam(required = false) String distributionPointId,
+            @RequestParam(required = false) Integer[] groupStatus,
+            @RequestParam(required = false) LocalDateTime timeDeliveryStart,
+            @RequestParam(required = false) LocalDateTime timeDeliveryEnd,
+            @RequestParam(required = false) LocalDateTime timeGroupStart,
+            @RequestParam(required = false) LocalDateTime timeGroupEnd,
+            @RequestParam int page, // 当前页
+            @RequestParam int size) { // 每页大小) {
+        return purchaseGroupService.clientSearch(distributionPointId, groupStatus, timeDeliveryStart, timeDeliveryEnd, timeGroupStart, timeGroupEnd, page, size).map(PageResponse::success);
+
+
     }
 
 

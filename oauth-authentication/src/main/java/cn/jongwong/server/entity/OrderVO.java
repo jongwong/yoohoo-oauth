@@ -29,6 +29,12 @@ public class OrderVO {
     @Schema(description = "用户ID")
     private String userId;
 
+    @Schema(description = "关联类型")
+    private Integer refType;
+
+    @Schema(description = "关联Id")
+    private String refId;
+
     @Schema(description = "订单总金额")
     private Integer amountTotal;
 

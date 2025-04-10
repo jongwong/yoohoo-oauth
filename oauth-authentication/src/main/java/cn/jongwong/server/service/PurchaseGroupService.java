@@ -153,8 +153,6 @@ public class PurchaseGroupService {
     }
 
 
-
-
     public Mono<PurchaseGroupVO> enable(String purchaseGroupId) {
         return findById(purchaseGroupId).map(e -> {
             e.setEnable(GlobalEnableTypeEnum.ENABLE.getValue());
@@ -166,6 +164,7 @@ public class PurchaseGroupService {
             return data;
         })).flatMap((e) -> purchaseGroupRepository.save(e));
     }
+
     public Mono<Page<PurchaseGroupVO>> search(String name, Integer enable, Integer page, Integer size) {
 
         return purchaseGroupRepository.findPageByDSL(page, size, sql ->
@@ -180,7 +179,7 @@ public class PurchaseGroupService {
 
     }
 
-    public Mono<Page<PurchaseGroupVO>> clientSearch(String name, Integer enable, Integer page, Integer size) {
+    public Mono<Page<PurchaseGroupVO>> clientAdminSearch(String name, Integer enable, Integer page, Integer size) {
 
 
         return purchaseGroupRepository.findPageByDSL(page, size, sql ->
@@ -192,6 +191,55 @@ public class PurchaseGroupService {
                                         .table("tb_distribution_points d")
                                         .on("p.distribution_point_id = d.id"))
                                 .eq("enable", enable).like("name", name)
+                                .sort("created_at,desc"))
+
+                .flatMap(pageData -> {
+                    var ids = pageData.getData().stream().map(PurchaseGroupVO::getId).toList();
+
+                    return purchaseGroupProductService.findAllByGroupIds(ids).collectList().map(products -> {
+                        var dataList = pageData.getData();
+                        dataList.forEach(group -> {
+                            var filterProduct = products.stream().filter(p -> group.getId().equals(p.getPurchaseGroupId())).toList();
+                            group.setProducts(filterProduct);
+                        });
+
+                        return pageData;
+                    });
+
+
+                });
+
+
+    }
+
+
+    public Mono<Page<PurchaseGroupVO>> clientSearch(
+            String distributionPointId,
+            Integer[] groupStatus,
+            LocalDateTime timeDeliveryStart,
+            LocalDateTime timeDeliveryEnd,
+            LocalDateTime timeGroupStart,
+            LocalDateTime timeGroupEnd,
+            int page, // 当前页
+            int size) { // 每页大小) {
+
+
+        return purchaseGroupRepository.findPageByDSL(page, size, sql ->
+                        sql.as("g")
+                                .column("d.name as distribution_point_name")
+                                .column("d.address as distribution_point_address")
+
+                                .withJoin(t -> t.left()
+                                        .table("tb_distribution_points d")
+                                        .on("g.distribution_point_id = d.id"))
+                                .eq("enable", 1)
+                                .eq("g.distribution_point_id", distributionPointId)
+//                                .eq("pg.enable", enable)
+                                .eq("g.status", groupStatus)
+                                .customCondition("g.time_delivery_start", ">=", timeDeliveryStart)
+                                .customCondition("g.time_delivery_end", "<=", timeDeliveryEnd)
+                                .customCondition("g.time_start", ">=", timeGroupStart)
+                                .customCondition("g.time_end", "<=", timeGroupEnd)
                                 .sort("created_at,desc"))
 
                 .flatMap(pageData -> {

@@ -3,7 +3,7 @@ import React, { useRef } from "react";
 import request from "@/utils/request";
 import GroupItemCard from "./GroupItemCard";
 import Taro from "@tarojs/taro";
-import ScrollPage from "@/hooks/usePageRequest";
+import ScrollPage from "@/component/ScrollPage";
 
 const Index: React.FC = () => {
   const actionRef = useRef<any>();

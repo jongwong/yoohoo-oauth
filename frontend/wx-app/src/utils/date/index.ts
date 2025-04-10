@@ -16,7 +16,18 @@ export function formatSortTime(date: number | dayjs.Dayjs) {
   if (target.isSame(now, "day")) {
     return target.format("HH:mm"); // 今天，显示小时:分钟
   } else if (target.isSame(now, "year")) {
-    return target.format("MM-DD HH:mm"); // 今年，显示 月-日
+    return target.format("MM/DD HH:mm"); // 今年，显示 月-日
+  } else {
+    return target.format("YYYY-MM-DD HH:mm"); // 不是今年，显示完整日期
+  }
+}
+
+export function formatMiddleTime(date: number | dayjs.Dayjs) {
+  const now = dayjs();
+  const target = dayjs(date);
+
+  if (target.isSame(now, "year")) {
+    return target.format("MM.DD HH:mm"); // 今年，显示 月-日
   } else {
     return target.format("YYYY-MM-DD HH:mm"); // 不是今年，显示完整日期
   }

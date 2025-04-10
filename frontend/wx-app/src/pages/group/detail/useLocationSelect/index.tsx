@@ -10,6 +10,7 @@ const useLocationSelect: () => [
       id: string;
       name: string;
     };
+    loading: boolean;
   },
   React.ReactNode
 ] = () => {
@@ -67,7 +68,7 @@ const useLocationSelect: () => [
   }, []);
 
   return [
-    { currentArea },
+    { currentArea, loading: locationLoading },
     <View className={styles.header}>
       <View className={styles["store-title"]}>
         {/*<Star size={14} className={styles.icon} />*/}

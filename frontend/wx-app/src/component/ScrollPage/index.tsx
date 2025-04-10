@@ -12,12 +12,10 @@ interface UseInfiniteScrollProps<T> {
     size: number;
   }) => Promise<{ success: boolean; data: T[]; total?: number }>;
   pageSize?: number;
+  ready?: boolean;
 }
 
-function usePageRequest<T>({
-  request,
-  pageSize = 20,
-}: UseInfiniteScrollProps<T>) {
+function index<T>({ request, pageSize = 20 }: UseInfiniteScrollProps<T>) {
   const [data, setData] = useState<T[]>([]);
   const [pageNum, setPageNum] = useState(1);
   const InfiniteScrollInstance = useRef<any>();
@@ -67,14 +65,15 @@ const ScrollPage: React.FC<
   UseInfiniteScrollProps<any> & {
     children: (data: any[]) => ReactNode;
     actionRef?: any;
+    ready?: boolean;
   }
-> = ({ request, pageSize, children, actionRef }) => {
+> = ({ request, pageSize, ready, children, actionRef }) => {
   const {
     data: orderDataList,
     loadMore,
     onRefresh,
     InfiniteScrollInstance,
-  } = usePageRequest({
+  } = index({
     request,
     pageSize,
   });
@@ -83,7 +82,7 @@ const ScrollPage: React.FC<
   }));
 
   return (
-    <PullToRefresh onRefresh={onRefresh}>
+    <PullToRefresh onRefresh={onRefresh} key={ready}>
       {children(orderDataList)}
       <InfiniteScroll loadMore={loadMore} ref={InfiniteScrollInstance} />
     </PullToRefresh>

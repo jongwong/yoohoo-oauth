@@ -1,6 +1,7 @@
 package cn.jongwong.server.service;
 
 import cn.jongwong.server.common.QueryBuilder;
+import cn.jongwong.server.entity.CouponsVO;
 import cn.jongwong.server.entity.UserCouponsRO;
 import cn.jongwong.server.entity.UserCouponsVO;
 import cn.jongwong.server.enums.coupons.CouponsStatus;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -169,5 +171,51 @@ public class UserCouponsService {
     public Flux<UserCouponsRO> getUserCouponsByUserId(String userId, Integer isUsed) {
 
         return userCouponsRepository.findUserCouponsByUserId(userId, isUsed);
+    }
+
+    public Flux<UserCouponsVO> issue(List<String> userIds, String couponsId) {
+
+        var userCouponsROFlux = Flux.fromIterable(userIds)
+                .flatMap(userId -> {
+                    UserCouponsVO userCouponsRO = new UserCouponsVO();
+                    userCouponsRO.setId(UUID.randomUUID().toString());
+                    userCouponsRO.setUserId(userId);
+                    userCouponsRO.setCouponsId(couponsId);
+                    userCouponsRO.setIsUsed(false);
+                    userCouponsRO.setCreatedAt(LocalDateTime.now());
+                    return Mono.just(userCouponsRO);
+                }).flatMap(uc -> userService.getCurrentUserReactive().map(user -> {
+                    uc.setCreatedBy(user.getId());
+                    uc.setCreatedByName(user.getName());
+                    return uc;
+                }));
+
+        return couponsService.findById(couponsId).<CouponsVO>handle((c, sink) -> {
+
+            if (c.getStatus() != CouponsStatus.APPROVED.getCode()) {
+                sink.error(new IllegalStateException("仅审核通过的优惠券可以分发"));
+                return;
+            }
+            if (c.getDisable().equals(1)) {
+                sink.error(new IllegalStateException("仅审核通过的优惠券可以分发"));
+                return;
+            }
+
+            // 时间对比是否失效
+            if (c.getValidFrom() != null && c.getValidTo() != null) {
+                if (c.getValidFrom().isAfter(LocalDateTime.now()) || c.getValidTo().isBefore(LocalDateTime.now())) {
+                    sink.error(new IllegalStateException("优惠券已失效"));
+                    return;
+                }
+            }
+
+            sink.next(c);
+
+        }).flatMapMany(c -> userCouponsROFlux
+                .flatMap(userCouponsRO -> {
+                    userCouponsRO.setValidFrom(c.getValidFrom());
+                    userCouponsRO.setValidTo(c.getValidTo());
+                    return userCouponsRepository.insert(userCouponsRO);
+                }));
     }
 }

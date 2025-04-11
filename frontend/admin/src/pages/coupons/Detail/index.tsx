@@ -2,13 +2,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import http from '@/utils/http';
 import { useParams } from 'react-router-dom';
 import { ContentLayout } from '@yoo/component';
-import { EDefaultValueType, ProForm, ProFormItemsFieldType } from '@yoo/pro-component';
+import {
+	EDefaultValueType,
+	ProForm,
+	ProFormItemsFieldType,
+	ProTableActionType,
+	useProFormModal,
+} from '@yoo/pro-component';
 import { Button, Card, Form, message, Space } from 'antd';
 import { useUpdate } from 'ahooks';
 import { CouponsStatusMap, CouponsTypeMap, ECouponsStatus, ECouponsType } from '@/constant/coupons';
 import { transformUrlByRoutePath } from '@/utils/url';
 import { PAGES_COUPONS_DETAIL_URL } from '@/pages/coupons/pages';
 import UserCouponsTable from './UserCouponsTable';
+import UserSearchSelect from '@/component/business/UserSearchSelect';
+import { issueCouponsBatch } from '@/pages/coupons/service';
 
 const UserDetail: React.FC = props => {
 	const params = useParams();
@@ -20,6 +28,9 @@ const UserDetail: React.FC = props => {
 	const historyEditDataRef = useRef();
 	const [editable, setEditable] = useState(false);
 
+	const [proFormModal, useProFormModalHolder] = useProFormModal();
+
+	const userCouponsActionRef = useRef<ProTableActionType>();
 	const fetchDetailData = async () => {
 		if (!couponsId) {
 			setDetailData({
@@ -177,7 +188,43 @@ const UserDetail: React.FC = props => {
 			fetchDetailData();
 		}
 	};
+	const openManualIssuanceModal = () => {
+		proFormModal.modal({
+			title: '手动发放优惠券',
+			width: 500,
+			fields: [
+				{
+					label: '用户',
+					name: 'ids',
+					formItemProps: {
+						required: true,
+						rules: [
+							{
+								required: true,
+							},
+						],
+					},
+					renderFormItem: () => {
+						return <UserSearchSelect mode={'multiple'} />;
+					},
+				},
+			],
+			onOk: async (val, form) => {
+				const res = await issueCouponsBatch(couponsId, {
+					ids: val?.ids,
+				});
+				if (res.success) {
+					message.success('操作成功');
+					setTimeout(() => {
+						userCouponsActionRef.current?.reload();
+					}, 200);
 
+					return Promise.resolve(true);
+				}
+				return Promise.reject(Error('手动发放优惠券操作失败'));
+			},
+		});
+	};
 	const renderExtra = () => {
 		const editEl = !editable ? (
 			<Button
@@ -203,6 +250,9 @@ const UserDetail: React.FC = props => {
 		);
 		return (
 			<Space>
+				{detailData?.status === ECouponsStatus.Approved ? (
+					<Button onClick={() => openManualIssuanceModal()}>手动发放</Button>
+				) : null}
 				{detailData?.status <= ECouponsStatus.Draft ||
 				detailData?.status === ECouponsStatus.Rejected
 					? editEl
@@ -307,7 +357,9 @@ const UserDetail: React.FC = props => {
 									{
 										label: '用户优惠券',
 										key: 'userCoupons',
-										children: <UserCouponsTable couponsId={couponsId} />,
+										children: (
+											<UserCouponsTable couponsId={couponsId} actionRef={userCouponsActionRef} />
+										),
 									},
 								],
 						  }
@@ -316,6 +368,7 @@ const UserDetail: React.FC = props => {
 			{detailData?.status < ECouponsStatus.Approved ? renderBaseInfo() : null}
 
 			{/*{userCouponsVisible && <UserCouponsTable />}*/}
+			{useProFormModalHolder}
 		</ContentLayout>
 	);
 };

@@ -14,3 +14,4 @@ export { default as ProEditTable } from './ProEditTable';
 export type { ProEditTableColumnType, ProEditTableProps } from './ProEditTable/types';
 
 export { EDefaultValueType } from './ProField/render/config-provider';
+export { default as useProFormModal } from './useProFormModal';

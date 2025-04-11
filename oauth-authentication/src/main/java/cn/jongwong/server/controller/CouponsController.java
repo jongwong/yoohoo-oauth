@@ -1,24 +1,31 @@
 package cn.jongwong.server.controller;
 
+import cn.jongwong.server.dto.product.CommonBatchDTO;
 import cn.jongwong.server.dto.product.CommonRejectDTO;
 import cn.jongwong.server.entity.CouponsVO;
+import cn.jongwong.server.entity.UserCouponsVO;
 import cn.jongwong.server.service.CouponsService;
+import cn.jongwong.server.service.UserCouponsService;
 import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admin/coupons")
 public class CouponsController {
 
-    private final CouponsService couponsService;
+    @Autowired
+    private CouponsService couponsService;
 
     @Autowired
-    public CouponsController(CouponsService couponsService) {
-        this.couponsService = couponsService;
-    }
+    private UserCouponsService userCouponsService;
+
+
+
 
     @GetMapping
     public Mono<PageResponse<CouponsVO>> search(@RequestParam(required = false) String name,
@@ -76,5 +83,12 @@ public class CouponsController {
         return couponsService.approve(id)
                 .map(Response::success)
                 .defaultIfEmpty(Response.notFound());
+    }
+
+
+    @PostMapping("/{id}/issue")
+    public Mono<Response<List<UserCouponsVO>>> issueByUserIds(@PathVariable String id, @RequestBody CommonBatchDTO data) {
+        return userCouponsService.issue(data.getIds(), id).collectList()
+                .map(Response::success);
     }
 }

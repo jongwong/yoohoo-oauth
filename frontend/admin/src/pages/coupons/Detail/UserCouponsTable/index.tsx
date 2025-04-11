@@ -1,12 +1,12 @@
 import React from 'react';
-import type { ProTableColumnType } from '@yoo/pro-component';
+import type { ProTableColumnType, ProTableProps } from '@yoo/pro-component';
 import { EDefaultValueType, ProTable } from '@yoo/pro-component';
 import http from '@/utils/http';
 import { Card } from 'antd';
 
 type UserCouponsTableProps = {
 	couponsId?: string;
-};
+} & Partial<ProTableProps>;
 const UserCouponsTable: React.FC<UserCouponsTableProps> = props => {
 	const { couponsId, ...rest } = props;
 	const columns: ProTableColumnType[] = [

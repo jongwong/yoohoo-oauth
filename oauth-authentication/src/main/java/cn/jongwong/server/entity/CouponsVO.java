@@ -52,7 +52,7 @@ public class CouponsVO {
     private Integer status = 0; // Status: (0: Draft, 1: Under Review, 2: Rejected, 3: Approved, 4: Expired)
 
     @Schema(description = "是否禁用 (0: 否, 1: 是)")
-    private Integer disable = 0;
+    private Integer disable = 1;
 
 
     @Schema(description = "审核拒绝原因 (仅在审核拒绝时有效)")

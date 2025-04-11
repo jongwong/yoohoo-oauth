@@ -11,3 +11,7 @@ export const getCouponsById = (couponsId: string) => {
 export const getCouponsPage = (params: Record<string, any>) => {
 	return http.get('/admin/coupons', { params });
 };
+
+export const issueCouponsBatch = (id: string, data: { ids: string[] }) => {
+	return http.post(`/admin/coupons/${id}/issue`, data);
+};

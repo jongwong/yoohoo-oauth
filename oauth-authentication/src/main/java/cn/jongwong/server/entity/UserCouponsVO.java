@@ -55,4 +55,12 @@ public class UserCouponsVO {
 
     @Schema(description = "发放时间")
     private LocalDateTime createdAt;
+
+
+    @Schema(description = "创建人id")
+    private String createdBy;
+
+
+    @Schema(description = "创建人id")
+    private String createdByName;
 }

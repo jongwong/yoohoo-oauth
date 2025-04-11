@@ -15,6 +15,7 @@ type ProFieldProps<T = any> = {
 	_isTable?: boolean;
 	labelCol?: FormItemProps['labelCol'];
 	wrapperCol?: FormItemProps['wrapperCol'];
+	_needLayout?: boolean;
 } & BaseFormProFieldType<T>;
 const InerProField: React.FC<
 	ProFieldProps & {
@@ -141,7 +142,7 @@ const ProField: React.FC<
 			wrapperCol?: FormItemProps['wrapperCol'];
 	  }
 > = props => {
-	const { labelCol, wrapperCol, ...rest } = props;
+	const { labelCol, wrapperCol, _needLayout, ...rest } = props;
 	const _props = rest as any;
 	const _allEditable = !!_props?.allEditable;
 	const getTransformField = (field: any) => {
@@ -161,11 +162,12 @@ const ProField: React.FC<
 					labelCol: { span: 0 },
 					wrapperCol: { span: 24 },
 			  }
-			: { labelCol, wrapperCol, ...rawProps };
+			: { labelCol: field?.labelCol, wrapperCol: field?.wrapperCol, ...rawProps };
 		return (
 			<InerProField
 				{...formatField}
 				editable={editable && _allEditable}
+				_needLayout={_needLayout}
 				_allEditable={_allEditable}
 				formItemProps={_formItemProps}
 			/>

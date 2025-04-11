@@ -67,7 +67,7 @@ const OrderCreate: React.FC = () => {
   // 请求产品列表数据
   const { loading: couponsLoading, data: couponsList = [] } = useRequest(
     async () => {
-      return request.get(`/client/user/coupons`, {
+      return request.get(`/client/coupons/user`, {
         params: {},
       });
     },

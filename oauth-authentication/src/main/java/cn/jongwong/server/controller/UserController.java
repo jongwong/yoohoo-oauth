@@ -1,12 +1,16 @@
 package cn.jongwong.server.controller;
 
+import cn.jongwong.server.dto.product.CommonBatchDTO;
 import cn.jongwong.server.dto.user.UserRO;
 import cn.jongwong.server.entity.UserVO;
 import cn.jongwong.server.service.UserService;
 import cn.jongwong.server.util.response.PageResponse;
+import cn.jongwong.server.util.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/user")
@@ -54,5 +58,8 @@ public class UserController {
         return userService.deleteUser(id);
     }
 
-
+    @PostMapping("/batch")
+    public Mono<Response<List<UserRO>>> getListByIds(@RequestBody CommonBatchDTO data) {
+        return userService.findAllByIds(data.getIds()).collectList().map(Response::success);
+    }
 }

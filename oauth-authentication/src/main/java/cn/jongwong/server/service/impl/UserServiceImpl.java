@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -183,5 +184,11 @@ public class UserServiceImpl implements UserService {
     public Mono<UserRO> findById(String id) {
         return userRepository.findById(id).map((e) -> MapperUtil.mapFields(e, UserRO.class));
     }
+
+    public Flux<UserRO> findAllByIds(List<String> ids) {
+        return userRepository.findAllByIdIn(ids).map((e) -> MapperUtil.mapFields(e, UserRO.class));
+    }
+
+
 
 }

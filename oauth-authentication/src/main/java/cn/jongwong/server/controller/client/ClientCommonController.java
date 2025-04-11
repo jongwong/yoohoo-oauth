@@ -10,10 +10,9 @@ import cn.jongwong.server.dto.order.OrderSubmitDTO;
 import cn.jongwong.server.entity.DistributionPointVO;
 import cn.jongwong.server.entity.OrderVO;
 import cn.jongwong.server.entity.OrderWithInfoVO;
-import cn.jongwong.server.service.DistributionPointService;
-import cn.jongwong.server.service.GroupAdminService;
-import cn.jongwong.server.service.OrderService;
-import cn.jongwong.server.service.UserService;
+import cn.jongwong.server.entity.UserCouponsRO;
+import cn.jongwong.server.enums.GlobalEnableTypeEnum;
+import cn.jongwong.server.service.*;
 import cn.jongwong.server.util.response.PageResponse;
 import cn.jongwong.server.util.response.Response;
 import com.aliyun.oss.OSS;
@@ -61,6 +60,9 @@ public class ClientCommonController {
     @Autowired
     private DistributionPointService distributionPointService;
 
+
+    @Autowired
+    private UserCouponsService userCouponsService;
 
     @PostMapping("/oss/upload")
     public Mono<Map<String, String>> upload(@RequestPart("file") Mono<FilePart> filePartMono,
@@ -272,6 +274,13 @@ public class ClientCommonController {
         return orderService.refundApproveReject(data).map(Response::ok);
     }
 
+    @GetMapping("/coupons/user")
+    public Mono<Response<List<UserCouponsRO>>> getUserCoupons() {
+
+        return userService.getCurrentUserReactive()
+                .flatMap(u -> userCouponsService.getUserCouponsByUserId(u.getId(), GlobalEnableTypeEnum.ENABLE.getValue()).collectList()).map(Response::ok);
+
+    }
 
 
 }

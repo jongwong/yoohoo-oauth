@@ -27,7 +27,7 @@ const Index: React.FC = () => {
     );
 
   const { loading: couponsLoading, data: couponList } = UseRequest(() => {
-    return request.get("/client/user/coupons");
+    return request.get("/client/coupons/user");
   }, {});
 
   return (

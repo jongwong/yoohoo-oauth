@@ -4,7 +4,10 @@ import cn.jongwong.server.dto.user.CurrentAuthenticationUserRO;
 import cn.jongwong.server.dto.user.UserRO;
 import cn.jongwong.server.entity.UserVO;
 import cn.jongwong.server.util.response.Page;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public interface UserService {
 
@@ -45,7 +48,8 @@ public interface UserService {
     CurrentAuthenticationUserRO getCurrentUser();
 
 
+    Mono<UserRO> findById(String id);
 
-    public Mono<UserRO> findById(String id);
+    Flux<UserRO> findAllByIds(List<String> ids);
 
 }

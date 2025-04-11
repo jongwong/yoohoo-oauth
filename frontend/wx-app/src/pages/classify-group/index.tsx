@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import Layout from "@/component/Layout";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
@@ -11,29 +11,42 @@ import SwiperDatePicker from "./component/DatePicker";
 import ScrollPage from "@/component/ScrollPage";
 import GroupItemCard from "@/pages/admin/group/list/GroupItemCard";
 import Taro from "@tarojs/taro";
+import { useGetState } from "ahooks";
 
 const Index: React.FC = () => {
   // State hooks
-  const [selectTime, setSelectTime] = useState<Dayjs>(dayjs()); // 选择时间
+  const [selectTime, setSelectTime, getSelectTime] = useGetState<Dayjs>(
+    dayjs()
+  ); // 选择时间
 
   const actionRef = useRef();
   const [{ currentArea, loading: locationLoading }, LocationSelectHolder] =
-    useLocationSelect();
+    useLocationSelect({
+      onSelect: () => {
+        console.log("=====333=====", 333);
+        setTimeout(() => {
+          actionRef.current?.reload();
+        }, 200);
+      },
+    });
 
   // 请求产品列表数据
   const { data: groupData, runAsync: fetchData } = useRequest(
     async (params) => {
+      const _selectTime = getSelectTime();
       return request.get("/client/group", {
         params: {
           ...params,
-          time_delivery_start: selectTime?.startOf("day").valueOf(),
-          time_delivery_end: selectTime?.endOf("day").valueOf(),
+          time_delivery_start: _selectTime?.startOf("day").valueOf(),
+          time_delivery_end: _selectTime?.endOf("day").valueOf(),
           group_status: [20, 30],
           distribution_point_id: currentArea?.id,
         },
       });
     },
     {
+      ready: !!currentArea?.id && !!selectTime,
+      refreshDeps: [currentArea?.id, selectTime],
       manual: true,
     }
   );
@@ -46,7 +59,15 @@ const Index: React.FC = () => {
         {LocationSelectHolder}
         {/* Time Picker */}
         <View className={styles["timePickerBox"]}>
-          <SwiperDatePicker value={selectTime} onChange={setSelectTime} />
+          <SwiperDatePicker
+            value={selectTime}
+            onChange={(e) => {
+              setSelectTime(e);
+              setTimeout(() => {
+                actionRef.current?.reload();
+              }, 200);
+            }}
+          />
         </View>
 
         <ScrollPage

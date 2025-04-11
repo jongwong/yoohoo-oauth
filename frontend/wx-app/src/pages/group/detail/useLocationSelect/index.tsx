@@ -7,6 +7,7 @@ import { Icon, Picker } from "@antmjs/vantui";
 const useLocationSelect: (props?: {
   extra?: React.ReactNode;
   footer?: React.ReactNode;
+  onSelect?: (e: any) => void;
 }) => [
   {
     currentArea?: {
@@ -17,7 +18,7 @@ const useLocationSelect: (props?: {
   },
   React.ReactNode
 ] = (props = {}) => {
-  const { extra, footer } = props;
+  const { extra, footer, onSelect } = props;
   const [areaList, setAreaList] = useState<any[]>([]); // 区域列表
   const [locationLoading, setLocationLoading] = useState(false);
   const [addressPickVisible, setAddressPickVisible] = useState(false);
@@ -86,8 +87,14 @@ const useLocationSelect: (props?: {
                 }))}
                 idKey={"value"}
                 onConfirm={(e) => {
-                  const find = areaList.find((it) => it.id === e?.[0]?.value);
-                  setCurrentArea(find);
+                  const find = areaList.find(
+                    (it) => it.id === e?.detail?.value?.value
+                  );
+                  if (find?.id !== currentArea?.id) {
+                    setCurrentArea(find);
+                    onSelect?.(find);
+                  }
+
                   setAddressPickVisible(false);
                 }}
                 mode={"content"}

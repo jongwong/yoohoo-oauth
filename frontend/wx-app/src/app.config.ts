@@ -37,6 +37,7 @@ export default defineAppConfig({
   },
   tabBar: {
     backgroundColor: "#ffffff",
+    selectedColor: "#8BC34A", // 选中时的文字颜色
     list: [
       {
         pagePath: "pages/home/index", // 正确的路径，指向 pages/home/index

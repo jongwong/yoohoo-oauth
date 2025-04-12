@@ -23,7 +23,6 @@ const Index: React.FC = () => {
   const [{ currentArea, loading: locationLoading }, LocationSelectHolder] =
     useLocationSelect({
       onSelect: () => {
-        console.log("=====333=====", 333);
         setTimeout(() => {
           actionRef.current?.reload();
         }, 200);

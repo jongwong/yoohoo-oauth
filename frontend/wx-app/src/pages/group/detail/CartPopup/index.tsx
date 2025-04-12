@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { ReactNode, useMemo, useState } from "react";
 import { Badge, Icon, Popup, Stepper } from "@antmjs/vantui";
 import { Text, View } from "@tarojs/components";
 import styles from "./index.module.less";
@@ -7,6 +7,7 @@ import { cloneDeep } from "lodash-es";
 import Image from "@/component/Image";
 import { generateFileUrl } from "@/utils/file";
 import Taro from "@tarojs/taro";
+import classNames from "classnames";
 
 type SkuPopupProps = {
   skuCountList: {
@@ -18,6 +19,8 @@ type SkuPopupProps = {
   onChange?: (e) => void;
   currentAreaId?: string;
   deliveryFee?: number;
+  disabled?: boolean;
+  submitText?: ReactNode;
 };
 const CartPopup: React.FC<SkuPopupProps> = (props) => {
   const {
@@ -25,6 +28,8 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
     currentAreaId,
     onChange,
     skuCountList,
+    disabled,
+    submitText,
     ...rest
   } = props;
 
@@ -44,9 +49,16 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
       return acc + val;
     }, 0);
   }, [skuCountList]);
+
+  if (!currentAreaId) {
+    return;
+  }
   return (
     <>
-      <View className={styles["cart-popup"]}>
+      <View
+        className={styles["cart-popup"]}
+        // style={{ height: !skuCountList.length ? 0 : undefined }}
+      >
         <View className={styles["cart-popup-content"]}>
           <View
             className={styles["cart-popup-content-left"]}
@@ -82,10 +94,18 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
             </View>
           </View>
 
-          <View className={styles["cart-popup-content-right"]}>
+          <View
+            className={classNames(
+              styles["cart-popup-content-right"],
+              true && "van-button--disabled"
+            )}
+          >
             <View
-              className={styles["cart-popup-submit-right"]}
+              className={classNames(styles["cart-popup-submit-right"])}
               onClick={() => {
+                if (disabled) {
+                  return;
+                }
                 wx.setStorageSync("CART_SKU_COUNT_LIST", skuCountList);
                 if (currentAreaId) {
                   Taro.navigateTo({
@@ -94,7 +114,7 @@ const CartPopup: React.FC<SkuPopupProps> = (props) => {
                 }
               }}
             >
-              去结算
+              {submitText || "去结算"}
             </View>
           </View>
         </View>

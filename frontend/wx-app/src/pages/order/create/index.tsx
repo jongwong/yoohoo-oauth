@@ -15,6 +15,7 @@ import CouponsPicker from "@/pages/order/create/components/CouponsPicker";
 import { useUpdate } from "ahooks";
 import { transformMoney } from "@/utils/number";
 import { gotoPayPageResult } from "@/pages/order/utils";
+import dayjs from "dayjs";
 
 const OrderCreate: React.FC = () => {
   const router = useRouter();
@@ -246,6 +247,7 @@ const OrderCreate: React.FC = () => {
     setSaveLoading(false);
   };
 
+  const isOverTime = groupData?.time_end < dayjs().valueOf();
   return (
     <Form initialValues={{ code: 3 }} form={form}>
       <Layout
@@ -269,7 +271,9 @@ const OrderCreate: React.FC = () => {
               type="primary"
               block
               size={"small"}
+              disabled={isOverTime}
               style="margin-left: 120px"
+              loadingMode={"toast"}
               onClick={() => submitHandle()}
             >
               立即支付

@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration"; // 引入 duration 插件
 import relativeTime from "dayjs/plugin/relativeTime";
 import { divide } from "@/utils/number";
-import { cloneDeep } from "lodash-es";
+import { cloneDeep, isNumber } from "lodash-es";
 import { getFinallyPrice } from "@/utils/product";
 import Taro from "@tarojs/taro";
 
@@ -25,6 +25,7 @@ type ProductCardItemProps = {
   skuCountList: any[];
   productData: any;
   onOpenSku?: () => void;
+  saleQuantity?: number;
 };
 
 const ProductCardItem: React.FC<ProductCardItemProps> = ({
@@ -35,14 +36,11 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
   originalPrice,
   hasMultipleSku,
   skuCountList = [],
+  saleQuantity,
   onOpenSku,
   onChange,
 }) => {
   const finalPrice = price || originalPrice;
-
-  function roundUpToMultiple(num: number) {
-    return Math.ceil(num / 10) * 10;
-  }
 
   const productCount = useMemo(() => {
     const currentSkuList = (skuCountList || []).filter((it) => {
@@ -196,8 +194,10 @@ const ProductCardItem: React.FC<ProductCardItemProps> = ({
           <Text className={styles.title}>{title}</Text>
 
           <View className={styles.InfoDesc}>
-            <Text>已拼{roundUpToMultiple(0)}份</Text>
-            <Text></Text>
+            <View>
+              {isNumber(saleQuantity) ? `已拼${saleQuantity}份` : " "}
+            </View>
+            <View></View>
           </View>
         </View>
 

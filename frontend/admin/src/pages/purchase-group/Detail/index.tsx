@@ -124,9 +124,6 @@ const Detail: React.FC = () => {
 			formItemProps: {
 				rules: [{ required: true }],
 			},
-			fieldProps: {
-				disabled: true,
-			},
 		},
 		{
 			label: '配送地址',

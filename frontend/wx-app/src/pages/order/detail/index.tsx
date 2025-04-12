@@ -49,7 +49,7 @@ const OrderDetail: React.FC<{}> = () => {
       ready: orderData?.ref_type === 1 && !!orderData?.ref_id,
     }
   );
-
+  const isOverTime = groupData?.time_end < dayjs().valueOf();
   const submitHandle = async () => {
     setSaveLoading(true);
     const res = await request
@@ -92,6 +92,7 @@ const OrderDetail: React.FC<{}> = () => {
               type="primary"
               block
               size={"small"}
+              disabled={isOverTime}
               style="margin-left: 120px"
               onClick={() => submitHandle()}
             >

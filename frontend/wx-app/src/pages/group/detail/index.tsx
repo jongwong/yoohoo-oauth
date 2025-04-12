@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Layout from "@/component/Layout";
 import useRequest from "@/hooks/useRequest";
 import request from "@/utils/request";
@@ -12,6 +12,7 @@ import { View } from "@tarojs/components";
 import { Divider, Image } from "@antmjs/vantui";
 import styles from "./index.module.less";
 import { formatMiddleTime } from "@/utils/date";
+import dayjs from "dayjs";
 
 const Index: React.FC = () => {
   const router = useRouter();
@@ -75,6 +76,31 @@ const Index: React.FC = () => {
     return item.product_name + (item.sku_name ? "  " + item.sku_name : "");
   };
 
+  const isOverTime = groupDetailData?.time_end < dayjs().valueOf();
+
+  const orderCountMap = useMemo(() => {
+    const ob = {};
+    orderList
+      .map((it) => it.items)
+      .flat()
+      .forEach((item) => {
+        ob[item?.product_id] = (ob[item?.product_id] || 0) + item.count;
+      });
+
+    return ob;
+  }, [orderList]);
+  const orderItemsCount = useMemo(() => {
+    let val = 0;
+    orderList
+      .map((it) => it.items)
+      .flat()
+      .forEach((item) => {
+        val = (val || 0) + item.count;
+      });
+
+    return val;
+  }, [orderList]);
+
   return (
     <Layout
       loading={loading || deliveryFeeLoading || orderLoading}
@@ -121,6 +147,7 @@ const Index: React.FC = () => {
               onOpenSku={() => {
                 setPopupOpenProductId(it.product_id);
               }}
+              saleQuantity={orderCountMap[it.product_id] || 0}
               skuCountList={skuCountList}
               onChange={(e) => {
                 setSkuCountList(e);
@@ -131,15 +158,20 @@ const Index: React.FC = () => {
         })}
 
         <View className={"bg-white p-16"}>
-          <View
-            className={"text-base mb-4"}
-            style={{
-              borderLeft: "4px solid #8bc34a",
-              paddingLeft: "10px",
-            }}
-          >
-            购买记录
+          <View className={"flex justify-between items-center"}>
+            <View
+              className={"text-base mb-4"}
+              style={{
+                borderLeft: "4px solid #8bc34a",
+                paddingLeft: "10px",
+              }}
+            >
+              购买记录
+            </View>
+
+            <View className={"text-grey-dark"}>已售{orderItemsCount}份</View>
           </View>
+
           {orderList?.map((item, idx) => {
             return (
               <View key={item.id} className={styles.orderCardItem}>
@@ -185,6 +217,8 @@ const Index: React.FC = () => {
         onChange={(e) => {
           setSkuCountList(e);
         }}
+        submitText={isOverTime ? "已结束" : "去结算"}
+        disabled={isOverTime}
         deliveryFee={deliveryFee}
       />
       <SkuPopup

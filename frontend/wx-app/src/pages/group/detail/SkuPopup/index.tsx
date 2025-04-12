@@ -30,6 +30,9 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
     }[]
   >([]);
   const [selectSku, setSelectSku] = useState<(string | undefined)[]>([]);
+  const [selectCurrentProductId, setSelectCurrentProductId] = useState<
+    string | undefined
+  >();
 
   const { data: skuData, loading: skuLoading } = useRequest(
     async () => {
@@ -47,20 +50,26 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
         });
       }
 
-      return res?.data?.map((it) => {
+      let _clearSku: any = [];
+      const skuList = res?.data?.map((it) => {
         let li = [];
         try {
           li = JSON.parse(it.sku_parameter) || [];
         } catch (e) {}
         setSkuParameter(li);
 
-        setSelectSku(li.map(() => undefined));
-
+        _clearSku = li.map(() => undefined);
         return {
           ...it,
           sku_parameter: li,
         };
       });
+
+      if (selectCurrentProductId !== productId) {
+        setSelectSku(_clearSku);
+      }
+
+      return skuList;
     },
     {
       ready: !!productId && show,
@@ -99,13 +108,23 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
 
   const currentSku = (skuCountList || []).find((it) => {
     const find = getFindSku();
-    return it.product_id === productId && find?.id === it.sku_id;
+    const curSkuName = selectSku.filter(Boolean).join("/");
+    return (
+      it.product_id === productId &&
+      find?.id === it.sku_id &&
+      curSkuName === it.sku_name
+    );
   });
 
   const changeCount = (isAdd?: boolean) => {
+    const curSkuName = selectSku.filter(Boolean).join("/");
+    const findSku = getFindSku();
     const findIndex = (skuCountList || []).findIndex((it) => {
-      const find = getFindSku();
-      return it.product_id === productId && find?.id === it.sku_id;
+      return (
+        it.product_id === productId &&
+        findSku?.id === it.sku_id &&
+        it.sku_name === curSkuName
+      );
     });
     const find = skuCountList?.[findIndex];
     if (isAdd) {
@@ -118,7 +137,7 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
           count: 1,
           product_id: productId,
           sku_id: _find?.id,
-          sku_name: selectSku.filter(Boolean).join("/"),
+          sku_name: curSkuName,
           purchase_group_id: groupId,
           data: {
             product_id: productData?.id,
@@ -168,6 +187,7 @@ const SkuPopup: React.FC<SkuPopupProps> = (props) => {
                       } else {
                         selectSku[skuIndex] = option;
                       }
+                      setSelectCurrentProductId(productId);
 
                       setSelectSku([...selectSku]);
                     }}

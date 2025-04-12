@@ -23,7 +23,7 @@ const GroupItemCard: React.FC<{
         <View className={"w-1-1 flex justify-between"}>
           <Text className={styles.title}>{item.name}</Text>
 
-          <Tag className={"mr-8"} status={statusMap?.status as any}>
+          <Tag className={"mr-8"} status={statusMap?.status as any} plain>
             {statusMap?.text}
           </Tag>
         </View>
